@@ -71,47 +71,51 @@ class _ToeflAudioPlayerState extends State<ToeflAudioPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Tentukan ukuran berdasarkan lebar layar yang tersedia
+        final screenWidth = constraints.maxWidth;
+        final iconSize = screenWidth * 0.08; // Sesuaikan ukuran ikon
+        final fontSize = screenWidth * 0.04; // Ukuran font
 
-    return BlueContainer(
-      innerShadow: true,
-      color: mariner200,
-      padding: 8.0,
-      width: screenWidth * 0.89,
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              handlePlayPause();
-            },
-            child: Icon(
-              player.playing ? Icons.pause : Icons.play_arrow_rounded,
-              color: HexColor(mariner900),
-              size: 35,
-            ),
+        return BlueContainer(
+          innerShadow: true,
+          color: mariner200,
+          padding: 8.0,
+          width: screenWidth * 1,
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: handlePlayPause,
+                child: Icon(
+                  player.playing ? Icons.pause : Icons.play_arrow_rounded,
+                  color: HexColor(mariner900),
+                  size: iconSize, // Sesuaikan ukuran ikon
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                Utils.formatDuration(position),
+                style: CustomTextStyle.normal12.copyWith(fontSize: fontSize),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                // Menggunakan Expanded agar Slider mengambil ruang yang tersedia
+                child: Slider(
+                  value: position.inSeconds.toDouble(),
+                  min: 0.0,
+                  max: duration.inSeconds.toDouble() > 0
+                      ? duration.inSeconds.toDouble()
+                      : 1.0,
+                  onChanged: (val) => handleSeek(val),
+                  activeColor: HexColor(mariner900),
+                  inactiveColor: Colors.white,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(
-            width: 10,
-          ),
-          Text(Utils.formatDuration(position), style: CustomTextStyle.normal12),
-          const SizedBox(
-            width: 10,
-          ),
-          SizedBox(
-            width: screenWidth * 0.6,
-            child: Slider(
-              value: position.inSeconds.toDouble(),
-              min: 0.0,
-              max: duration.inSeconds.toDouble(),
-              onChanged: (val) {
-                handleSeek(val);
-              },
-              activeColor: HexColor(mariner900),
-              inactiveColor: Colors.white,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

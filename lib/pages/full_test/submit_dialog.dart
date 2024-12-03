@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:toefl/utils/hex_color.dart';
+import 'package:toefl/widgets/blueButtonNew.dart';
 import 'package:toefl/widgets/blue_button.dart';
 import 'package:toefl/widgets/border_button.dart';
 
@@ -32,7 +33,7 @@ class SubmitDialog extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         child: Column(
           children: [
             Text(
@@ -55,7 +56,7 @@ class SubmitDialog extends StatelessWidget {
                     },
                     size: screenWidth * 0.3),
                 const Spacer(),
-                BlueButton(
+                BlueButtonNew(
                     title: "Yes",
                     onTap: () {
                       onYes();
