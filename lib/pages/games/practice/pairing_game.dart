@@ -1,19 +1,15 @@
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:toefl/models/word_synonym.dart';
 import 'package:toefl/remote/api/mini_game_api.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
-import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
-
 import '../../../widgets/games/game_app_bar.dart';
 
 class PairingGame extends StatefulWidget {
@@ -30,14 +26,36 @@ class _PairingGameState extends State<PairingGame> {
   List<int> matchedIndices = [];
   List<String> synonymWordIds = [];
   int score = 5;
-  String feedbackMessage = '';
 
   @override
   void initState() {
     super.initState();
-
     _loadWords();
-    print(words);
+  }
+
+  Future<List<String>> _fetchSynonyms(String word) async {
+    try {
+      const apiKey = "bii7RODT1iR81dutBz28KQ==tFMaURfnP9j7K1yl";
+      final url = "https://api.api-ninjas.com/v1/thesaurus?word=$word";
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {"X-Api-Key": apiKey},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data.containsKey('synonyms') && data['synonyms'] is List) {
+          return List<String>.from(data['synonyms']).take(3).toList();
+        }
+      } else {
+        print("Failed to fetch synonyms: ${response.body}");
+      }
+    } catch (e) {
+      print("Error fetching synonyms: $e");
+    }
+
+    return [];
   }
 
   void _loadWords() async {
@@ -48,15 +66,25 @@ class _PairingGameState extends State<PairingGame> {
     synonymWordIds = [];
     score = 5;
 
-    String jsonData = await rootBundle.loadString('assets/json/synonym.json');
-    final List<dynamic> parsedJson = jsonDecode(jsonData);
-    List<WordSynonym> allWords =
-        parsedJson.map((json) => WordSynonym.fromJson(json)).toList();
-    allWords.shuffle();
+    List<String> wordList = ["strong", "happy", "fast"]; // Replace with desired words.
+    List<WordSynonym> generatedWords = [];
+
+    for (String word in wordList) {
+      List<String> synonyms = await _fetchSynonyms(word);
+      if (synonyms.isNotEmpty) {
+        generatedWords.add(WordSynonym(
+          id: Id(oid: wordList.indexOf(word).toString()),
+          word: word,
+          synonyms: synonyms,
+        ));
+      }
+    }
+
     setState(() {
-      words = allWords.take(3).toList();
-      synonymWordIds = words.map((word) => word.id.oid.toString()).toList();
+      words = generatedWords;
+      synonymWordIds = words.map((word) => word.id!.oid.toString()).toList();
     });
+
     _prepareGame();
   }
 
@@ -80,9 +108,7 @@ class _PairingGameState extends State<PairingGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GameAppBar(
-        title: 'Synonym Pairing',
-      ),
+      appBar: GameAppBar(title: 'Synonym Pairing'),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Center(
@@ -101,17 +127,18 @@ class _PairingGameState extends State<PairingGame> {
                     child: Stack(
                       alignment: Alignment.bottomCenter,
                       children: [
-                        SvgPicture.asset(
-                            'assets/images/game_pairing_score.svg'),
+                        SvgPicture.asset('assets/images/game_pairing_score.svg'),
                         Positioned(
-                            bottom: 17,
-                            child: Text(
-                              '${score}',
-                              style: GoogleFonts.nunito(
-                                  fontSize: 22,
-                                  color: HexColor(neutral10),
-                                  fontWeight: FontWeight.w900),
-                            )),
+                          bottom: 17,
+                          child: Text(
+                            '$score',
+                            style: GoogleFonts.nunito(
+                              fontSize: 22,
+                              color: HexColor(neutral10),
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   )
@@ -120,10 +147,10 @@ class _PairingGameState extends State<PairingGame> {
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                     child: GridView.builder(
                       shrinkWrap: true,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 24,
                         mainAxisSpacing: 24,
@@ -210,7 +237,7 @@ class _PairingGameState extends State<PairingGame> {
       }
       return;
     }
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         selectedIndices.clear();
       });
