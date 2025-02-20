@@ -23,7 +23,6 @@ class _LearningPathPageState extends State<LearningPathPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
