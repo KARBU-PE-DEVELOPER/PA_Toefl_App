@@ -66,7 +66,7 @@ class _PairingGameState extends State<PairingGame> {
     synonymWordIds = [];
     score = 5;
 
-    List<String> wordList = ["strong", "happy", "fast"]; // Replace with desired words.
+    List<String> wordList = ["strong", "happy", "fast"]; 
     List<WordSynonym> generatedWords = [];
 
     for (String word in wordList) {
