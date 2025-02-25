@@ -30,8 +30,30 @@ const mariner800 = "#335A9A";
 const mariner500 = "#569BDB";
 const mariner950 = "#20304B";
 const menuSoftBlue = "#2BBDFB";
-const softBlue = "#D9D9D9";
+// const softBlue = "#D9D9D9";
 
 const goldMedal = "#F7B64C";
 const silverMedal = "#959799";
 const bronzeMedal = "#DF9154";
+
+// blue PENS
+// BLUE
+const deepSkyBlue = "#3E87FF";
+const skyBlue = "#6DC8FF";
+const softBlue = "#D8E9FF";
+const royalBlue = "#3A71D5";
+
+// GREEN
+const seaGreen = "#57C6A8";
+
+// TURQUOISE
+const paleTurquoise = "#D8FFF0";
+
+// ORANGE
+const goldenOrange = "#F1B14C";
+
+// RED
+const brightRed = "#F44336";
+
+// NEUTRAL
+const softCream = "#FFF3D8";

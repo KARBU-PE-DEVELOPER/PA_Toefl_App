@@ -41,6 +41,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/app/build.gradle
+
+/gradle/wrapper
 
 /lib/firebase_options.dart
 *.g.dart
@@ -59,3 +62,5 @@ GeneratedPluginRegistrant.*
 generated_plugin*
 
 ios/Runner/GoogleService-Info.plist
+
+.vscode/templates

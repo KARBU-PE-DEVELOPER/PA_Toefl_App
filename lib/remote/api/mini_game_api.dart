@@ -11,7 +11,7 @@ class MiniGameApi {
   Future<bool> storeScrambledWord(String wordId, bool isTrue) async {
     try {
       final Response rawResponse = await DioToefl.instance.post(
-          '${Env.gameUrl}/minigames/scrambled=word-game',
+          '${Env.gameUrl}/minigames/scrambled-word-game',
           data: {'word_id': wordId, 'is_true': isTrue});
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
