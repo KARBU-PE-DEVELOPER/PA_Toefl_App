@@ -12,6 +12,7 @@ import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/blue_container.dart';
 import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
+import 'package:flutter_lock_task/flutter_lock_task.dart';
 
 import '../../models/test/packet.dart';
 import '../../models/test/test_status.dart';
@@ -102,145 +103,146 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: CommonAppBar(title: 'FULL TEST'),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: SingleChildScrollView(
-            child: Skeletonizer(
-              enabled: isLoading,
-              child: Column(
-                children: isLoading
-                    ? List.generate(
-                        4,
-                        (index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
-                          child: Skeleton.leaf(
-                              child: PacketCard(
-                                  title: "",
-                                  questionCount: 0,
-                                  accuracy: 0,
-                                  onTap: () {},
-                                  isOnGoing: false,
-                                  isDisabled: true)),
+      backgroundColor: Colors.white,
+      appBar: CommonAppBar(title: 'FULL TEST'),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: SingleChildScrollView(
+          child: Skeletonizer(
+            enabled: isLoading,
+            child: Column(
+              children: isLoading
+                  ? List.generate(
+                      4,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: Skeleton.leaf(
+                          child: PacketCard(
+                            title: "",
+                            questionCount: 0,
+                            accuracy: 0,
+                            onTap: () {},
+                            isDisabled: false,
+                          ),
                         ),
-                      )
-                    : packets.isNotEmpty
-                        ? List.generate(packets.length, (index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: PacketCard(
-                                  title: packets[index].name.toUpperCase(),
-                                  questionCount: 140,
-                                  isDisabled:
-                                      !(packets[index].questionCount == 140),
-                                  accuracy: packets[index].accuracy,
-                                  onTap: () async {
-                                    if ((!packets[index].wasFilled) ||
-                                        testStatus != null &&
-                                            testStatus!.id ==
-                                                packets[index].id) {
-                                      if (testStatus != null &&
-                                          testStatus!.id == packets[index].id) {
-                                        Navigator.of(context).pushNamed(
-                                            RouteKey.openingLoadingTest,
-                                            arguments: {
-                                              "id": packets[index].id,
-                                              "isRetake":
-                                                  packets[index].wasFilled,
-                                              "packetName": packets[index].name
-                                            }).then((value) {
-                                          _onInit();
-                                          _pushReviewPage(packets[index]);
-                                        });
-                                      } else if (testStatus == null) {
-                                        Navigator.of(context).pushNamed(
-                                            RouteKey.openingLoadingTest,
-                                            arguments: {
-                                              "id": packets[index].id,
-                                              "packetName": packets[index].name,
-                                              "isRetake":
-                                                  packets[index].wasFilled
-                                            }).then((value) {
-                                          _onInit();
-                                          _pushReviewPage(packets[index]);
-                                        });
-                                      }
-                                    } else {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext submitContext) {
-                                          return ModalConfirmation(
-                                            message: "you_ve_finished_your_test"
-                                                .tr(),
-                                            leftTitle: 'review'.tr(),
-                                            rightTitle: 'retake'.tr(),
-                                            rightFunction: () {
-                                              Navigator.of(submitContext).pop();
-                                              Navigator.of(context).pushNamed(
-                                                  RouteKey.openingLoadingTest,
-                                                  arguments: {
-                                                    "id": packets[index].id,
-                                                    "packetName":
-                                                        packets[index].name,
-                                                    "isRetake":
-                                                        packets[index].wasFilled
-                                                  }).then((value) {
-                                                _onInit();
-                                                _pushReviewPage(packets[index]);
+                      ),
+                    )
+                  : packets.isNotEmpty
+                      ? List.generate(packets.length, (index) {
+                          final packet = packets[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: PacketCard(
+                              title: packet.name.toUpperCase(),
+                              questionCount: packet.questionCount,
+                              accuracy: packet.accuracy,
+                              // Hapus logika isOnGoing, jadi properti ini tidak digunakan lagi
+                              isDisabled: !(packet.questionCount == 140),
+                              onTap: () async {
+                                // Jika paket belum dikerjakan, langsung navigasi ke halaman OpeningLoadingPage
+                                if (!packet.wasFilled) {
+                                  Navigator.of(context).pushNamed(
+                                      RouteKey.openingLoadingTest,
+                                      arguments: {
+                                        "id": packet.id,
+                                        "packetName": packet.name,
+                                        "isRetake": packet.wasFilled,
+                                      }).then((value) {
+                                    _onInit();
+                                    _pushReviewPage(packet);
+                                    FlutterLockTask()
+                                        .startLockTask()
+                                        .then((value) {
+                                      print(
+                                          "startLockTask: " + value.toString());
+                                    });
+                                  });
+                                } else {
+                                  // Tampilkan dialog konfirmasi jika paket sudah dikerjakan
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext submitContext) {
+                                      return ModalConfirmation(
+                                        message:
+                                            "you_ve_finished_your_test".tr(),
+                                        leftTitle: 'review'.tr(),
+                                        rightTitle:
+                                            // (testStatus?.status == 'complete')
+                                            //     ? 'start'.tr()
+                                            //     : 'continue'.tr(),
+                                            'retake'.tr(),
+                                        rightFunction: () {
+                                          Navigator.of(submitContext).pop();
+                                          Navigator.of(context).pushNamed(
+                                              RouteKey.openingLoadingTest,
+                                              arguments: {
+                                                "id": packet.id,
+                                                "packetName": packet.name,
+                                                "isRetake": packet.wasFilled,
+                                              }).then((value) {
+                                            _onInit();
+                                            _pushReviewPage(packet);
+                                            FlutterLockTask()
+                                                .startLockTask()
+                                                .then((value) {
+                                              print("startLockTask: " +
+                                                  value.toString());
+                                            });
+                                          });
+                                        },
+                                        leftFunction: () {
+                                          Navigator.of(submitContext).pop();
+                                          Navigator.pushNamed(
+                                              context, RouteKey.testresult,
+                                              arguments: {
+                                                "packetId": packet.id,
+                                                "isMiniTest": false,
+                                                "packetName": packet.name,
+                                              }).then((afterRetake) {
+                                            if (afterRetake == true) {
+                                              _onInit();
+                                              _pushReviewPage(packet);
+                                              FlutterLockTask()
+                                                  .startLockTask()
+                                                  .then((value) {
+                                                print("startLockTask: " +
+                                                    value.toString());
                                               });
-                                            },
-                                            leftFunction: () {
-                                              Navigator.of(submitContext).pop();
-                                              Navigator.pushNamed(
-                                                  context, RouteKey.testresult,
-                                                  arguments: {
-                                                    "packetId":
-                                                        packets[index].id,
-                                                    "isMiniTest": false,
-                                                    "packetName":
-                                                        packets[index].name
-                                                  }).then((afterRetake) {
-                                                if (afterRetake == true) {
-                                                  _onInit();
-                                                  _pushReviewPage(
-                                                      packets[index]);
-                                                }
-                                              });
-                                            },
-                                          );
+                                            }
+                                          });
                                         },
                                       );
-                                    }
-                                  },
-                                  isOnGoing: testStatus != null &&
-                                      testStatus!.id == packets[index].id),
-                            );
-                          })
-                        : [],
-              ),
+                                    },
+                                  );
+                                }
+                              },
+                            ),
+                          );
+                        })
+                      : [],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
 
 class PacketCard extends StatelessWidget {
-  const PacketCard(
-      {super.key,
-      required this.title,
-      required this.questionCount,
-      required this.accuracy,
-      required this.onTap,
-      required this.isOnGoing,
-      this.isDisabled = true});
+  const PacketCard({
+    Key? key,
+    required this.title,
+    required this.questionCount,
+    required this.accuracy,
+    required this.onTap,
+    this.isDisabled = true,
+  }) : super(key: key);
 
   final String title;
   final int questionCount;
   final int accuracy;
   final Function() onTap;
-  final bool isOnGoing;
-  final isDisabled;
+  final bool isDisabled;
 
   @override
   Widget build(BuildContext context) {
@@ -255,11 +257,10 @@ class PacketCard extends StatelessWidget {
           BlueContainer(
             showShadow: false,
             child: Row(
-              // Icon Gaming
               children: [
                 Container(
-                  width: MediaQuery.of(context).size.width * 1 / 8,
-                  height: MediaQuery.of(context).size.height * 1 / 16,
+                  width: MediaQuery.of(context).size.width / 8,
+                  height: MediaQuery.of(context).size.height / 16,
                   decoration: BoxDecoration(
                     color: HexColor(mariner600),
                     borderRadius: BorderRadius.circular(10),
@@ -273,30 +274,13 @@ class PacketCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.62,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 2.0),
-                        child: Row(
-                          children: [
-                            Text(
-                              title,
-                              style: CustomTextStyle.bold16,
-                            ),
-                            const Spacer(),
-                            isOnGoing
-                                ? Text(
-                                    "On Going",
-                                    style: CustomTextStyle.medium14.copyWith(
-                                      color: HexColor(colorSuccess),
-                                    ),
-                                  )
-                                : const SizedBox(),
-                          ],
-                        ),
+                      child: Text(
+                        title,
+                        style: CustomTextStyle.bold16,
                       ),
                     ),
                     Row(
@@ -310,7 +294,7 @@ class PacketCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                           child: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.3,
-                            height: MediaQuery.of(context).size.height * 1 / 64,
+                            height: MediaQuery.of(context).size.height / 64,
                             child: LinearProgressIndicator(
                               backgroundColor: HexColor(neutral40),
                               valueColor: AlwaysStoppedAnimation<Color>(
@@ -320,26 +304,27 @@ class PacketCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        Text("$accuracy%",
-                            style: CustomTextStyle.bold16
-                                .copyWith(color: HexColor(mariner700)))
+                        Text(
+                          "$accuracy%",
+                          style: CustomTextStyle.bold16
+                              .copyWith(color: HexColor(mariner700)),
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ],
             ),
           ),
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDisabled
-                    ? HexColor(neutral40).withOpacity(0.5)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(15),
+          if (isDisabled)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: HexColor(neutral40).withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(15),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

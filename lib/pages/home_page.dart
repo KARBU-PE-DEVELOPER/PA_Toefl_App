@@ -2,8 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
-import 'package:toefl/pages/games/practice/speaking_game.dart';
 import 'package:toefl/remote/local/shared_pref/test_shared_preferences.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
@@ -31,23 +29,23 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _init() async {
-    final fullTestStatus = await _testSharedPref.getStatus();
-    if (fullTestStatus != null && mounted) {
-      Navigator.of(context).pushNamed(RouteKey.openingLoadingTest, arguments: {
-        "id": fullTestStatus.id,
-        "isRetake": fullTestStatus.isRetake,
-        "packetName": fullTestStatus.name
-      });
-    }
+    // final fullTestStatus = await _testSharedPref.getStatus();
+    // if (fullTestStatus != null && mounted) {
+    //   Navigator.of(context).pushNamed(RouteKey.openingLoadingTest, arguments: {
+    //     "id": fullTestStatus.id,
+    //     "isRetake": fullTestStatus.isRetake,
+    //     "packetName": fullTestStatus.name
+    //   });
+    // }
 
-    final miniTestStatus = await _testSharedPref.getMiniStatus();
-    if (miniTestStatus != null && mounted) {
-      Navigator.of(context).pushNamed(RouteKey.openingMiniTest, arguments: {
-        "id": miniTestStatus.id,
-        "isRetake": miniTestStatus.isRetake,
-        "packetName": miniTestStatus.name
-      });
-    }
+    // final miniTestStatus = await _testSharedPref.getMiniStatus();
+    // if (miniTestStatus != null && mounted) {
+    //   Navigator.of(context).pushNamed(RouteKey.openingMiniTest, arguments: {
+    //     "id": miniTestStatus.id,
+    //     "isRetake": miniTestStatus.isRetake,
+    //     "packetName": miniTestStatus.name
+    //   });
+    // }
   }
 
   @override

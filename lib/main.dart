@@ -1,12 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:toefl/pages/games/practice/hangman_game.dart';
 import 'package:toefl/remote/local/shared_pref/localization_shared_pref.dart';
-import 'package:toefl/utils/local_notification.dart';
 import 'package:toefl/routes/navigator_key.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/routes/route_observer.dart';
@@ -17,7 +13,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:toefl/utils/locale.dart';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> f601d022a7bd5e1aa96fa7045ae95c201995675f
 // void main() => runApp(MyApp());
 
 // class MyApp extends StatelessWidget {
@@ -32,6 +31,10 @@ import 'package:toefl/utils/locale.dart';
 //         home: const HangmanGame());
 //   }
 // }
+<<<<<<< HEAD
+=======
+  
+>>>>>>> f601d022a7bd5e1aa96fa7045ae95c201995675f
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   requestNotificationPermission();

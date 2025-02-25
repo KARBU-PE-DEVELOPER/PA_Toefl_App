@@ -2,8 +2,6 @@ import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../utils/utils.dart';
-
 part 'test_status.g.dart';
 
 @JsonSerializable()

@@ -27,8 +27,8 @@ class FullTestApi {
 
   Future<List<Packet>> getAllPacket() async {
     try {
-      final Response rawResponse = await DioToefl.instance
-          .get('${Env.simulationUrl}/get-all-paket/full-test');
+      final Response rawResponse =
+          await DioToefl.instance.get('${Env.simulationUrl}/get-all-paket');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       return (response.data as List<dynamic>)

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
+    <uses-permission android:name="android.permission.MANAGE_DEVICE_ADMINS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
@@ -56,6 +56,16 @@
                 <data android:host="user.ciptakode.biz.id" />
             </intent-filter>
         </activity>
+        <receiver android:exported="true" android:name="flutter.lock.task.flutter_lock_task.DeviceAdmin" android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data android:name="android.app.device_admin" android:resource="@xml/policies" />
+                <intent-filter android:exported="true">
+                    <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+                    <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLE_REQUESTED" />
+                    <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLED" />
+                    <action android:name="android.intent.action.PROFILE_PROVISIONING_COMPLETE"/>
+                    <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

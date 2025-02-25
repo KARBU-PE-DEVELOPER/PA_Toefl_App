@@ -10,9 +10,9 @@ import 'package:toefl/pages/bookmark/bookmark_detail_page.dart';
 import 'package:toefl/pages/bookmark/bookmarked_page.dart';
 import 'package:toefl/pages/full_test/set_target_page.dart';
 
-import 'package:toefl/pages/mini_test/mini_opening_page.dart';
-import 'package:toefl/pages/mini_test/mini_simulation_page.dart';
-import 'package:toefl/pages/mini_test/mini_test_page.dart';
+// import 'package:toefl/pages/mini_test/mini_opening_page.dart';
+// import 'package:toefl/pages/mini_test/mini_simulation_page.dart';
+// import 'package:toefl/pages/mini_test/mini_test_page.dart';
 
 import 'package:toefl/pages/user/edit_profile_page.dart';
 import 'package:toefl/pages/full_test/opening_loading_page.dart';
@@ -155,25 +155,25 @@ final routes = <String, Widget Function(BuildContext)>{
       isFull: data?['isFull'] ?? false,
     );
   },
-  RouteKey.openingMiniTest: (context) {
-    final Map<String, dynamic>? data =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    return MiniOpeningPage(
-      packetId: data?["id"] ?? "",
-      isRetake: data?["isRetake"] ?? false,
-      packetName: data?["packetName"] ?? "",
-    );
-  },
-  RouteKey.miniTest: (context) {
-    final Map<String, dynamic>? data =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    debugPrint("data: $data");
-    return MiniTestPage(
-      diffInSec: data?["diffInSeconds"] ?? 0,
-      isRetake: data?["isRetake"] ?? false,
-    );
-  },
-  RouteKey.miniSimulationTest: (context) => const MiniSimulationPage(),
+  // RouteKey.openingMiniTest: (context) {
+  //   final Map<String, dynamic>? data =
+  //       ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+  //   return MiniOpeningPage(
+  //     packetId: data?["id"] ?? "",
+  //     isRetake: data?["isRetake"] ?? false,
+  //     packetName: data?["packetName"] ?? "",
+  //   );
+  // },
+  // RouteKey.miniTest: (context) {
+  //   final Map<String, dynamic>? data =
+  //       ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+  //   debugPrint("data: $data");
+  //   return MiniTestPage(
+  //     diffInSec: data?["diffInSeconds"] ?? 0,
+  //     isRetake: data?["isRetake"] ?? false,
+  //   );
+  // },
+  // RouteKey.miniSimulationTest: (context) => const MiniSimulationPage(),
   RouteKey.bookmark: (context) => const BookmarkedPage(),
   RouteKey.bookmarkDetail: (context) {
     final String? data = ModalRoute.of(context)?.settings.arguments as String?;
