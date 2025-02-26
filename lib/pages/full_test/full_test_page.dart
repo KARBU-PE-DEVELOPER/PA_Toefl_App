@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lock_task/flutter_lock_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -332,9 +333,15 @@ class FullTestPage extends ConsumerWidget {
                   submitResult = await ref
                       .read(fullTestProvider.notifier)
                       .resubmitAnswer();
+                  FlutterLockTask().stopLockTask().then((value) {
+                    print("stopLockTask: " + value.toString());
+                  });
                 } else {
                   submitResult =
                       await ref.read(fullTestProvider.notifier).submitAnswer();
+                  FlutterLockTask().stopLockTask().then((value) {
+                    print("stopLockTask: " + value.toString());
+                  });
                 }
                 if (submitResult) {
                   bool resetResult =
