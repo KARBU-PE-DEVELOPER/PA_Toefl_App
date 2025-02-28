@@ -14,7 +14,7 @@ class OnBoardingApi {
           await DioToefl.instance.get('${Env.mainUrl}/get-onboarding-target');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final List<dynamic> data = response.data;
+      final List<dynamic> data = response.payload;
       print(data);
       List<TargetOnboarding> targets =
           data.map((entry) => TargetOnboarding.fromJson(entry)).toList();

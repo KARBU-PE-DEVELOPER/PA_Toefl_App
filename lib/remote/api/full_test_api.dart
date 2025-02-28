@@ -18,7 +18,7 @@ class FullTestApi {
           await DioToefl.instance.get('${Env.simulationUrl}/get-pakets/$id');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return PacketDetail.fromJson(response.data);
+      return PacketDetail.fromJson(response.payload);
     } catch (e, trace) {
       debugPrint("ERROR getPacketDetail : $e $trace");
       return PacketDetail(id: "", name: "", questions: []);
@@ -31,7 +31,7 @@ class FullTestApi {
           await DioToefl.instance.get('${Env.simulationUrl}/get-all-paket');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return (response.data as List<dynamic>)
+      return (response.payload as List<dynamic>)
           .map((e) => Packet.fromJson(e))
           .toList();
     } catch (e) {
@@ -86,7 +86,7 @@ class FullTestApi {
           .get('${Env.simulationUrl}/answer/users/$packetId');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return (response.data as List<dynamic>)
+      return (response.payload as List<dynamic>)
           .map((e) => Answer.fromJson(e))
           .toList();
     } catch (e) {
@@ -101,7 +101,7 @@ class FullTestApi {
           .get('${Env.simulationUrl}/get-score/$packetId');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return Result.fromJson(response.data);
+      return Result.fromJson(response.payload);
     } catch (e) {
       debugPrint('error get test result: $e');
       return Result(

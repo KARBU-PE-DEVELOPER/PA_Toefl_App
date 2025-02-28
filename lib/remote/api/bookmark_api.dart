@@ -16,7 +16,7 @@ class BookmarkApi {
           await DioToefl.instance.patch('${Env.apiUrl}/update-bookmark/$id');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return response.data['bookmark'] ?? false;
+      return response.payload['bookmark'] ?? false;
     } catch (e) {
       return false;
     }
@@ -28,7 +28,7 @@ class BookmarkApi {
           await DioToefl.instance.get('${Env.apiUrl}/get-all-bookmark');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return (response.data as List)
+      return (response.payload as List)
           .map((e) => Bookmark.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
@@ -42,14 +42,14 @@ class BookmarkApi {
           await DioToefl.instance.get('${Env.apiUrl}/get-bookmark/$id');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return BookmarkDetail.fromJson(response.data);
+      return BookmarkDetail.fromJson(response.payload);
     } catch (e) {
       debugPrint('Error get bookmark detail: $e');
       return BookmarkDetail(
           id: '',
           question: '',
           keyQuestion: '',
-          isCorrect: false,
+          isCorrect: false, 
           userAnswer: '',
           nestedQuestion: '',
           choices: []);

@@ -22,20 +22,22 @@ class AskGrammarProviderStates extends _$AskGrammarProviderStates {
     return AskGrammarProviderState(askAI: askAIList);
   }
 
-  // Future<void> storeMessage(String userMessage) async {
-  //   state = const AsyncLoading(); // Tampilkan loading sebelum request
-  //   try {
-  //     final response = await AskAIAPI().storeMessage(userMessage);
-  //     print(response);
-  //     // if (response.success) {
-  //     //   final updatedAskAIList = await AskAIAPI().getAllAskGrammar();
-  //     //   state = AsyncData(AskGrammarProviderState(askAI: updatedAskAIList));
-  //     // } else {
-  //     //   state = AsyncError(response.message ?? "Failed to store message", StackTrace.current);
-  //     // }
-  //   } catch (e, stackTrace) {
-  //     print("Error in storeMessage: $e");
-  //     state = AsyncError(e, stackTrace);
-  //   }
-  // }
+  Future<AskAI?> storeMessage(List<Map<String, dynamic>> ask) async {
+    state = const AsyncLoading(); // Set state loading
+    try {
+      final response = await AskAIAPI().storeMessage(ask);
+      return AskAI(
+          id: response.last.id,
+          userMessage: response.last.userMessage,
+          botResponse: response.last.botResponse,
+          isCorrect: response.last.isCorrect,
+          incorrectWord: response.last.incorrectWord,
+          englishSentence: response.last.englishSentence,
+          accuracyScore: response.last.accuracyScore,
+          explanation: response.last.explanation);
+    } catch (e, stackTrace) {
+      state = AsyncError(e, stackTrace);
+      return null;
+    }
+  }
 }

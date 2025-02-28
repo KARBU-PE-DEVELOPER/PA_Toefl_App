@@ -1,4 +1,7 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
+import 'package:toefl/models/ask-ai/ask-ai_detail.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,13 +15,37 @@ class AskGrammarPage extends ConsumerStatefulWidget {
 }
 
 class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
-  final TextEditingController _textController = TextEditingController();
+  final List<TextEditingController> _textControllers = _textControllers.last.text.trim();
+  final List<String> _messages = [];
+  String _accuracyPercentage = "0";
 
-  void _sendMessage() {
-    final userMessage = _textController.text.trim();
-    if (userMessage.isNotEmpty) {
-      ref.read(askGrammarProviderStatesProvider.notifier).storeMessage(userMessage);
-      _textController.clear(); // Bersihkan input setelah mengirim pesan
+  _sendMessage() async {
+    if (_textControllers.isEmpty) return;
+
+    String userMessage = _textControllers.last.text.trim();
+    if (userMessage.isEmpty) return;
+
+    final askAI = AskAI(
+      id: "",
+      userMessage: userMessage,
+      botResponse: "",
+      isCorrect: false,
+      incorrectWord: "",
+      englishSentence: "",
+      accuracyScore: "",
+      explanation: "",
+    );
+
+    final response = await ref
+        .read(askGrammarProviderStatesProvider.notifier)
+        .storeMessage(userMessage);
+
+    if (response != null) {
+      setState(() {
+        _accuracyPercentage = response.accuracyScore ?? "0";
+        _messages.add(response.botResponse ?? "No response");
+        _textControllers.add(TextEditingController()); // Tambah input baru
+      });
     }
   }
 
@@ -40,7 +67,7 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.view_sidebar, color: Colors.black),
+            icon: const Icon(Icons.view_sidebar_outlined, color: Colors.black),
             onPressed: () {},
           ),
         ],
@@ -81,9 +108,9 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 24, vertical: 12),
                         ),
-                        child: const Text(
-                          "0%",
-                          style: TextStyle(
+                        child: Text(
+                          "${_accuracyPercentage}",
+                          style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.w500),
@@ -137,21 +164,24 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
                   child: Consumer(
                     builder: (context, ref, child) {
                       final state = ref.watch(askGrammarProviderStatesProvider);
-                      
+
                       return state.when(
                         data: (askGrammarState) {
                           if (askGrammarState.askAI.isNotEmpty) {
                             final lastResponse = askGrammarState.askAI.last;
                             return Text(
-                              lastResponse.explanation ?? "No explanation available",
+                              lastResponse.explanation ??
+                                  "No explanation available",
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 16, color: Colors.black),
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.black),
                             );
                           } else {
                             return const Text(
                               "Waiting for response...",
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 16, color: Colors.black),
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.black),
                             );
                           }
                         },
@@ -159,7 +189,8 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
                         error: (err, _) => Text(
                           "Error: $err",
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 16, color: Colors.red),
+                          style:
+                              const TextStyle(fontSize: 16, color: Colors.red),
                         ),
                       );
                     },

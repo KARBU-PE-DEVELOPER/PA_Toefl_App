@@ -13,10 +13,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:toefl/utils/locale.dart';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> f601d022a7bd5e1aa96fa7045ae95c201995675f
 // void main() => runApp(MyApp());
 
 // class MyApp extends StatelessWidget {
@@ -31,10 +27,7 @@ import 'package:toefl/utils/locale.dart';
 //         home: const HangmanGame());
 //   }
 // }
-<<<<<<< HEAD
-=======
   
->>>>>>> f601d022a7bd5e1aa96fa7045ae95c201995675f
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   requestNotificationPermission();

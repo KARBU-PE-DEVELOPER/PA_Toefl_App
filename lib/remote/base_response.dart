@@ -4,7 +4,6 @@ class BaseResponse<T> {
   int? code;
   String? message;
   T? payload;
-  T? data;
 
   // BaseResponse({
   //   this.code,
@@ -16,7 +15,7 @@ class BaseResponse<T> {
     this.code,
     this.message,
     this.payload,
-    this.data,
+    
   });
 
   factory BaseResponse.fromRawJson(String str) =>
@@ -31,13 +30,11 @@ class BaseResponse<T> {
         code: json['code'],
         message: json['message'],
         payload: json['payload'],
-        data: json['data'],
       );
 
   Map<String, dynamic> toJson() => {
         'code': code,
         'message': message,
         'payload': payload,
-        'data': data,
       };
 }

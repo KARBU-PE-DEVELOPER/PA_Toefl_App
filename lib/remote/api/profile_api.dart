@@ -22,7 +22,7 @@ class ProfileApi {
           await DioToefl.instance.get('${Env.userUrl}/users/profile');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return Profile.fromJson(response.data);
+      return Profile.fromJson(response.payload);
     } catch (e, stackTrace) {
       debugPrint(e.toString() + stackTrace.toString());
       return Profile(
@@ -44,8 +44,8 @@ class ProfileApi {
           .get('${Env.userUrl}/spesify-user/$id');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      debugPrint("success : ${Profile.fromJson(response.data)}");
-      return Profile.fromJson(response.data);
+      debugPrint("success : ${Profile.fromJson(response.payload)}");
+      return Profile.fromJson(response.payload);
     } catch (e, stackTrace) {
       debugPrint("error getUserProfile : $e $stackTrace");
       return Profile(
@@ -67,7 +67,7 @@ class ProfileApi {
           .get('${Env.userUrl}/get-all/friends');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final friends = (response.data as List)
+      final friends = (response.payload as List)
           .map(
             (e) => Profile.fromJson(e),
           )
@@ -88,7 +88,7 @@ class ProfileApi {
       });
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final friends = (response.data as List)
+      final friends = (response.payload as List)
           .map(
             (e) => Friend.fromJson(e),
           )
