@@ -14,8 +14,7 @@ class ForYouApi {
           await DioToefl.instance.get('${Env.gameUrl}/foryou');
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       final List<dynamic> data = response.payload;
-      List<Quiz> quizs =
-          data.map((e) => Quiz.fromJson(e)).toList();
+      List<Quiz> quizs = data.map((e) => Quiz.fromJson(e)).toList();
       return quizs;
     } catch (e) {
       return [];
