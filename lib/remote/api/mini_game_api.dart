@@ -15,7 +15,7 @@ class MiniGameApi {
           data: {'word_id': wordId, 'is_true': isTrue});
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return response.data;
+      return response.payload;
     } catch (e) {
       return false;
     }
@@ -29,7 +29,7 @@ class MiniGameApi {
           data: {'score': score, 'synonym_words': synonymWordIds});
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return response.data;
+      return response.payload;
     } catch (e) {
       return false;
     }
@@ -42,7 +42,7 @@ class MiniGameApi {
           data: {'tense_id': tenseId, 'is_true': isTrue});
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return response.data;
+      return response.payload;
     } catch (e) {
       return false;
     }
@@ -55,7 +55,7 @@ class MiniGameApi {
           data: {'tense_id': tenseId, 'score': score});
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return response.data;
+      return response.payload;
     } catch (e) {
       return false;
     }
@@ -66,7 +66,7 @@ class MiniGameApi {
       final Response rawResponse = await DioToefl.instance
           .get('${Env.gameUrl}/minigames/user-history/$id');
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final List<dynamic> data = response.data;
+      final List<dynamic> data = response.payload;
       List<GameHistory> dataGameHistory =
           data.map((entry) => GameHistory.fromJson(entry)).toList();
 

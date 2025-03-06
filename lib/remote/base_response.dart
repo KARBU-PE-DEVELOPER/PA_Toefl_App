@@ -3,12 +3,12 @@ import 'dart:convert';
 class BaseResponse<T> {
   int? code;
   String? message;
-  T? data;
+  T? payload;
 
   BaseResponse({
     this.code,
     this.message,
-    this.data,
+    this.payload,
   });
 
   factory BaseResponse.fromRawJson(String str) =>
@@ -22,12 +22,12 @@ class BaseResponse<T> {
   factory BaseResponse.fromJson(Map<String, dynamic> json) => BaseResponse(
         code: json['code'],
         message: json['message'],
-        data: json['data'],
+        payload: json['payload'],
       );
 
   Map<String, dynamic> toJson() => {
         'code': code,
         'message': message,
-        'data': data,
+        'payload': payload,
       };
 }

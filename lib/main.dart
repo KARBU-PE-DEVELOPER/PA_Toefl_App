@@ -13,7 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:toefl/utils/locale.dart';
 
-// // void main() => runApp(MyApp());
+// void main() => runApp(MyApp());
 
 // class MyApp extends StatelessWidget {
 //   @override
@@ -28,48 +28,6 @@ import 'package:toefl/utils/locale.dart';
 //   }
 // }
   
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  requestNotificationPermission();
-  await EasyLocalization.ensureInitialized();
-
-  final selectedLocale = await LocalizationSharedPreference().getSelectedLang();
-
-  runApp(
-    EasyLocalization(
-      supportedLocales: [
-        Locale(LocaleEnum.id.name),
-        Locale(LocaleEnum.en.name),
-      ],
-      path: 'assets/translation',
-      fallbackLocale: Locale(LocaleEnum.id.name),
-      startLocale: selectedLocale != null
-          ? Locale(selectedLocale)
-          : Locale(LocaleEnum.en.name),
-      child: const ProviderScope(child: MyApp()),
-    ),
-  );
-}
-
-void requestNotificationPermission() async {
-  var status = await Permission.notification.status;
-  if (!status.isGranted) {
-    await Permission.notification.request();
-  }
-}
-
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//         debugShowCheckedModeBanner: false,
-//         title: 'Flutter Demo',
-//         theme: ThemeData(
-//           primarySwatch: Colors.blue,
-//         ),
-//         home: const HangmanGame());
-//   }
-// }
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   requestNotificationPermission();

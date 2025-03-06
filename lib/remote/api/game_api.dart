@@ -34,7 +34,7 @@ class GameApi {
           await DioToefl.instance.get('${Env.gameUrl}/gameclaims/$gameSetId');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final Map<String, dynamic> dataGameClaim = response.data;
+      final Map<String, dynamic> dataGameClaim = response.payload;
       List<GameClaim> gameClaim = dataGameClaim['data'];
 
       return gameClaim;
@@ -49,7 +49,7 @@ class GameApi {
           await DioToefl.instance.get('${Env.gameUrl}/gameclaims/$gameClaimId');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      GameClaim gameClaim = response.data;
+      GameClaim gameClaim = response.payload;
 
       return gameClaim;
     } catch (e) {
@@ -64,7 +64,7 @@ class GameApi {
           .post('${Env.gameUrl}/gameclaims/', data: {'game_set_id': gameSetId});
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
 
-      GameClaim gameClaim = response.data;
+      GameClaim gameClaim = response.payload;
 
       return gameClaim;
     } catch (e) {
