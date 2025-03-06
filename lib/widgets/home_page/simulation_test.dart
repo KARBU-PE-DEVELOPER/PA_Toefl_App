@@ -35,25 +35,7 @@ class SimulationTestWidget extends StatelessWidget {
                         )),
                   ),
                 ),
-                InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(RouteKey.simulationpage),
-                  child: TryCard(
-                    title: "Simulation",
-                    icon: "assets/images/pesawat.svg",
-                    subtitle:
-                        "Simulation of 140 questions with identical questions \nfor all users.",
-                    child: Positioned(
-                        bottom: -(constraint.maxWidth / 4.5),
-                        right: -(constraint.maxWidth / 8),
-                        child: SvgPicture.asset(
-                          fit: BoxFit.cover,
-                          "assets/images/avatar_featured1.svg",
-                          width: constraint.maxWidth / 2.6,
-                        )),
-                  ),
-                )
+                
               ],
             ),
           ));

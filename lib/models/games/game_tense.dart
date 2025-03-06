@@ -5,7 +5,7 @@ part 'game_tense.g.dart';
 
 @JsonSerializable()
 class GameTense {
-    @JsonKey(name: "_id")
+    @JsonKey(name: "id")
     Id? id;
     @JsonKey(name: "sentence")
     String? sentence;

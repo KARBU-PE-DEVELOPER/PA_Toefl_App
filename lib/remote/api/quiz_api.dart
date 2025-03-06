@@ -23,7 +23,7 @@ class QuizApi implements IQuizApi {
           await DioToefl.instance.get('${Env.gameUrl}/quizs/$id');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return Quiz.fromJson(response.payload);
+      return Quiz.fromJson( response.payload);
     } catch (e) {
       debugPrint("err" + e.toString());
       return Quiz(

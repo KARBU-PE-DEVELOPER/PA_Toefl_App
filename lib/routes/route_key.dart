@@ -3,6 +3,7 @@ class RouteKey {
 
   static const root = '/';
   static const grammar = '/grammar';
+  static const askAI = '/ask-ai';
   static const initQuiz = '/init-quiz';
   static const quiz = '/quiz';
   static const finishQuizResult = '/finish-quiz-result';
@@ -13,7 +14,7 @@ class RouteKey {
   static const onBoarding = '/on-boarding';
   static const main = '/main';
   static const profile = '/profile';
-  static const editProfile = '/editProfile ';
+  static const editProfile = '/editProfile';
   static const openingLoadingTest = '/opening-loading-test';
   static const testresult = '/test-result';
   static const simulationpage = '/simulation-page';

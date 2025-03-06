@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
+import 'package:toefl/pages/ask-ai/ask-grammar_page.dart';
 import 'package:toefl/pages/games/practice/scrambled_word.dart';
 import 'package:toefl/pages/games/practice/speaking_game.dart';
 import 'package:toefl/widgets/home_page/featured_card.dart';
@@ -74,6 +75,21 @@ class FeatureTest extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => SentenceScramblePage(),
+                    )),
+                    child: FeaturedCard(
+                      isBgLight: false,
+                      icon: "assets/images/vector_game_listening.svg",
+                      title: "Listening Game",
+                      subtitle: "Can you hear what i said?",
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: 24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => AskGrammarPage(),
                     )),
                     child: FeaturedCard(
                       isBgLight: false,
