@@ -27,7 +27,7 @@ class LearningPathApi {
       final Response rawResponse =
           await DioToefl.instance.get('${Env.gameUrl}/quiztypes/$id');
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final List<dynamic> dataTypes = response.payload;
+      final List<dynamic> dataTypes =  response.payload;
       List<Quiz> quizzes = dataTypes.map((e) => Quiz.fromJson(e)).toList();
       return quizzes;
     } catch (e) {
