@@ -1,18 +1,16 @@
 import 'dart:convert';
-
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
-
 import '../../utils/utils.dart';
 
 part 'packet_detail.g.dart';
 
 @JsonSerializable()
 class PacketDetail extends Equatable {
+  @JsonKey(defaultValue: '')
   final String id;
-  @JsonKey(name: 'name_packet')
+  @JsonKey(name: 'packet_name')
   final String name;
-
   final List<Question> questions;
 
   PacketDetail({
@@ -20,6 +18,9 @@ class PacketDetail extends Equatable {
     required this.name,
     required this.questions,
   });
+
+  // Helper function to parse ID as String
+  static String _parseId(dynamic id) => id.toString();
 
   factory PacketDetail.fromJson(Map<String, dynamic> json) =>
       _$PacketDetailFromJson(json);
@@ -37,13 +38,13 @@ class PacketDetail extends Equatable {
 
 @JsonSerializable()
 class Question {
-  @JsonKey(defaultValue: '')
-  final String id;
+  @JsonKey(fromJson: _parseId, defaultValue: '')
+  final String id; // Changed to String
   @JsonKey(defaultValue: '')
   final String question;
   @JsonKey(name: 'type_question', defaultValue: '')
   final String typeQuestion;
-  @JsonKey(name: 'nested_question_id', defaultValue: '')
+  @JsonKey(name: 'nested_question_id', fromJson: _parseId, defaultValue: '')
   final String nestedQuestionId;
   @JsonKey(name: 'multiple_choices', defaultValue: [])
   final List<Choice> choices;
@@ -55,17 +56,24 @@ class Question {
   final int bookmarked;
   @JsonKey(defaultValue: 0)
   final int number;
+  @JsonKey(name: 'packet_claim', defaultValue: '')
+  final String packetClaim;
 
-  Question(
-      {required this.id,
-      required this.question,
-      required this.typeQuestion,
-      required this.nestedQuestionId,
-      required this.choices,
-      required this.bigQuestion,
-      required this.answer,
-      required this.bookmarked,
-      required this.number});
+  Question({
+    required this.id,
+    required this.question,
+    required this.typeQuestion,
+    required this.nestedQuestionId,
+    required this.choices,
+    required this.bigQuestion,
+    required this.answer,
+    required this.bookmarked,
+    required this.number,
+    required this.packetClaim,
+  });
+
+  // Helper function to parse ID as String
+  static String _parseId(dynamic id) => id.toString();
 
   factory Question.fromJson(Map<String, dynamic> json) =>
       _$QuestionFromJson(json);
@@ -80,8 +88,8 @@ class Question {
 
 @JsonSerializable()
 class Choice {
-  @JsonKey(defaultValue: '')
-  final String id;
+  @JsonKey(fromJson: _parseId, defaultValue: '')
+  final String id; // Changed to String
   @JsonKey(defaultValue: '')
   final String choice;
 
@@ -89,6 +97,9 @@ class Choice {
     required this.id,
     required this.choice,
   });
+
+  // Helper function to parse ID as String
+  static String _parseId(dynamic id) => id.toString();
 
   factory Choice.fromJson(Map<String, dynamic> json) => _$ChoiceFromJson(json);
 

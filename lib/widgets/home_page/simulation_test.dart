@@ -1,13 +1,6 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:path/path.dart';
-import 'package:toefl/pages/games/practice/pairing_game.dart';
-import 'package:toefl/pages/games/practice/scrambled_word.dart';
-import 'package:toefl/routes/navigator_key.dart';
 import 'package:toefl/routes/route_key.dart';
-import 'package:toefl/utils/colors.dart';
-import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/home_page/try_card.dart';
 
 class SimulationTestWidget extends StatelessWidget {
@@ -30,7 +23,7 @@ class SimulationTestWidget extends StatelessWidget {
                       Navigator.of(context).pushNamed(RouteKey.simulationpage),
                   child: TryCard(
                     isBgLight: false,
-                    title: "Full Test",
+                    title: "Test",
                     icon: "assets/images/medali.svg",
                     subtitle: "A test that contains\n140 questions",
                     child: Positioned(
@@ -44,12 +37,13 @@ class SimulationTestWidget extends StatelessWidget {
                 ),
                 InkWell(
                   borderRadius: BorderRadius.circular(10),
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(RouteKey.miniSimulationTest),
+                  onTap: () =>
+                      Navigator.of(context).pushNamed(RouteKey.simulationpage),
                   child: TryCard(
-                    title: "Mini Test",
+                    title: "Simulation",
                     icon: "assets/images/pesawat.svg",
-                    subtitle: "A test that contains\n70 questions",
+                    subtitle:
+                        "Simulation of 140 questions with identical questions \nfor all users.",
                     child: Positioned(
                         bottom: -(constraint.maxWidth / 4.5),
                         right: -(constraint.maxWidth / 8),

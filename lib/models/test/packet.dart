@@ -7,8 +7,8 @@ part 'packet.g.dart';
 @JsonSerializable()
 class Packet {
   @JsonKey(defaultValue: '')
-  final String id;
-  @JsonKey(name: 'name_packet', defaultValue: '')
+  final dynamic id;
+  @JsonKey(name: 'packet_name', defaultValue: '')
   final String name;
   @JsonKey(name: 'akurasi', defaultValue: 0)
   final int accuracy;

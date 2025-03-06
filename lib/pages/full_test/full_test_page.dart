@@ -352,6 +352,9 @@ class FullTestPage extends ConsumerWidget {
                         (route) =>
                             RouteKey.openingLoadingTest == route.settings.name);
                   }
+                  FlutterLockTask().stopLockTask().then((value) {
+                    print("stopLockTask: " + value.toString());
+                  });
                 }
               },
               unAnsweredQuestion: ref

@@ -88,7 +88,8 @@ class _SetTargetPageState extends State<SetTargetPage> {
                         return CustomListTile(
                           containerText: allTargets[index].score.toString(),
                           labelText: allTargets[index].name,
-                          isSelected: selectedTarget.id == allTargets[index].id,
+                          isSelected: selectedTarget.id.toString() ==
+                              allTargets[index].id.toString(),
                           onTap: () async {
                             setState(() {
                               selectedTarget = allTargets[index];

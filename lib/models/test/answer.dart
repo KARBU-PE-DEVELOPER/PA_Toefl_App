@@ -9,7 +9,7 @@ part 'answer.g.dart';
 @JsonSerializable()
 class Answer {
   @JsonKey(defaultValue: '', name: 'question_id')
-  final String id;
+  final dynamic id;
   @JsonKey(defaultValue: '')
   final String question;
   @JsonKey(defaultValue: '', name: 'key_question')

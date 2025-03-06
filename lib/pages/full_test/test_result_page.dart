@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lock_task/flutter_lock_task.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:toefl/models/test/result.dart';
@@ -34,11 +35,11 @@ class _TestResultPageState extends State<TestResultPage> {
   FullTestApi api = FullTestApi();
   bool isLoading = false;
   Result? result;
-
   @override
   void initState() {
     super.initState();
     _init();
+    FlutterLockTask().stopLockTask();
   }
 
   void _init() async {

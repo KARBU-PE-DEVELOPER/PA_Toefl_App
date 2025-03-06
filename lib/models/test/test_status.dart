@@ -7,7 +7,7 @@ part 'test_status.g.dart';
 @JsonSerializable()
 class TestStatus {
   @JsonKey(defaultValue: '')
-  final String id;
+  final dynamic id;
   @JsonKey(name: 'start_time', defaultValue: '')
   final String startTime;
   @JsonKey(name: 'reset_table', defaultValue: false)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lock_task/flutter_lock_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:toefl/models/test/test_status.dart';
@@ -41,7 +42,7 @@ class _OpeningLoadingPageState extends ConsumerState<OpeningLoadingPage> {
           startTime: DateTime.now().toIso8601String(),
           name: widget.packetName,
           resetTable: true,
-          isRetake: widget.isRetake));  
+          isRetake: widget.isRetake));
     }
     await ref.read(fullTestProvider.notifier).onInit();
     await Future.delayed(const Duration(seconds: 4));
@@ -59,6 +60,9 @@ class _OpeningLoadingPageState extends ConsumerState<OpeningLoadingPage> {
         },
       ).then((value) {
         Navigator.of(context).pop();
+      });
+      FlutterLockTask().stopLockTask().then((value) {
+        print("stopLockTask: " + value.toString());
       });
     }
   }

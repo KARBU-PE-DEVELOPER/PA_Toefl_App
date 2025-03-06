@@ -127,44 +127,42 @@ class _LoginPageState extends State<LoginPage> {
                             title: 'btn_login'.tr(),
                             onTap: () async {
                               setState(() {
-                               isLoading = true;
-                                Navigator.popAndPushNamed(
+                                isLoading = true;
+                              });
+                              final AuthStatus val;
+                              if (_formKey.currentState!.validate()) {
+                                val = await userApi.postLogin(
+                                  Login(
+                                    email: emailController.text,
+                                    password: passwordController.text,
+                                  ),
+                                );
+                                if (val.isSuccess) {
+                                  if (val.isVerified) {
+                                    Navigator.popAndPushNamed(
                                         context, RouteKey.main);
-                              });}
-                            //   final AuthStatus val;
-                            //   if (_formKey.currentState!.validate()) {
-                            //     val = await userApi.postLogin(
-                            //       Login(
-                            //         email: emailController.text,
-                            //         password: passwordController.text,
-                            //       ),
-                            //     );
-                            //     if (val.isSuccess) {
-                            //       if (val.isVerified) {
-                            //         Navigator.popAndPushNamed(
-                            //             context, RouteKey.main);
-                            //       } else {
-                            //         Navigator.pushNamed(
-                            //             context, RouteKey.otpVerification,
-                            //             arguments: {
-                            //               'isForgotOTP': false,
-                            //               'email': emailController.text
-                            //             });
-                            //       }
-                            //     } else {
-                            //       ScaffoldMessenger.of(context).showSnackBar(
-                            //         SnackBar(
-                            //           content:
-                            //               const Text("Wrong email or password"),
-                            //           backgroundColor: HexColor(colorError),
-                            //         ),
-                            //       );
-                            //     }
-                            //   }
-                            //   setState(() {
-                            //     isLoading = false;
-                            //   });
-                            // },
+                                  } else {
+                                    Navigator.pushNamed(
+                                        context, RouteKey.otpVerification,
+                                        arguments: {
+                                          'isForgotOTP': false,
+                                          'email': emailController.text
+                                        });
+                                  }
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          const Text("Wrong email or password"),
+                                      backgroundColor: HexColor(colorError),
+                                    ),
+                                  );
+                                }
+                              }
+                              setState(() {
+                                isLoading = false;
+                              });
+                            },
                           ),
                     const SizedBox(height: 15.0),
                     Row(

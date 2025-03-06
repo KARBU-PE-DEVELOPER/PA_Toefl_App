@@ -6,7 +6,7 @@ part 'user.g.dart';
 
 @JsonSerializable()
 class User {
-  final String id;
+  final dynamic id;
   final String level;
   @JsonKey(name: 'current_score')
   final String currentScore;

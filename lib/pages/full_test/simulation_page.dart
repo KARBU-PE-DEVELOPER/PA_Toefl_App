@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:toefl/remote/api/full_test_api.dart';
+import 'package:toefl/remote/dio_toefl.dart';
+import 'package:toefl/remote/env.dart';
 import 'package:toefl/remote/local/shared_pref/test_shared_preferences.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/state_management/full_test_provider.dart';
@@ -83,7 +85,7 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
 
   void _pushReviewPage(Packet packet) {
     Navigator.pushNamed(context, RouteKey.testresult, arguments: {
-      "packetId": packet.id,
+      "packetId": packet.id.toString(),
       "isMiniTest": false,
       "packetName": packet.name
     }).then((afterRetake) {
@@ -131,75 +133,103 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                       ? List.generate(packets.length, (index) {
                           final packet = packets[index];
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: PacketCard(
-                              title: packet.name.toUpperCase(),
-                              questionCount: packet.questionCount,
-                              accuracy: packet.accuracy,
-                              // Hapus logika isOnGoing, jadi properti ini tidak digunakan lagi
-                              isDisabled: !(packet.questionCount == 140),
-                              onTap: () async {
-                                // Jika paket belum dikerjakan, langsung navigasi ke halaman OpeningLoadingPage
-                                if (!packet.wasFilled) {
-                                  Navigator.of(context).pushNamed(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: PacketCard(
+                                title: packet.name.toUpperCase(),
+                                questionCount: packet.questionCount,
+                                accuracy: packet.accuracy,
+                                // Hapus logika isOnGoing, jadi properti ini tidak digunakan lagi
+                                isDisabled: !(packet.questionCount == 88),
+                                onTap: () async {
+                                  final packet = packets[index];
+                                  debugPrint("1");
+                                  debugPrint("1 $packet");
+
+                                  if (testStatus != null &&
+                                      testStatus!.id == packet.id) {
+                                    debugPrint("2");
+                                    debugPrint("1 $testStatus");
+                                    // Jika test masih berjalan (in progress)
+                                    Navigator.of(context).pushNamed(
                                       RouteKey.openingLoadingTest,
                                       arguments: {
-                                        "id": packet.id,
-                                        "packetName": packet.name,
+                                        "id": packet.id.toString(),
                                         "isRetake": packet.wasFilled,
-                                      }).then((value) {
-                                    _onInit();
-                                    _pushReviewPage(packet);
-                                    FlutterLockTask()
-                                        .startLockTask()
-                                        .then((value) {
-                                      print(
-                                          "startLockTask: " + value.toString());
+                                        "packetName": packet.name,
+                                      },
+                                    ).then((value) {
+                                      _onInit();
+                                      _pushReviewPage(packet);
+                                      FlutterLockTask()
+                                          .startLockTask()
+                                          .then((value) {
+                                        print("startLockTask: " +
+                                            value.toString());
+                                      });
                                     });
-                                  });
-                                } else {
-                                  // Tampilkan dialog konfirmasi jika paket sudah dikerjakan
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext submitContext) {
-                                      return ModalConfirmation(
-                                        message:
-                                            "you_ve_finished_your_test".tr(),
-                                        leftTitle: 'review'.tr(),
-                                        rightTitle:
-                                            // (testStatus?.status == 'complete')
-                                            //     ? 'start'.tr()
-                                            //     : 'continue'.tr(),
-                                            'retake'.tr(),
-                                        rightFunction: () {
-                                          Navigator.of(submitContext).pop();
-                                          Navigator.of(context).pushNamed(
+                                  } else if (!packet.wasFilled) {
+                                    // Jika test belum pernah diisi (baru)
+                                    debugPrint(
+                                        "Claiming paket for packet id: ${packet.id}");
+                                    try {
+                                      // Gunakan packet.id untuk meng-claim paket, bukan variable id yang tidak terdefinisi
+                                      final response = await DioToefl.instance.post(
+                                          '${Env.simulationUrl}/submit-paket/${packet.id}');
+
+                                      // Pastikan untuk memeriksa apakah claim berhasil
+                                      if (response.statusCode == 200) {
+                                        debugPrint(
+                                            "Paket claimed successfully.");
+                                        Navigator.of(context).pushNamed(
+                                          RouteKey.openingLoadingTest,
+                                          arguments: {
+                                            "id": packet.id.toString(),
+                                            "packetName": packet.name,
+                                            "isRetake": packet.wasFilled
+                                          },
+                                        ).then((value) {
+                                          _onInit();
+                                          _pushReviewPage(packet);
+                                          FlutterLockTask()
+                                              .startLockTask()
+                                              .then((value) {
+                                            print("startLockTask: " +
+                                                value.toString());
+                                          });
+                                        });
+                                      } else {
+                                        debugPrint(
+                                            "Failed to claim paket: ${response.statusCode}");
+                                        // Anda bisa menambahkan dialog atau notifikasi error di sini
+                                      }
+                                    } catch (e) {
+                                      debugPrint("Error claiming paket: $e");
+                                      // Tangani error (misalnya, tampilkan dialog error)
+                                    }
+                                  } else {
+                                    debugPrint("4");
+
+                                    // Jika test sudah selesai, tampilkan dialog konfirmasi
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext submitContext) {
+                                        return ModalConfirmation(
+                                          message:
+                                              "you_ve_finished_your_test".tr(),
+                                          leftTitle: 'review'.tr(),
+                                          rightTitle: 'retake'.tr(),
+                                          rightFunction: () async {
+                                            await _fullTestApi
+                                                .claimPaketUjian(packet.id);
+                                            Navigator.of(submitContext).pop();
+                                            Navigator.of(context).pushNamed(
                                               RouteKey.openingLoadingTest,
                                               arguments: {
-                                                "id": packet.id,
+                                                "id": packet.id.toString(),
                                                 "packetName": packet.name,
-                                                "isRetake": packet.wasFilled,
-                                              }).then((value) {
-                                            _onInit();
-                                            _pushReviewPage(packet);
-                                            FlutterLockTask()
-                                                .startLockTask()
-                                                .then((value) {
-                                              print("startLockTask: " +
-                                                  value.toString());
-                                            });
-                                          });
-                                        },
-                                        leftFunction: () {
-                                          Navigator.of(submitContext).pop();
-                                          Navigator.pushNamed(
-                                              context, RouteKey.testresult,
-                                              arguments: {
-                                                "packetId": packet.id,
-                                                "isMiniTest": false,
-                                                "packetName": packet.name,
-                                              }).then((afterRetake) {
-                                            if (afterRetake == true) {
+                                                "isRetake": packet.wasFilled
+                                              },
+                                            ).then((value) {
                                               _onInit();
                                               _pushReviewPage(packet);
                                               FlutterLockTask()
@@ -208,16 +238,32 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                 print("startLockTask: " +
                                                     value.toString());
                                               });
-                                            }
-                                          });
-                                        },
-                                      );
-                                    },
-                                  );
-                                }
-                              },
-                            ),
-                          );
+                                            });
+                                          },
+                                          leftFunction: () {
+                                            Navigator.of(submitContext).pop();
+                                            Navigator.pushNamed(
+                                              context,
+                                              RouteKey.testresult,
+                                              arguments: {
+                                                "packetId":
+                                                    packet.id.toString(),
+                                                "isMiniTest": false,
+                                                "packetName": packet.name
+                                              },
+                                            ).then((afterRetake) {
+                                              if (afterRetake == true) {
+                                                _onInit();
+                                                _pushReviewPage(packet);
+                                              }
+                                            });
+                                          },
+                                        );
+                                      },
+                                    );
+                                  }
+                                },
+                              ));
                         })
                       : [],
             ),

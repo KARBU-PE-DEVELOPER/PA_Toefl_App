@@ -36,6 +36,7 @@ class _FormSectionState extends ConsumerState<FormSection> {
       answer: "",
       bookmarked: 0,
       number: 0,
+      packetClaim: '',
     )
   ];
 

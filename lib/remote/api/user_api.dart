@@ -25,8 +25,9 @@ class UserApi {
     try {
       final Response rawResponse =
           await (dio ?? DioToefl.instance).get('${Env.userUrl}/users/profile');
+      debugPrint("Data user profile ${rawResponse}");
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return User.fromJson(response.data);
+      return User.fromJson(response.payload);
     } catch (e) {
       throw ApiException(e.toString());
     }
@@ -44,7 +45,7 @@ class UserApi {
       }
       final token = json.decode(rawResponse.data)['token'];
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final AuthStatus authStatus = AuthStatus.fromJson(response.data);
+      final AuthStatus authStatus = AuthStatus.fromJson(response.payload);
       await authSharedPreference.saveBearerToken(token);
       await authSharedPreference.saveVerifiedAccount(authStatus.isVerified);
       return authStatus.copyWith(isSuccess: true);
@@ -65,7 +66,7 @@ class UserApi {
       }
       final token = json.decode(rawResponse.data)['token'];
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final AuthStatus authStatus = AuthStatus.fromJson(response.data);
+      final AuthStatus authStatus = AuthStatus.fromJson(response.payload);
       await authSharedPreference.saveBearerToken(token);
       await authSharedPreference.saveVerifiedAccount(false);
       return authStatus.copyWith(isSuccess: true);
@@ -80,7 +81,7 @@ class UserApi {
           await DioToefl.instance.get('${Env.simulationUrl}/get-all/targets');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return UserTarget.fromJson(response.data);
+      return UserTarget.fromJson(response.payload);
     } catch (e) {
       debugPrint("Error in getUserTarget: $e");
       return UserTarget(
@@ -134,8 +135,8 @@ class UserApi {
         'email': email,
       });
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      debugPrint('success : ${response.data['token']}');
-      final token = response.data['token'];
+      debugPrint('success : ${response.payload['token']}');
+      final token = response.payload['token'];
       await authSharedPreference.saveBearerToken(token);
       return json.decode(rawResponse.data)?['success'] ?? true;
     } catch (e) {
@@ -165,7 +166,7 @@ class UserApi {
         'password': password,
       });
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      debugPrint('success : ${response.data['password']}');
+      debugPrint('success : ${response.payload['password']}');
       return true;
     } catch (e) {
       return false;

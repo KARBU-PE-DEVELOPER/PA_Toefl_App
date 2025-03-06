@@ -23,7 +23,7 @@ class QuizApi implements IQuizApi {
           await DioToefl.instance.get('${Env.gameUrl}/quizs/$id');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return Quiz.fromJson(response.data);
+      return Quiz.fromJson(response.payload);
     } catch (e) {
       debugPrint("err" + e.toString());
       return Quiz(
@@ -40,7 +40,7 @@ class QuizApi implements IQuizApi {
       final Response rawResponse =
           await DioToefl.instance.get('${Env.gameUrl}/gameclaims');
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final Map<String, dynamic> dataResponse = response.data;
+      final Map<String, dynamic> dataResponse = response.payload;
       List<GameClaim> gameclaim = dataResponse['data'];
 
       return gameclaim;
@@ -55,7 +55,7 @@ class QuizApi implements IQuizApi {
           '${Env.gameUrl}/${isGame ? 'gameclaims' : 'quizclaims'}',
           data: isGame ? {'game_set_id': id} : {'quiz_id': id});
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final Map<String, dynamic> dataResponse = response.data;
+      final Map<String, dynamic> dataResponse = response.payload;
       dataResponse['isGame'] = isGame;
       // print(response.toString());
       return QuizGame.fromJson(dataResponse);
@@ -78,7 +78,7 @@ class QuizApi implements IQuizApi {
       final Response rawResponse = await DioToefl.instance
           .get('${Env.gameUrl}/${isGame ? 'gameclaims' : 'quizclaims'}/$id');
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final Map<String, dynamic> dataResponse = response.data;
+      final Map<String, dynamic> dataResponse = response.payload;
       dataResponse['isGame'] = isGame;
       // print(response.toString());
       return QuizGame.fromJson(dataResponse);
@@ -113,7 +113,7 @@ class QuizApi implements IQuizApi {
                       'quiz_claim_id': claim,
                     });
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final Map<String, dynamic> dataResponse = response.data;
+      final Map<String, dynamic> dataResponse = response.payload;
       return dataResponse as bool;
     } catch (e) {
       return false;
@@ -128,7 +128,7 @@ class QuizApi implements IQuizApi {
         'claim_id': claimId,
       });
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      final Map<String, dynamic> dataResponse = response.data;
+      final Map<String, dynamic> dataResponse = response.payload;
       return QuizGameResult.fromJson(dataResponse);
     } catch (e) {
       return QuizGameResult(total: 1, benar: 1, score: 0);

@@ -6,7 +6,7 @@ part 'result.g.dart';
 
 @JsonSerializable()
 class Result {
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', fromJson: _stringFromJson)
   final String id;
   @JsonKey(defaultValue: 0, name: 'score')
   final int precentage;
@@ -105,4 +105,9 @@ class Result {
   Map<String, dynamic> toJson() => _$ResultToJson(this);
 
   String toStringJson() => jsonEncode(toJson());
+}
+
+String _stringFromJson(dynamic value) {
+  if (value == null) return '';
+  return value.toString();
 }

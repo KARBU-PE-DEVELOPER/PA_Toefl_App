@@ -18,7 +18,22 @@ class FullTestApi {
           await DioToefl.instance.get('${Env.simulationUrl}/get-pakets/$id');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return PacketDetail.fromJson(response.data);
+
+      return PacketDetail.fromJson(response.payload);
+    } catch (e, trace) {
+      debugPrint("ERROR getPacketDetail : $e $trace");
+      return PacketDetail(id: "", name: "", questions: []);
+    }
+  }
+
+  Future<PacketDetail> claimPaketUjian(String id) async {
+    try {
+      final Response rawResponse =
+          await DioToefl.instance.post('${Env.simulationUrl}/get-pakets/$id');
+
+      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
+
+      return PacketDetail.fromJson(response.payload);
     } catch (e, trace) {
       debugPrint("ERROR getPacketDetail : $e $trace");
       return PacketDetail(id: "", name: "", questions: []);
@@ -31,7 +46,7 @@ class FullTestApi {
           await DioToefl.instance.get('${Env.simulationUrl}/get-all-paket');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return (response.data as List<dynamic>)
+      return (response.payload as List<dynamic>)
           .map((e) => Packet.fromJson(e))
           .toList();
     } catch (e) {
@@ -44,7 +59,7 @@ class FullTestApi {
       List<Map<String, dynamic>> request, String packetId) async {
     try {
       final Response rawResponse = await DioToefl.instance.post(
-        '${Env.simulationUrl}/submit-paket/$packetId',
+        '${Env.simulationUrl}/submit-answers/$packetId',
         data: {"answers": request},
       );
 
@@ -64,7 +79,7 @@ class FullTestApi {
       List<Map<String, dynamic>> request, String packetId) async {
     try {
       final Response rawResponse = await DioToefl.instance.patch(
-        '${Env.simulationUrl}/retake-test/$packetId',
+        '${Env.simulationUrl}/submit-answer/$packetId',
         data: {"answers": request},
       );
 
@@ -86,7 +101,7 @@ class FullTestApi {
           .get('${Env.simulationUrl}/answer/users/$packetId');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return (response.data as List<dynamic>)
+      return (response.payload as List<dynamic>)
           .map((e) => Answer.fromJson(e))
           .toList();
     } catch (e) {
@@ -101,7 +116,7 @@ class FullTestApi {
           .get('${Env.simulationUrl}/get-score/$packetId');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return Result.fromJson(response.data);
+      return Result.fromJson(response.payload);
     } catch (e) {
       debugPrint('error get test result: $e');
       return Result(
@@ -135,6 +150,25 @@ class FullTestApi {
         targetUser: 0,
         answeredQuestion: 0,
       );
+    }
+  }
+
+  Future<PacketDetail> getPacketClaimStatus(String id) async {
+    try {
+      final Response rawResponse =
+          await DioToefl.instance.post('${Env.simulationUrl}/get-pakets/$id');
+
+      // Misalnya, rawResponse.data merupakan JSON string,
+      // kita decode-nya dan mengonversi ke BaseResponse
+      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
+
+      // Ambil data dari key "packet_claim" yang ada pada payload
+      final packetClaimJson = response.payload["packet_claim"];
+
+      return PacketDetail.fromJson(packetClaimJson);
+    } catch (e, trace) {
+      debugPrint("ERROR getPacketDetail : $e $trace");
+      return PacketDetail(id: "", name: "", questions: []);
     }
   }
 }

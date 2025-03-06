@@ -15,7 +15,7 @@ class EstimatedScoreApi {
       // debugPrint(json.decode(rawResponse.data)['data'].toString());
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       // debugPrint(response.toString());
-      return EstimatedScore.fromJson(response.data);
+      return EstimatedScore.fromJson(response.payload);
     } catch (e, stack) {
       debugPrint("aa" + e.toString() + stack.toString());
       return EstimatedScore(
