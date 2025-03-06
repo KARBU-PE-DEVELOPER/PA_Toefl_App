@@ -62,3 +62,5 @@ GeneratedPluginRegistrant.*
 generated_plugin*
 
 ios/Runner/GoogleService-Info.plist
+
+.vscode/templates

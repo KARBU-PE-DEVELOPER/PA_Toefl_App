@@ -16,8 +16,8 @@ class LeaderBoardApi {
       final Response rawResponse =
           await DioToefl.instance.get('${Env.gameUrl}/leaderboard');
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      String user =response.payload['user']["_id"];
-      List<dynamic> data =response.payload['top_scores'];
+      String user = response.payload['user']["_id"];
+      List<dynamic> data = response.payload['top_scores'];
       List<LeaderBoard> leaderBoardEntries =
           data.map((entry) => LeaderBoard.fromJson(entry)).toList();
 
@@ -33,7 +33,7 @@ class LeaderBoardApi {
       final Response rawResponse =
           await DioToefl.instance.get('${Env.gameUrl}/user-rank/$id');
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      Map<String, dynamic> data =response.payload;
+      Map<String, dynamic> data = response.payload;
       return UserLeaderBoard.fromJson(data);
     } catch (e, stack) {
       debugPrint("Error fetching leaderboard: $e$stack");

@@ -5,10 +5,17 @@ class BaseResponse<T> {
   String? message;
   T? payload;
 
+  // BaseResponse({
+  //   this.code,
+  //   this.message,
+  //   this.data,
+  // });
+
   BaseResponse({
     this.code,
     this.message,
     this.payload,
+    
   });
 
   factory BaseResponse.fromRawJson(String str) =>

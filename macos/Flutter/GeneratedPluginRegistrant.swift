@@ -15,12 +15,16 @@ import package_info_plus
 import path_provider_foundation
 import share_plus
 import shared_preferences_foundation
+<<<<<<< HEAD
 import speech_to_text
 import sqflite_darwin
+=======
+import speech_to_text_macos
+import sqflite
+>>>>>>> c5eb3dc9631dd0a11a8085c246ea7a47991025d3
 import url_launcher_macos
 import video_player_avfoundation
 import wakelock_plus
-import webview_flutter_wkwebview
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   AudioSessionPlugin.register(with: registry.registrar(forPlugin: "AudioSessionPlugin"))
@@ -38,5 +42,4 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))
   FVPVideoPlayerPlugin.register(with: registry.registrar(forPlugin: "FVPVideoPlayerPlugin"))
   WakelockPlusMacosPlugin.register(with: registry.registrar(forPlugin: "WakelockPlusMacosPlugin"))
-  FLTWebViewFlutterPlugin.register(with: registry.registrar(forPlugin: "FLTWebViewFlutterPlugin"))
 }
