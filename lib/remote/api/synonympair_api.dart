@@ -20,9 +20,9 @@ class PairingGameApi {
         ? jsonDecode(rawResponse.data)
         : rawResponse.data;
 
-    if (decodedData.containsKey('data') &&
-        decodedData['data'].containsKey('wordPairs')) {
-      final List<dynamic> wordPairs = decodedData['data']['wordPairs'];
+    if (decodedData.containsKey('payload') &&
+        decodedData['payload'].containsKey('wordPairs')) {
+      final List<dynamic> wordPairs = decodedData['payload']['wordPairs'];
 
       return wordPairs
           .whereType<Map<String, dynamic>>() 

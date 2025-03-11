@@ -67,6 +67,34 @@ class _PairingGameState extends State<PairingGame> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/maskot_1.svg',
+                    height: MediaQuery.of(context).size.width * 0.4,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        SvgPicture.asset(
+                            'assets/images/score_board.svg'),
+                        Positioned(
+                            bottom: 17,
+                            child: Text(
+                              '${score}',
+                              style: GoogleFonts.nunito(
+                                  fontSize: 22,
+                                  color: HexColor(neutral10),
+                                  fontWeight: FontWeight.w900),
+                            )),
+                      ],
+                    ),
+                  )
+                ],
+              ),
               Expanded(
                 child: GridView.builder(
                   shrinkWrap: true,
