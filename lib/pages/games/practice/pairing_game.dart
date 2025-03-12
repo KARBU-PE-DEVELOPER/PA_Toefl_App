@@ -24,7 +24,8 @@ class _PairingGameState extends State<PairingGame> {
   List<String> shuffledWords = [];
   List<int> selectedIndices = [];
   List<int> matchedIndices = [];
-  int score = 5;
+  int totalAttempts = 0;
+  double score = 100.0; 
 
   @override
   void initState() {
@@ -37,7 +38,8 @@ class _PairingGameState extends State<PairingGame> {
     shuffledWords = [];
     selectedIndices = [];
     matchedIndices = [];
-    score = 5;
+    totalAttempts = 0;
+    score = 100.0;
 
     try {
       words = await PairingGameApi().fetchSynonyms();
@@ -67,13 +69,9 @@ class _PairingGameState extends State<PairingGame> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-               Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SvgPicture.asset(
-                    'assets/images/maskot_1.svg',
-                    height: MediaQuery.of(context).size.width * 0.4,
-                  ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Stack(
@@ -82,13 +80,13 @@ class _PairingGameState extends State<PairingGame> {
                         SvgPicture.asset(
                             'assets/images/score_board.svg'),
                         Positioned(
-                            bottom: 17,
+                            bottom: 30,
                             child: Text(
-                              '${score}',
-                              style: GoogleFonts.nunito(
-                                  fontSize: 22,
-                                  color: HexColor(neutral10),
-                                  fontWeight: FontWeight.w900),
+                              '${score.toInt()}',
+                              style: GoogleFonts.pixelifySans(
+                                  fontSize: 50,
+                                  color: Color(0xFF0C42A7),
+                                  fontWeight: FontWeight.w100),
                             )),
                       ],
                     ),
@@ -147,9 +145,10 @@ class _PairingGameState extends State<PairingGame> {
       return;
     }
 
-    setState(() {
+     setState(() {
       selectedIndices.add(index);
       if (selectedIndices.length == 2) {
+        totalAttempts++; 
         _checkMatch();
       } else if (selectedIndices.length > 2) {
         selectedIndices.removeAt(0);
@@ -172,19 +171,18 @@ class _PairingGameState extends State<PairingGame> {
       setState(() {
         matchedIndices.addAll(selectedIndices);
       });
-    } else {
-      setState(() {
-        score -= 1;
-      });
     }
 
-    if (score <= 0 || matchedIndices.length == shuffledWords.length) {
-      bool isSaved = await MiniGameApi().storePairingSynonym([], score.toDouble());
+    _calculateScore();
+
+    if (matchedIndices.length == shuffledWords.length) {
+      bool isSaved = await MiniGameApi().storePairingSynonym([], score);
       if (isSaved) {
         showModalEnd();
       }
       return;
     }
+
 
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
@@ -193,13 +191,24 @@ class _PairingGameState extends State<PairingGame> {
     });
   }
 
+  void _calculateScore() {
+    if (totalAttempts <= 3) {
+      score = 100.0; 
+    } else {
+      double percentage = (3 / totalAttempts) * 100;
+      score = percentage; 
+    }
+
+    setState(() {});
+  }
+
   void showModalEnd() async {
     showDialog(
       barrierDismissible: false,
       context: context,
       builder: (context) {
         return ModalConfirmation(
-          message: "Score $score",
+          message: "Final Score: ${score.toInt()}",
           leftTitle: "Quit",
           rightTitle: "Retry",
           rightFunction: () {

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/remote/local/shared_pref/localization_shared_pref.dart';
 import 'package:toefl/routes/navigator_key.dart';
 import 'package:toefl/routes/route_key.dart';
@@ -24,7 +25,7 @@ import 'package:toefl/utils/locale.dart';
 //         theme: ThemeData(
 //           primarySwatch: Colors.blue,
 //         ),
-//         home: const HangmanGame());
+//         home: const PairingGame());
 //   }
 // }
   
