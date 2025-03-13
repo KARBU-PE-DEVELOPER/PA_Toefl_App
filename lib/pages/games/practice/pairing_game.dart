@@ -176,7 +176,7 @@ class _PairingGameState extends State<PairingGame> {
     _calculateScore();
 
     if (matchedIndices.length == shuffledWords.length) {
-      bool isSaved = await MiniGameApi().storePairingSynonym([], score);
+      bool isSaved = await PairingGameApi().submitPairingGameResult(score);
       if (isSaved) {
         showModalEnd();
       }

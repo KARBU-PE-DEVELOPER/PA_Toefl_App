@@ -38,20 +38,16 @@ class PairingGameApi {
 }
 
 
-  /// **Mengirim hasil skor Pairing Game**
-  Future<bool> submitPairingGameResult(String gameId, int score) async {
+  Future<bool> submitPairingGameResult(double score) async {
     try {
       final Response rawResponse = await _dio.post(
-        '${Env.gameUrl}/pairing-games/submit',
+        '${Env.gameUrl}/pairingGames/submit-answers',
         data: {
-          'game_id': gameId,
           'score': score,
         },
       );
-
       print("Submit Response: ${rawResponse.data}");
 
-      // Pastikan respons yang diterima adalah String lalu decode ke JSON
       final Map<String, dynamic> decodedData = rawResponse.data is String
           ? jsonDecode(rawResponse.data)
           : rawResponse.data;
