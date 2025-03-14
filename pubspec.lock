@@ -747,13 +747,13 @@ packages:
     source: hosted
     version: "2.3.0"
   local_auth_android:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: local_auth_android
-      sha256: e0e5b1ea247c5a0951c13a7ee13dc1beae69750e6a2e1910d1ed6a3cd4d56943
+      sha256: "8bba79f4f0f7bc812fce2ca20915d15618c37721246ba6c3ef2aa7a763a90cf2"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.38"
+    version: "1.0.47"
   local_auth_darwin:
     dependency: transitive
     description:

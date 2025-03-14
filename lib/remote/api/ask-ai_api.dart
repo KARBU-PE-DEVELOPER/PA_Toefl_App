@@ -11,51 +11,42 @@
 // class AskAIAPI {
 //   final Dio? dio;
 
-//   AskAIAPI({this.dio});
-//   Future<List<AskAI>> storeMessage(List<Map<String, dynamic>> request) async {
-//     try {
-//       final Response rawResponse = await DioToefl.instance.post(
-//         '${Env.apiUrl}/grammar/ask-ai',
-//         data: {'user_message': request},
-//       );
+  AskAIAPI({this.dio});
+  Future<AskAI?> storeMessage(Map<String, dynamic> request) async {
+    try {
+      final Response rawResponse = await DioToefl.instance.post(
+        '${Env.apiUrl}/grammar/ask-ai',
+        data: request,
+      );
 
-//       final response = BaseResponse.fromJson(rawResponse.data);
+      final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
 
-//       if (response.payload == null) {
-//         throw Exception("API returned null payload");
-//       }
+      if (response.payload == null ||
+          response.payload is! Map<String, dynamic>) {
+        throw Exception("API returned an invalid payload");
+      }
 
-//       if (response.payload is! Map<String, dynamic>) {
-//         throw Exception("Invalid API response format: Expected Map<String, dynamic>");
-//       }
+      final Map<String, dynamic> dataMessage = response.payload;
 
-//       final Map<String, dynamic> dataMessage = response.payload as Map<String, dynamic>;
-
-//       if (!dataMessage.containsKey('data')) {
-//         throw Exception("Response payload does not contain 'data'");
-//       }
-
-//       List<dynamic> rawData = dataMessage['data'];
-
-//       return rawData.map((e) => AskAI.fromJson(e as Map<String, dynamic>)).toList();
-//     } catch (e) {
-//       print("Error in storeMessage API: $e");
-//       return [];
-//     }
-//   }
+      return AskAI.fromJson(dataMessage);
+    } catch (e) {
+      print("Error in storeMessage API: $e");
+      return null;
+    }
+  }
 
 
-//   Future<List<AskAI>> getAllAskGrammar() async {
-//     try {
-//       final Response rawResponse =
-//           await DioToefl.instance.get('${Env.apiUrl}/grammar/get-history');
+  Future<List<AskAI>> getAllAskGrammar() async {
+    try {
+      final Response rawResponse =
+          await DioToefl.instance.get('${Env.apiUrl}/grammar/get-history');
 
-//       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-//       return (response.payload as List)
-//           .map((e) => AskAI.fromJson(e as Map<String, dynamic>))
-//           .toList();
-//     } catch (e) {
-//       return [];
-//     }
-//   }
-// }
+      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
+      return (response.payload as List)
+          .map((e) => AskAI.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+}

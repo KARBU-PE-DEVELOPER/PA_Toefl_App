@@ -29,8 +29,8 @@ List<SynonymPair> parseWordPairs(Map<String, dynamic> json) {
   try {
     print("JSON received in parseWordPairs: $json");
 
-    if (json.containsKey('data') && json['data'] is Map<String, dynamic>) {
-      final wordPairs = json['data']['wordPairs'];
+    if (json.containsKey('payload') && json['payload'] is Map<String, dynamic>) {
+      final wordPairs = json['payload']['wordPairs'];
 
       print("WordPairs data: $wordPairs");
 
