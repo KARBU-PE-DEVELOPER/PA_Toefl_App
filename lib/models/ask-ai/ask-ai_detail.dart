@@ -52,7 +52,6 @@ class AskAI {
       userMessage: json['user_message'] ?? '',
       botResponse: json['bot_response'] ?? '',
       isCorrect: json['english_correct'] ?? false,
-
       answerMatch: json['answer_match'] ?? false,
       incorrectWord: json['incorrect_word'] ?? '',
       englishSentence: json['english_sentence'] ?? '',

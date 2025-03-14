@@ -4,6 +4,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:toefl/models/ask-ai/ask-ai_detail.dart';
 import 'package:toefl/remote/api/ask-ai_api.dart';
 
+import 'package:toefl/models/ask-ai/question-ai_detail.dart';
+
 part 'ask-ai_provider_state.freezed.dart';
 part 'ask-ai_provider_state.g.dart';
 
@@ -31,12 +33,21 @@ class AskGrammarProviderStates extends _$AskGrammarProviderStates {
           userMessage: response?.userMessage,
           botResponse: response?.botResponse,
           isCorrect: response?.isCorrect,
-
           answerMatch: response?.answerMatch,
           incorrectWord: response?.incorrectWord,
           englishSentence: response?.englishSentence,
           accuracyScore: response?.accuracyScore,
           explanation: response?.explanation);
+    } catch (e, stackTrace) {
+      state = AsyncError(e, stackTrace);
+      return null;
+    }
+  }
+
+  Future<QuestionAskAI?> getQuestion() async {
+    try {
+      final response = await AskAIAPI().getQuestion();
+      return QuestionAskAI(question: response?.question);
     } catch (e, stackTrace) {
       state = AsyncError(e, stackTrace);
       return null;
