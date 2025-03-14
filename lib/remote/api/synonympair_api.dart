@@ -16,16 +16,18 @@ class PairingGameApi {
 
     print("API Response: ${rawResponse.data}");
 
+    // Decode JSON jika masih berupa String
     final Map<String, dynamic> decodedData = rawResponse.data is String
         ? jsonDecode(rawResponse.data)
         : rawResponse.data;
 
+    // Ambil langsung dari `data`, bukan `payload`
     if (decodedData.containsKey('data') &&
         decodedData['data'].containsKey('wordPairs')) {
       final List<dynamic> wordPairs = decodedData['data']['wordPairs'];
 
       return wordPairs
-          .whereType<Map<String, dynamic>>() 
+          .whereType<Map<String, dynamic>>() // Pastikan hanya map yang diproses
           .map((e) => SynonymPair.fromJson(e))
           .toList();
     } else {
@@ -37,8 +39,6 @@ class PairingGameApi {
   }
 }
 
-
-  /// **Mengirim hasil skor Pairing Game**
   Future<bool> submitPairingGameResult(String gameId, int score) async {
     try {
       final Response rawResponse = await _dio.post(

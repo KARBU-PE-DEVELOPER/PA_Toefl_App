@@ -191,63 +191,63 @@ class _TestResultPageState extends State<TestResultPage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                  context, RouteKey.reviewTestPage, arguments: {
-                                "packetId": widget.packetId,
-                                "isFull": !widget.isMiniTest
-                              });
-                            },
-                            child: Container(
-                              height: 50,
-                              width: MediaQuery.of(context).size.width * 0.38,
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 24),
-                              decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border:
-                                      Border.all(color: HexColor(mariner700))),
-                              child: Center(
-                                child: Text('review_test'.tr(),
-                                    textAlign: TextAlign.center,
-                                    style: CustomTextStyle.bold18
-                                        .copyWith(color: HexColor(mariner700))),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          BlueButton(
-                            size: MediaQuery.of(context).size.width * 0.38,
-                            title: 'retake_test'.tr(),
-                            onTap: () {
-                              widget.isMiniTest
-                                  ? Navigator.of(context).pushNamed(
-                                      RouteKey.openingMiniTest,
-                                      arguments: {
-                                          "id": widget.packetId,
-                                          "isRetake": true,
-                                          "packetName": widget.packetName
-                                        }).then((value) {
-                                      Navigator.pop(context, true);
-                                    })
-                                  : Navigator.of(context).pushNamed(
-                                      RouteKey.openingLoadingTest,
-                                      arguments: {
-                                          "id": widget.packetId,
-                                          "isRetake": true,
-                                          "packetName": widget.packetName
-                                        }).then((value) {
-                                      Navigator.pop(context, true);
-                                    });
-                            },
-                          ),
-                        ],
-                      ),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      //   children: [
+                      //     GestureDetector(
+                      //       onTap: () {
+                      //         Navigator.pushNamed(
+                      //             context, RouteKey.reviewTestPage, arguments: {
+                      //           "packetId": widget.packetId,
+                      //           "isFull": !widget.isMiniTest
+                      //         });
+                      //       },
+                      //       child: Container(
+                      //         height: 50,
+                      //         width: MediaQuery.of(context).size.width * 0.38,
+                      //         padding: const EdgeInsets.symmetric(
+                      //             vertical: 8, horizontal: 24),
+                      //         decoration: BoxDecoration(
+                      //             color: Colors.transparent,
+                      //             borderRadius: BorderRadius.circular(10),
+                      //             border:
+                      //                 Border.all(color: HexColor(mariner700))),
+                      //         child: Center(
+                      //           child: Text('review_test'.tr(),
+                      //               textAlign: TextAlign.center,
+                      //               style: CustomTextStyle.bold18
+                      //                   .copyWith(color: HexColor(mariner700))),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //     const SizedBox(width: 4),
+                      //     BlueButton(
+                      //       size: MediaQuery.of(context).size.width * 0.38,
+                      //       title: 'retake_test'.tr(),
+                      //       onTap: () {
+                      //         widget.isMiniTest
+                      //             ? Navigator.of(context).pushNamed(
+                      //                 RouteKey.openingMiniTest,
+                      //                 arguments: {
+                      //                     "id": widget.packetId,
+                      //                     "isRetake": true,
+                      //                     "packetName": widget.packetName
+                      //                   }).then((value) {
+                      //                 Navigator.pop(context, true);
+                      //               })
+                      //             : Navigator.of(context).pushNamed(
+                      //                 RouteKey.openingLoadingTest,
+                      //                 arguments: {
+                      //                     "id": widget.packetId,
+                      //                     "isRetake": true,
+                      //                     "packetName": widget.packetName
+                      //                   }).then((value) {
+                      //                 Navigator.pop(context, true);
+                      //               });
+                      //       },
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),

@@ -11,13 +11,15 @@ part 'full_test_provider.freezed.dart';
 
 @freezed
 class FullTestProviderState with _$FullTestProviderState {
-  const factory FullTestProviderState(
-      {required PacketDetail packetDetail,
-      @Default([]) List<Question> selectedQuestions,
-      @Default(true) bool isLoading,
-      @Default(false) bool isSubmitLoading,
-      @Default([]) List<bool> questionsFilledStatus,
-      required TestStatus testStatus}) = _FullTestProviderState;
+  const factory FullTestProviderState({
+    required PacketDetail packetDetail,
+    @Default([]) List<Question> selectedQuestions,
+    @Default(true) bool isLoading,
+    @Default(false) bool isSubmitLoading,
+    @Default([]) List<bool> questionsFilledStatus,
+    @Default(0) int totalQuestions, // Tambahkan default 0
+    required TestStatus testStatus,
+  }) = _FullTestProviderState;
 
   const FullTestProviderState._();
 }
@@ -48,8 +50,12 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
           id: state.packetDetail.id,
           name: state.packetDetail.name,
           questions: state.packetDetail.questions);
-      state = state.copyWith(isLoading: true, packetDetail: newPacketDetail);
+      state = state.copyWith(
+          isLoading: true,
+          packetDetail: newPacketDetail,
+          totalQuestions: newPacketDetail.questions.length);
       final testStat = await _testSharedPref.getStatus();
+      debugPrint("total pertanyaan ${state.totalQuestions}");
       if (testStat != null) {
         if (testStat.resetTable) {
           await _testSharedPref.saveStatus(
@@ -167,16 +173,26 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
     }
   }
 
+  // Future<List<bool>> getQuestionsFilledStatus() async {
+  //   try {
+  //     final questions = await _fullTestTable.getAllAnswer();
+  //     return questions.map((e) {
+  //       return e?.answer.isNotEmpty ?? false;
+  //     }).toList();
+  //   } catch (e) {
+  //     debugPrint("error: $e");
+  //     return [];
+  //   }
+  // }
+
   Future<List<bool>> getQuestionsFilledStatus() async {
-    try {
-      final questions = await _fullTestTable.getAllAnswer();
-      return questions.map((e) {
-        return e?.answer.isNotEmpty ?? false;
-      }).toList();
-    } catch (e) {
-      debugPrint("error: $e");
-      return [];
-    }
+    final totalQuestions =
+        state.packetDetail.questions.length; // Ambil dari API
+    return List.generate(totalQuestions, (index) {
+      return state.questionsFilledStatus.length > index
+          ? state.questionsFilledStatus[index]
+          : false;
+    });
   }
 
   Future<bool> submitAnswer() async {

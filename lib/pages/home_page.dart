@@ -187,32 +187,32 @@ class _HomePageState extends State<HomePage> {
               SizedBox(
                 height: 15,
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'learning_path'.tr(),
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: HexColor(neutral90)),
-                    ),
-                    Text(
-                      'part_toefl'.tr(),
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: HexColor(neutral50)),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              LearningPath(),
+              // Padding(
+              //   padding: EdgeInsets.symmetric(horizontal: 24),
+              //   child: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       Text(
+              //         'learning_path'.tr(),
+              //         style: TextStyle(
+              //             fontSize: 18,
+              //             fontWeight: FontWeight.bold,
+              //             color: HexColor(neutral90)),
+              //       ),
+              //       Text(
+              //         'part_toefl'.tr(),
+              //         style: TextStyle(
+              //             fontSize: 14,
+              //             fontWeight: FontWeight.bold,
+              //             color: HexColor(neutral50)),
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              // SizedBox(
+              //   height: 15,
+              // ),
+              // LearningPath(),
               SizedBox(
                 height: 30,
               ),
