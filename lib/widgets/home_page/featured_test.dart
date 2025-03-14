@@ -94,8 +94,8 @@ class FeatureTest extends StatelessWidget {
                     child: FeaturedCard(
                       isBgLight: false,
                       icon: "assets/images/vector_game_listening.svg",
-                      title: "Listening Game",
-                      subtitle: "Can you hear what i said?",
+                      title: "Learn Grammar",
+                      subtitle: "Let's practice your grammar skill !!!",
                     ),
                   ),
                 )
