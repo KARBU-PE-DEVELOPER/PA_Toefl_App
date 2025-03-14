@@ -35,51 +35,6 @@ class AskAIAPI {
     }
   }
 
-  // Future<AskAI> storeMessage(Map<String, dynamic> request) async {
-  //   try {
-  //     final Response rawResponse = await DioToefl.instance.post(
-  //       '${Env.apiUrl}/grammar/ask-ai',
-  //       data: request,
-  //     );
-  //     // debugPrint("Anjay : ${rawResponse.data}");
-  //     final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
-
-  //     // if (response.payload == null) {
-  //     //   throw Exception("API returned null payload");
-  //     // }
-
-  //     // if (response.payload is! Map<String, dynamic>) {
-  //     //   throw Exception(
-  //     //       "Invalid API response format: Expected Map<String, dynamic>");
-  //     // }
-
-  //     final Map<String, dynamic> dataMessage = response.payload;
-
-  //     List<dynamic> rawData = [dataMessage];
-
-  //     // return rawData.map((e) => AskAI.fromJson(e)).toList();
-  //     return AskAI(
-  //         id: "",
-  //         userMessage: "anjay",
-  //         botResponse: "",
-  //         isCorrect: false,
-  //         incorrectWord: "",
-  //         englishSentence: "englishSentence",
-  //         accuracyScore: "accuracyScore",
-  //         explanation: "explanation");
-  //   } catch (e) {
-  //     print("Error in storeMessage API: $e");
-  //     return AskAI(
-  //         id: "",
-  //         userMessage: "anjay",
-  //         botResponse: "",
-  //         isCorrect: false,
-  //         incorrectWord: "",
-  //         englishSentence: "englishSentence",
-  //         accuracyScore: "accuracyScore",
-  //         explanation: "explanation");
-  //   }
-  // }
 
   Future<List<AskAI>> getAllAskGrammar() async {
     try {

@@ -14,7 +14,9 @@ class AskGrammarPage extends ConsumerStatefulWidget {
 class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
   final TextEditingController _textController = TextEditingController();
   String _accuracyPercentage = "0";
-  String _explanation = "No response";
+
+  String _explanation = "Please input an English sentence first.";
+  String _englishSentence = "";
 
   void _sendMessage() async {
     if (_textController.text.trim().isEmpty) return;
@@ -26,11 +28,20 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
         .storeMessage({"user_message": userMessage});
 
     if (response != null) {
-      setState(() {
-        _explanation = response.explanation ?? "No explanation provided.";
-        _accuracyPercentage = response.accuracyScore ?? "0";
-        _textController.clear();
-      });
+
+      if (response.isCorrect == false) {
+        setState(() {
+          _explanation = response.explanation ?? "No explanation provided.";
+          _accuracyPercentage = response.accuracyScore ?? "0";
+          _englishSentence = response.englishSentence ?? "";
+        });
+      } else if (response.isCorrect == true) {
+        setState(() {
+          _explanation = response.explanation ?? "";
+          _accuracyPercentage = response.accuracyScore ?? "0";
+        });
+      }
+      _textController.clear();
     }
   }
 
@@ -65,7 +76,8 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: SizedBox(
-                height: 120,
+
+                height: 100,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -122,19 +134,51 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
             ),
             const SizedBox(height: 16),
 
-            // Hasil Respon
-            Expanded(
-              child: Card(
+
+            // Incorrect Word
+            if (_englishSentence.isNotEmpty)
+              Card(
                 color: HexColor(softBlue),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SingleChildScrollView(
-                    child: Text(
-                      _explanation,
-                      style: const TextStyle(fontSize: 16),
+
+                child: SizedBox(
+                  height: 80,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        "Correct Word: $_englishSentence",
+                        style: TextStyle(
+                          color: HexColor(royalBlue),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 16),
+            // Hasil Respon
+            Card(
+              color: HexColor(softBlue),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: SizedBox(
+                height: 120,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        "$_explanation",
+                        style:
+                            TextStyle(color: HexColor(royalBlue), fontSize: 16),
+                      ),
                     ),
                   ),
                 ),
