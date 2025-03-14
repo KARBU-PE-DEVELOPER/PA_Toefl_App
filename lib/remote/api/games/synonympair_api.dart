@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:toefl/models/games/pairing_game.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
-import '../base_response.dart';
+import '../../base_response.dart';
 
 class PairingGameApi {
   final Dio _dio = DioToefl.instance;

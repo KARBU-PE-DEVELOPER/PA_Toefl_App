@@ -5,7 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:toefl/models/games/pairing_game.dart';
 import 'package:toefl/remote/api/mini_game_api.dart';
-import 'package:toefl/remote/api/synonympair_api.dart';
+import 'package:toefl/remote/api/games/synonympair_api.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/games/game_app_bar.dart';
