@@ -17,6 +17,7 @@ class AskAI {
   @JsonKey(defaultValue: false, name: 'english_correct')
   final bool? isCorrect;
 
+
   @JsonKey(defaultValue: false, name: 'answer_match')
   final bool? answerMatch;
 
@@ -51,6 +52,7 @@ class AskAI {
       userMessage: json['user_message'] ?? '',
       botResponse: json['bot_response'] ?? '',
       isCorrect: json['english_correct'] ?? false,
+
       answerMatch: json['answer_match'] ?? false,
       incorrectWord: json['incorrect_word'] ?? '',
       englishSentence: json['english_sentence'] ?? '',

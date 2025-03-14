@@ -31,6 +31,7 @@ class AskGrammarProviderStates extends _$AskGrammarProviderStates {
           userMessage: response?.userMessage,
           botResponse: response?.botResponse,
           isCorrect: response?.isCorrect,
+
           answerMatch: response?.answerMatch,
           incorrectWord: response?.incorrectWord,
           englishSentence: response?.englishSentence,

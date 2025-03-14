@@ -14,6 +14,7 @@ class AskGrammarPage extends ConsumerStatefulWidget {
 class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
   final TextEditingController _textController = TextEditingController();
   String _accuracyPercentage = "0";
+
   String _explanation = "Please input an English sentence first.";
   String _englishSentence = "";
 
@@ -27,6 +28,7 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
         .storeMessage({"user_message": userMessage});
 
     if (response != null) {
+
       if (response.isCorrect == false) {
         setState(() {
           _explanation = response.explanation ?? "No explanation provided.";
@@ -74,6 +76,7 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: SizedBox(
+
                 height: 100,
                 child: Center(
                   child: Column(
@@ -131,6 +134,7 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
             ),
             const SizedBox(height: 16),
 
+
             // Incorrect Word
             if (_englishSentence.isNotEmpty)
               Card(
@@ -138,6 +142,7 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+
                 child: SizedBox(
                   height: 80,
                   child: Center(
