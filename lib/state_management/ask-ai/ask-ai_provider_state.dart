@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:toefl/models/ask-ai/ask-ai_detail.dart';
+import 'package:toefl/models/ask-ai/question-ai_detail.dart';
 import 'package:toefl/remote/api/ask-ai_api.dart';
 
 part 'ask-ai_provider_state.freezed.dart';
@@ -19,6 +20,7 @@ class AskGrammarProviderStates extends _$AskGrammarProviderStates {
   @override
   FutureOr<AskGrammarProviderState> build() async {
     final askAIList = await AskAIAPI().getAllAskGrammar();
+    
     return AskGrammarProviderState(askAI: askAIList);
   }
 
@@ -42,4 +44,16 @@ class AskGrammarProviderStates extends _$AskGrammarProviderStates {
       return null;
     }
   }
+
+  Future<QuestionAskAI?> getQuestion() async {
+    state = const AsyncLoading(); // Set state loading
+    try {
+      final response = await AskAIAPI().getQuestion();
+      return QuestionAskAI(question: response?.question);
+    } catch (e, stackTrace) {
+      state = AsyncError(e, stackTrace);
+      return null;
+    }
+  }
+
 }

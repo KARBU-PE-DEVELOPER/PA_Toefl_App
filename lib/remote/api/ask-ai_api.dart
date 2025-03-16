@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:toefl/models/ask-ai/ask-ai_detail.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:toefl/models/ask-ai/question-ai_detail.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
 
@@ -29,6 +30,22 @@ class AskAIAPI {
       final Map<String, dynamic> dataMessage = response.payload;
 
       return AskAI.fromJson(dataMessage);
+    } catch (e) {
+      print("Error in storeMessage API: $e");
+      return null;
+    }
+  }
+
+  Future<QuestionAskAI?> getQuestion() async {
+    try {
+      final Response rawResponse = await DioToefl.instance.get(
+        '${Env.apiUrl}/grammar/get-question');
+
+      final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
+
+      final Map<String, dynamic> dataMessage = response.payload;
+
+      return QuestionAskAI.fromJson(dataMessage);
     } catch (e) {
       print("Error in storeMessage API: $e");
       return null;
