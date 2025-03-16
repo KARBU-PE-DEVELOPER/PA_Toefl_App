@@ -42,6 +42,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /android/app/build.gradle
+/android/build.gradle
 /android/gradle.properties
 
 /gradle/wrapper

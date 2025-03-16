@@ -15,7 +15,7 @@ import 'package:toefl/utils/hex_color.dart';
 import 'bookmark_button.dart';
 import 'bottom_sheet_full_test.dart';
 
-class FullTestPage extends ConsumerWidget {
+class FullTestPage extends ConsumerStatefulWidget {
   const FullTestPage(
       {super.key, required this.diffInSec, required this.isRetake});
 
@@ -23,9 +23,34 @@ class FullTestPage extends ConsumerWidget {
   final bool isRetake;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FullTestPage> createState() => _FullTestPageState();
+}
+
+class _FullTestPageState extends ConsumerState<FullTestPage> {
+  @override
+  void initState() {
+    super.initState();
+    FlutterLockTask().startLockTask().then((value) {
+      debugPrint("startLockTask: $value");
+    });
+  }
+
+  @override
+  void dispose() {
+    FlutterLockTask().stopLockTask().then((value) {
+      debugPrint("stopLockTask: $value");
+    });
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final FullTestProviderState state = ref.watch(fullTestProvider);
+    final state = ref.watch(fullTestProvider);
+
+    final countdownDuration = widget.diffInSec >= 7200
+        ? const Duration(seconds: 2)
+        : const Duration(hours: 2) - Duration(seconds: widget.diffInSec);
 
     return PopScope(
       canPop: false,
@@ -112,11 +137,7 @@ class FullTestPage extends ConsumerWidget {
                               size: 18,
                             ),
                             SlideCountdown(
-                              duration: diffInSec >=
-                                      const Duration(hours: 2).inSeconds
-                                  ? const Duration(seconds: 2)
-                                  : const Duration(hours: 2) -
-                                      Duration(seconds: diffInSec),
+                              duration: countdownDuration,
                               style: CustomTextStyle.bold16.copyWith(
                                 color: HexColor(colorSuccess),
                                 fontSize: 14,
@@ -215,25 +236,46 @@ class FullTestPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
+                      // IconButton(
+                      //     onPressed: () {
+                      //       if ((state.selectedQuestions.firstOrNull?.number ??
+                      //               1) <=
+                      //           1) {
+                      //         return;
+                      //       } else {
+                      //         ref
+                      //             .read(fullTestProvider.notifier)
+                      //             .getQuestionByNumber((state.selectedQuestions
+                      //                         .firstOrNull?.number ??
+                      //                     1) -
+                      //                 1);
+                      //       }
+                      //     },
+                      //     icon: const Icon(
+                      //       Icons.chevron_left,
+                      //       size: 30,
+                      //     )),
+
                       IconButton(
-                          onPressed: () {
-                            if ((state.selectedQuestions.firstOrNull?.number ??
-                                    1) <=
-                                1) {
-                              return;
-                            } else {
-                              ref
-                                  .read(fullTestProvider.notifier)
-                                  .getQuestionByNumber((state.selectedQuestions
-                                              .firstOrNull?.number ??
-                                          1) -
-                                      1);
-                            }
-                          },
-                          icon: const Icon(
-                            Icons.chevron_left,
-                            size: 30,
-                          )),
+                        onPressed: () {
+                          if ((state.selectedQuestions.firstOrNull?.number ??
+                                  1) <=
+                              1) {
+                            return;
+                          } else {
+                            ref
+                                .read(fullTestProvider.notifier)
+                                .getQuestionByNumber((state.selectedQuestions
+                                            .firstOrNull?.number ??
+                                        1) -
+                                    1);
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.chevron_left,
+                          size: 30,
+                        ),
+                      ),
                       const Spacer(),
                       Consumer(
                         builder: (context, ref, child) {
@@ -284,16 +326,18 @@ class FullTestPage extends ConsumerWidget {
                       const Spacer(),
                       IconButton(
                         onPressed: () {
+                          int totalQuestions = state
+                              .totalQuestions; // Ambil jumlah soal dari state
                           if ((state.selectedQuestions.lastOrNull?.number ??
-                                  140) >=
-                              140) {
+                                  totalQuestions) >=
+                              totalQuestions) {
                             return;
                           } else {
                             ref
                                 .read(fullTestProvider.notifier)
                                 .getQuestionByNumber((state.selectedQuestions
                                             .lastOrNull?.number ??
-                                        140) +
+                                        totalQuestions) +
                                     1);
                           }
                         },
@@ -329,7 +373,7 @@ class FullTestPage extends ConsumerWidget {
               onYes: () async {
                 Navigator.pop(submitContext);
                 bool submitResult = false;
-                if (isRetake) {
+                if (widget.isRetake) {
                   submitResult = await ref
                       .read(fullTestProvider.notifier)
                       .resubmitAnswer();

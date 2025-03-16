@@ -103,7 +103,7 @@ final routes = <String, Widget Function(BuildContext)>{
   },
   RouteKey.successPassword: (context) => const SuccessPassword(),
   RouteKey.login: (context) => const LoginPage(),
-  RouteKey.setGoal: (context) => const SetGoal(),
+  // RouteKey.setGoal: (context) => const SetGoal(),
   RouteKey.onBoarding: (context) => const OnBoarding(),
   RouteKey.simulationpage: (context) => const SimulationPage(),
   RouteKey.testresult: (context) {

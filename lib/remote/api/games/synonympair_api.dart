@@ -9,34 +9,35 @@ class PairingGameApi {
   final Dio _dio = DioToefl.instance;
 
   Future<List<SynonymPair>> fetchSynonyms() async {
-  try {
-    final Response rawResponse = await _dio.get(
-      '${Env.gameUrl}/pairingGames/get-pairing-word',
-    );
+    try {
+      final Response rawResponse = await _dio.get(
+        '${Env.gameUrl}/pairingGames/get-pairing-word',
+      );
 
-    print("API Response: ${rawResponse.data}");
+      print("API Response: ${rawResponse.data}");
 
-    final Map<String, dynamic> decodedData = rawResponse.data is String
-        ? jsonDecode(rawResponse.data)
-        : rawResponse.data;
+      // Decode JSON jika masih berupa String
+      final Map<String, dynamic> decodedData = rawResponse.data is String
+          ? jsonDecode(rawResponse.data)
+          : rawResponse.data;
 
-    if (decodedData.containsKey('payload') &&
-        decodedData['payload'].containsKey('wordPairs')) {
-      final List<dynamic> wordPairs = decodedData['payload']['wordPairs'];
+      if (decodedData.containsKey('payload') &&
+          decodedData['payload'].containsKey('wordPairs')) {
+        final List<dynamic> wordPairs = decodedData['payload']['wordPairs'];
 
-      return wordPairs
-          .whereType<Map<String, dynamic>>() 
-          .map((e) => SynonymPair.fromJson(e))
-          .toList();
-    } else {
-      throw Exception("Format response tidak sesuai");
+        return wordPairs
+            .whereType<
+                Map<String, dynamic>>() // Pastikan hanya map yang diproses
+            .map((e) => SynonymPair.fromJson(e))
+            .toList();
+      } else {
+        throw Exception("Format response tidak sesuai");
+      }
+    } catch (e) {
+      print("Error in fetchSynonyms API: $e");
+      return [];
     }
-  } catch (e) {
-    print("Error in fetchSynonyms API: $e");
-    return [];
   }
-}
-
 
   Future<bool> submitPairingGameResult(double score) async {
     try {

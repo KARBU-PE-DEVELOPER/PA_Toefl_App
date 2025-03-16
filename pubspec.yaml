@@ -45,7 +45,6 @@ dependencies:
   http: ^1.2.2
   flutter_lock_task: ^0.0.2
 
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

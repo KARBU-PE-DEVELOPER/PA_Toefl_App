@@ -86,4 +86,22 @@ class CustomTextStyle {
     fontWeight: FontWeight.bold,
   );
 
+  // ==== Tambahan Font Baloo Bhaijaan 2 untuk AskGrammar ====
+  static TextStyle askGrammarTitle = GoogleFonts.balooBhaijaan2(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: HexColor(neutral90),
+  );
+
+  static TextStyle askGrammarSubtitle = GoogleFonts.balooBhaijaan2(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: HexColor(deepSkyBlue),
+  );
+
+  static TextStyle askGrammarBody = GoogleFonts.balooBhaijaan2(
+    fontSize: 18,
+    fontWeight: FontWeight.w400,
+    color: HexColor(royalBlue),
+  );
 }

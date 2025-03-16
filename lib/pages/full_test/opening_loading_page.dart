@@ -61,9 +61,6 @@ class _OpeningLoadingPageState extends ConsumerState<OpeningLoadingPage> {
       ).then((value) {
         Navigator.of(context).pop();
       });
-      FlutterLockTask().stopLockTask().then((value) {
-        print("stopLockTask: " + value.toString());
-      });
     }
   }
 
