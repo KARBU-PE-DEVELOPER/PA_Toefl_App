@@ -75,7 +75,7 @@ class _ToeflAudioPlayerState extends State<ToeflAudioPlayer> {
       builder: (context, constraints) {
         // Tentukan ukuran berdasarkan lebar layar yang tersedia
         final screenWidth = constraints.maxWidth;
-        final iconSize = screenWidth * 0.08; // Sesuaikan ukuran ikon
+        final iconSize = screenWidth * 0.08;
         final fontSize = screenWidth * 0.04; // Ukuran font
 
         return BlueContainer(

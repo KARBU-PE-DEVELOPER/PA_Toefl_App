@@ -8,7 +8,7 @@ part 'packet_detail.g.dart';
 @JsonSerializable()
 class PacketDetail extends Equatable {
   @JsonKey(defaultValue: '')
-  final String id;
+  final dynamic id;
   @JsonKey(name: 'packet_name')
   final String name;
   final List<Question> questions;

@@ -32,7 +32,7 @@ class Env {
   static const String apiUrl =
       'https://upright-elephant-concise.ngrok-free.app/api';
   static const String storageUrl =
-      'https://upright-elephant-concise.ngrok-free.app/';
+      'https://upright-elephant-concise.ngrok-free.app';
   static const String mainUrl =
       'https://upright-elephant-concise.ngrok-free.app/api';
   static const String secondaryStorageUrl =

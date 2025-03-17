@@ -22,13 +22,14 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
 
   @override
   void dispose() {
-    super.dispose();
     pageController.dispose();
+    super.dispose();
   }
 
-  @override
-  void initState() {
-    super.initState();
+  void updateFilledStatus(int index) {
+    setState(() {
+      widget.filledStatus[index] = true;
+    });
   }
 
   @override
@@ -50,9 +51,7 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Center(
               child: Container(
                 width: 65,
@@ -60,9 +59,7 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
                 color: HexColor(neutral60),
               ),
             ),
-            const SizedBox(
-              height: 30,
-            ),
+            const SizedBox(height: 30),
             Row(
               children: [
                 buildMenu(
@@ -77,7 +74,7 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
                 }),
                 const Spacer(),
                 buildMenu(
-                    "Answered(${widget.filledStatus.where((element) => element == true).length})",
+                    "Answered(${widget.filledStatus.where((element) => element).length})",
                     selectedPage == 1, () {
                   setState(() {
                     selectedPage = 1;
@@ -88,7 +85,7 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
                 }),
                 const Spacer(),
                 buildMenu(
-                    "Unanswered(${widget.filledStatus.where((element) => element == false).length})",
+                    "Unanswered(${widget.filledStatus.where((element) => !element).length})",
                     selectedPage == 2, () {
                   setState(() {
                     selectedPage = 2;
@@ -99,10 +96,7 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
                 }),
               ],
             ),
-            Divider(
-              height: 2,
-              color: HexColor(neutral40),
-            ),
+            Divider(height: 2, color: HexColor(neutral40)),
             SizedBox(
               height: screenHeight * 0.45,
               child: PageView(
@@ -113,138 +107,9 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
                   });
                 },
                 children: [
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 2),
-                          child: Text(
-                            "Listening",
-                            style:
-                                CustomTextStyle.bold16.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        ...buildSection(
-                            "Part A : Short Talks", widget.onTap, 30, 1),
-                        ...buildSection(
-                            "Part B : Long Conversations", widget.onTap, 8, 31),
-                        ...buildSection(
-                            "Part C : Mini-Lectures", widget.onTap, 12, 39),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 2),
-                          child: Text(
-                            "Structure and Written Expression",
-                            style:
-                                CustomTextStyle.bold16.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        ...buildSection("Part A: Sentence Completitions",
-                            widget.onTap, 15, 51),
-                        ...buildSection(
-                            "Part B: Error Recognition", widget.onTap, 25, 66),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 2),
-                          child: Text(
-                            "Reading",
-                            style:
-                                CustomTextStyle.bold16.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        ...buildSection("", widget.onTap, 50, 91),
-                      ],
-                    ),
-                  ),
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 2),
-                          child: Text(
-                            "Listening",
-                            style:
-                                CustomTextStyle.bold16.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        ...buildSectionAnswered(
-                            "Part A : Short Talks", widget.onTap, 30, 1),
-                        ...buildSectionAnswered(
-                            "Part B : Long Conversations", widget.onTap, 8, 31),
-                        ...buildSectionAnswered(
-                            "Part C : Mini-Lectures", widget.onTap, 12, 39),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 2),
-                          child: Text(
-                            "Structure and Written Expression",
-                            style:
-                                CustomTextStyle.bold16.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        ...buildSectionAnswered(
-                            "Part A: Sentence Completitions",
-                            widget.onTap,
-                            15,
-                            51),
-                        ...buildSectionAnswered(
-                            "Part B: Error Recognition", widget.onTap, 25, 66),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 2),
-                          child: Text(
-                            "Reading",
-                            style:
-                                CustomTextStyle.bold16.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        ...buildSectionAnswered("", widget.onTap, 50, 91),
-                      ],
-                    ),
-                  ),
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 2),
-                          child: Text(
-                            "Listening",
-                            style:
-                                CustomTextStyle.bold16.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        ...buildSectionUnanswered(
-                            "Part A : Short Talks", widget.onTap, 30, 1),
-                        ...buildSectionUnanswered(
-                            "Part B : Long Conversations", widget.onTap, 8, 31),
-                        ...buildSectionUnanswered(
-                            "Part C : Mini-Lectures", widget.onTap, 12, 39),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 2),
-                          child: Text(
-                            "Structure and Written Expression",
-                            style:
-                                CustomTextStyle.bold16.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        ...buildSectionUnanswered(
-                            "Part A: Sentence Completitions",
-                            widget.onTap,
-                            15,
-                            51),
-                        ...buildSectionUnanswered(
-                            "Part B: Error Recognition", widget.onTap, 25, 66),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 2),
-                          child: Text(
-                            "Reading",
-                            style:
-                                CustomTextStyle.bold16.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        ...buildSectionUnanswered("", widget.onTap, 50, 91),
-                      ],
-                    ),
-                  ),
+                  buildQuestionGrid(),
+                  buildQuestionGrid(answeredOnly: true),
+                  buildQuestionGrid(unansweredOnly: true),
                 ],
               ),
             ),
@@ -254,15 +119,49 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
     );
   }
 
-  Widget buildNumOption(
-    int number,
-    Function onTap, {
-    bool isActive = false,
-  }) {
+  Widget buildQuestionGrid(
+      {bool answeredOnly = false, bool unansweredOnly = false}) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    List<int> questionNumbers =
+        List.generate(widget.filledStatus.length, (index) => index + 1);
+
+    if (answeredOnly) {
+      questionNumbers = questionNumbers
+          .where((index) => widget.filledStatus[index - 1])
+          .toList();
+    } else if (unansweredOnly) {
+      questionNumbers = questionNumbers
+          .where((index) => !widget.filledStatus[index - 1])
+          .toList();
+    }
+
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: screenWidth * 0.03,
+            runSpacing: screenWidth * 0.03,
+            children: questionNumbers.map((number) {
+              return buildNumOption(
+                number,
+                () {
+                  updateFilledStatus(number - 1);
+                  Navigator.of(context).pop(number);
+                },
+                isActive: widget.filledStatus[number - 1],
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildNumOption(int number, Function onTap, {bool isActive = false}) {
     return GestureDetector(
-      onTap: () {
-        onTap();
-      },
+      onTap: () => onTap(),
       child: Container(
         width: 40,
         height: 40,
@@ -283,15 +182,9 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
     );
   }
 
-  Widget buildMenu(
-    String title,
-    bool isActive,
-    Function onTap,
-  ) {
+  Widget buildMenu(String title, bool isActive, Function onTap) {
     return GestureDetector(
-      onTap: () {
-        onTap();
-      },
+      onTap: () => onTap(),
       child: Column(
         children: [
           Text(
@@ -300,9 +193,7 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
               color: isActive ? Colors.black : HexColor(neutral60),
             ),
           ),
-          const SizedBox(
-            height: 6,
-          ),
+          const SizedBox(height: 6),
           Container(
             width: 80,
             height: 3,
@@ -311,134 +202,5 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
         ],
       ),
     );
-  }
-
-  List buildSection(
-    String title,
-    Function(int) onTap,
-    int total,
-    int start,
-  ) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return [
-      title != ""
-          ? Text(
-              title,
-              style: CustomTextStyle.normal12,
-            )
-          : const SizedBox(),
-      Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: screenWidth * 0.03,
-            runSpacing: screenWidth * 0.03,
-            children: List.generate(total, (index) {
-              return buildNumOption(
-                index + start,
-                () {
-                  Navigator.of(context).pop(index + start);
-                },
-                isActive: widget.filledStatus[index + start - 1],
-              );
-            }),
-          ),
-        ),
-      ),
-    ];
-  }
-
-  List buildSectionAnswered(
-    String title,
-    Function(int) onTap,
-    int total,
-    int start,
-  ) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    var answeredNumberList = <int>[];
-
-    for (var i = start; i < start + total; i++) {
-      if (widget.filledStatus[i - 1]) {
-        answeredNumberList.add(i);
-      }
-    }
-
-    return [
-      title != "" && answeredNumberList.isNotEmpty
-          ? Text(
-              title,
-              style: CustomTextStyle.normal12,
-            )
-          : const SizedBox(),
-      answeredNumberList.isNotEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: screenWidth * 0.03,
-                  runSpacing: screenWidth * 0.03,
-                  children: List.generate(answeredNumberList.length, (index) {
-                    return buildNumOption(
-                      answeredNumberList[index],
-                      () {
-                        Navigator.of(context).pop(index + start);
-                      },
-                      isActive: true,
-                    );
-                  }),
-                ),
-              ),
-            )
-          : const SizedBox(),
-    ];
-  }
-
-  List buildSectionUnanswered(
-    String title,
-    Function(int) onTap,
-    int total,
-    int start,
-  ) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    var answeredNumberList = <int>[];
-
-    for (var i = start; i < start + total; i++) {
-      if (!widget.filledStatus[i - 1]) {
-        answeredNumberList.add(i);
-      }
-    }
-
-    return [
-      title != "" && answeredNumberList.isNotEmpty
-          ? Text(
-              title,
-              style: CustomTextStyle.normal12,
-            )
-          : const SizedBox(),
-      answeredNumberList.isNotEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: screenWidth * 0.03,
-                  runSpacing: screenWidth * 0.03,
-                  children: List.generate(answeredNumberList.length, (index) {
-                    return buildNumOption(
-                      answeredNumberList[index],
-                      () {
-                        Navigator.of(context).pop(index + start);
-                      },
-                      isActive: false,
-                    );
-                  }),
-                ),
-              ),
-            )
-          : const SizedBox(),
-    ];
   }
 }
