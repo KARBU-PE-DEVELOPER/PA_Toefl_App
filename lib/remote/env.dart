@@ -1,20 +1,20 @@
-class Env {
-  const Env._();
-  static const String apiUrl =
-      'https://allowing-goldfish-smart.ngrok-free.app/api';
-  static const String storageUrl =
-      'https://allowing-goldfish-smart.ngrok-free.app/';
-  static const String mainUrl =
-      'https://allowing-goldfish-smart.ngrok-free.app/api';
-  static const String secondaryStorageUrl =
-      'https://allowing-goldfish-smart.ngrok-free.app/api';
-  static const String userUrl =
-      'https://allowing-goldfish-smart.ngrok-free.app/api';
-  static const String simulationUrl =
-      'https://allowing-goldfish-smart.ngrok-free.app/api';
-  static const String gameUrl =
-      'https://allowing-goldfish-smart.ngrok-free.app/api';
-}
+// class Env {
+//   const Env._();
+//   static const String apiUrl =
+//       'https://allowing-goldfish-smart.ngrok-free.app/api';
+//   static const String storageUrl =
+//       'https://allowing-goldfish-smart.ngrok-free.app/';
+//   static const String mainUrl =
+//       'https://allowing-goldfish-smart.ngrok-free.app/api';
+//   static const String secondaryStorageUrl =
+//       'https://allowing-goldfish-smart.ngrok-free.app/api';
+//   static const String userUrl =
+//       'https://allowing-goldfish-smart.ngrok-free.app/api';
+//   static const String simulationUrl =
+//       'https://allowing-goldfish-smart.ngrok-free.app/api';
+//   static const String gameUrl =
+//       'https://allowing-goldfish-smart.ngrok-free.app/api';
+// }
 
 // class Env {
 //   const Env._();
