@@ -236,46 +236,46 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
-                      // IconButton(
-                      //     onPressed: () {
-                      //       if ((state.selectedQuestions.firstOrNull?.number ??
-                      //               1) <=
-                      //           1) {
-                      //         return;
-                      //       } else {
-                      //         ref
-                      //             .read(fullTestProvider.notifier)
-                      //             .getQuestionByNumber((state.selectedQuestions
-                      //                         .firstOrNull?.number ??
-                      //                     1) -
-                      //                 1);
-                      //       }
-                      //     },
-                      //     icon: const Icon(
-                      //       Icons.chevron_left,
-                      //       size: 30,
-                      //     )),
-
                       IconButton(
-                        onPressed: () {
-                          if ((state.selectedQuestions.firstOrNull?.number ??
-                                  1) <=
-                              1) {
-                            return;
-                          } else {
-                            ref
-                                .read(fullTestProvider.notifier)
-                                .getQuestionByNumber((state.selectedQuestions
-                                            .firstOrNull?.number ??
-                                        1) -
-                                    1);
-                          }
-                        },
-                        icon: const Icon(
-                          Icons.chevron_left,
-                          size: 30,
-                        ),
-                      ),
+                          onPressed: () {
+                            if ((state.selectedQuestions.firstOrNull?.number ??
+                                    1) <=
+                                1) {
+                              return;
+                            } else {
+                              ref
+                                  .read(fullTestProvider.notifier)
+                                  .getQuestionByNumber((state.selectedQuestions
+                                              .firstOrNull?.number ??
+                                          1) -
+                                      1);
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.chevron_left,
+                            size: 30,
+                          )),
+
+                      // IconButton(
+                      //   onPressed: () {
+                      //     if ((state.selectedQuestions.firstOrNull?.number ??
+                      //             1) <=
+                      //         1) {
+                      //       return;
+                      //     } else {
+                      //       ref
+                      //           .read(fullTestProvider.notifier)
+                      //           .getQuestionByNumber((state.selectedQuestions
+                      //                       .firstOrNull?.number ??
+                      //                   1) -
+                      //               1);
+                      //     }
+                      //   },
+                      //   icon: const Icon(
+                      //     Icons.chevron_left,
+                      //     size: 30,
+                      //   ),
+                      // ),
                       const Spacer(),
                       Consumer(
                         builder: (context, ref, child) {
@@ -384,7 +384,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                   submitResult =
                       await ref.read(fullTestProvider.notifier).submitAnswer();
                   FlutterLockTask().stopLockTask().then((value) {
-                    print("stopLockTask: " + value.toString());
+                    print("stopLockTask 3: " + value.toString());
                   });
                 }
                 if (submitResult) {
