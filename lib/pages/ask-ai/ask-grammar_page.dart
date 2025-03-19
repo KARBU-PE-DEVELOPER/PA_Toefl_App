@@ -48,16 +48,11 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
 
     if (response != null) {
       setState(() {
-        if (response.isCorrect == false) {
-          _explanation =
-              response.explanation?.trim() ?? "No explanation provided.";
-          _accuracyPercentage = response.accuracyScore?.toString() ?? "0";
-          _englishSentence = response.englishSentence?.trim() ?? "";
-        } else {
-          _explanation = "Your sentence is grammatically correct.";
-          _accuracyPercentage = response.accuracyScore?.toString() ?? "0";
-          _englishSentence = "";
-        }
+        _explanation = response.explanation?.trim().isNotEmpty == true
+            ? response.explanation!.trim()
+            : response.botResponse?.trim() ?? "No explanation provided.";
+        _accuracyPercentage = response.accuracyScore?.toString() ?? "0";
+        _englishSentence = response.englishSentence?.trim() ?? "";
       });
       _textController.clear();
     }

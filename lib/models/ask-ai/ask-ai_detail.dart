@@ -17,7 +17,6 @@ class AskAI {
   @JsonKey(defaultValue: false, name: 'english_correct')
   final bool? isCorrect;
 
-
   @JsonKey(defaultValue: false, name: 'answer_match')
   final bool? answerMatch;
 
