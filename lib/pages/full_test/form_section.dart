@@ -86,7 +86,7 @@ class _FormSectionState extends ConsumerState<FormSection> {
                     ? Skeleton.leaf(
                         child: ToeflAudioPlayer(
                         url:
-                            '${Env.storageUrl}/storage/nested_question/${questions.first.bigQuestion}',
+                            '${Env.storageUrl}/storage/${questions.first.bigQuestion}',
                       ))
                     : const SizedBox(),
                 const SizedBox(
