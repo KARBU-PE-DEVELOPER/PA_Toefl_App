@@ -1,61 +1,70 @@
-// import 'dart:convert';
-// import 'dart:io';
-// import 'package:dio/dio.dart';
-// import 'package:toefl/models/ask-ai/ask-ai_detail.dart';
-// import 'package:flutter/cupertino.dart';
-// import 'package:toefl/remote/dio_toefl.dart';
-// import 'package:toefl/remote/env.dart';
 
-// import '../base_response.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:toefl/models/ask-ai/ask-ai_detail.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:toefl/models/ask-ai/question-ai_detail.dart';
+import 'package:toefl/remote/dio_toefl.dart';
+import 'package:toefl/remote/env.dart';
 
-// class AskAIAPI {
-//   final Dio? dio;
+import '../base_response.dart';
 
-//   AskAIAPI({this.dio});
-//   Future<List<AskAI>> storeMessage(List<Map<String, dynamic>> request) async {
-//     try {
-//       final Response rawResponse = await DioToefl.instance.post(
-//         '${Env.apiUrl}/grammar/ask-ai',
-//         data: {'user_message': request},
-//       );
+class AskAIAPI {
+  final Dio? dio;
 
-//       final response = BaseResponse.fromJson(rawResponse.data);
+  AskAIAPI({this.dio});
+  Future<AskAI?> storeMessage(Map<String, dynamic> request) async {
+    try {
+      final Response rawResponse = await DioToefl.instance.post(
+        '${Env.apiUrl}/grammar/ask-ai',
+        data: request,
+      );
 
-//       if (response.payload == null) {
-//         throw Exception("API returned null payload");
-//       }
+      final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
 
-//       if (response.payload is! Map<String, dynamic>) {
-//         throw Exception("Invalid API response format: Expected Map<String, dynamic>");
-//       }
+      if (response.payload == null ||
+          response.payload is! Map<String, dynamic>) {
+        throw Exception("API returned an invalid payload");
+      }
 
-//       final Map<String, dynamic> dataMessage = response.payload as Map<String, dynamic>;
+      final Map<String, dynamic> dataMessage = response.payload;
 
-//       if (!dataMessage.containsKey('data')) {
-//         throw Exception("Response payload does not contain 'data'");
-//       }
+      return AskAI.fromJson(dataMessage);
+    } catch (e) {
+      print("Error in storeMessage API: $e");
+      return null;
+    }
+  }
 
-//       List<dynamic> rawData = dataMessage['data'];
+  Future<QuestionAskAI?> getQuestion() async {
+    try {
+      final Response rawResponse = await DioToefl.instance.get(
+        '${Env.apiUrl}/grammar/get-question');
 
-//       return rawData.map((e) => AskAI.fromJson(e as Map<String, dynamic>)).toList();
-//     } catch (e) {
-//       print("Error in storeMessage API: $e");
-//       return [];
-//     }
-//   }
+      final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
+
+      final Map<String, dynamic> dataMessage = response.payload;
+
+      return QuestionAskAI.fromJson(dataMessage);
+    } catch (e) {
+      print("Error in storeMessage API: $e");
+      return null;
+    }
+  }
 
 
-//   Future<List<AskAI>> getAllAskGrammar() async {
-//     try {
-//       final Response rawResponse =
-//           await DioToefl.instance.get('${Env.apiUrl}/grammar/get-history');
+  Future<List<AskAI>> getAllAskGrammar() async {
+    try {
+      final Response rawResponse =
+          await DioToefl.instance.get('${Env.apiUrl}/grammar/get-history');
 
-//       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-//       return (response.payload as List)
-//           .map((e) => AskAI.fromJson(e as Map<String, dynamic>))
-//           .toList();
-//     } catch (e) {
-//       return [];
-//     }
-//   }
-// }
+      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
+      return (response.payload as List)
+          .map((e) => AskAI.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+}

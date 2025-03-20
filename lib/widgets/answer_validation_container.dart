@@ -9,7 +9,7 @@ class AnswerValidationContainer extends StatelessWidget {
   const AnswerValidationContainer({
     super.key,
     required this.isCorrect,
-    this.keyAnswer = '',
+    this.keyAnswer,
     required this.explanation,
   });
 

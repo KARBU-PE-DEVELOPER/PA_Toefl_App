@@ -70,4 +70,5 @@ class AskAI {
 
   /// Konversi objek AskAI ke JSON dalam bentuk String
   String toStringJson() => jsonEncode(toJson());
+
 }
