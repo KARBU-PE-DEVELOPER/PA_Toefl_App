@@ -25,6 +25,7 @@ class _PairingGameState extends State<PairingGame> {
   List<int> selectedIndices = [];
   List<int> matchedIndices = [];
   int totalAttempts = 0;
+  int wrongAttempts = 0;
   double score = 100.0; 
 
   @override
@@ -39,6 +40,7 @@ class _PairingGameState extends State<PairingGame> {
     selectedIndices = [];
     matchedIndices = [];
     totalAttempts = 0;
+    wrongAttempts = 0;
     score = 100.0;
 
     try {
@@ -80,14 +82,23 @@ class _PairingGameState extends State<PairingGame> {
                         SvgPicture.asset(
                             'assets/images/score_board.svg'),
                         Positioned(
-                            bottom: 30,
-                            child: Text(
+                          bottom: 30,
+                            child: AnimatedSwitcher(
+                              duration: Duration(milliseconds: 500),
+                              transitionBuilder: (Widget child, Animation<double> animation) {
+                                return ScaleTransition(scale: animation, child: child);
+                              },                     
+                              child: Text(
                               '${score.toInt()}',
-                              style: GoogleFonts.pixelifySans(
-                                  fontSize: 50,
-                                  color: Color(0xFF0C42A7),
-                                  fontWeight: FontWeight.w100),
-                            )),
+                              key: ValueKey<int>(score.toInt()),
+                              style: GoogleFonts.pressStart2p(
+                              fontSize: 50,
+                              color: Color(0xFF0C42A7),
+                              fontWeight: FontWeight.w100,
+                            ),
+                            ),
+                            ),
+                        ),
                       ],
                     ),
                   )
@@ -157,50 +168,47 @@ class _PairingGameState extends State<PairingGame> {
   }
 
   void _checkMatch() async {
-    int firstIndex = selectedIndices[0];
-    int secondIndex = selectedIndices[1];
+  int firstIndex = selectedIndices[0];
+  int secondIndex = selectedIndices[1];
 
-    String firstWord = shuffledWords[firstIndex];
-    String secondWord = shuffledWords[secondIndex];
+  String firstWord = shuffledWords[firstIndex];
+  String secondWord = shuffledWords[secondIndex];
 
-    bool isMatch = words.any((pair) =>
-        (pair.word == firstWord && pair.synonym == secondWord) ||
-        (pair.word == secondWord && pair.synonym == firstWord));
+  bool isMatch = words.any((pair) =>
+      (pair.word == firstWord && pair.synonym == secondWord) ||
+      (pair.word == secondWord && pair.synonym == firstWord));
 
-    if (isMatch) {
-      setState(() {
-        matchedIndices.addAll(selectedIndices);
-      });
-    }
-
-    _calculateScore();
-
-    if (matchedIndices.length == shuffledWords.length) {
-      bool isSaved = await PairingGameApi().submitPairingGameResult(score);
-      if (isSaved) {
-        showModalEnd();
-      }
-      return;
-    }
-
-
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        selectedIndices.clear();
-      });
+  if (isMatch) {
+    setState(() {
+      matchedIndices.addAll(selectedIndices);
     });
+  } else {
+    wrongAttempts++; 
   }
 
-  void _calculateScore() {
-    if (totalAttempts <= 3) {
-      score = 100.0; 
-    } else {
-      double percentage = (3 / totalAttempts) * 100;
-      score = percentage; 
-    }
+  _calculateScore();
 
-    setState(() {});
+  if (matchedIndices.length == shuffledWords.length) {
+    await PairingGameApi().submitPairingGameResult(score);
+    showModalEnd();
   }
+
+  Future.delayed(const Duration(seconds: 1), () {
+    setState(() {
+      selectedIndices.clear();
+    });
+  });
+}
+
+ void _calculateScore() {
+  int totalPairs = words.length; 
+
+  score = (100 - ((wrongAttempts / (totalPairs * 2)) * 100)).clamp(0, 100);
+
+  setState(() {});
+}
+
+
 
   void showModalEnd() async {
     showDialog(

@@ -106,6 +106,8 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
   Future<void> _getPacketDetailFromApi(String id) async {
     try {
       final packetDetail = await _fullTestApi.getPacketDetail(id);
+      debugPrint(
+          "Packet Detail dari API: ${packetDetail.questions.length} pertanyaan");
       state = state.copyWith(packetDetail: packetDetail);
     } catch (e) {
       rethrow;
@@ -117,6 +119,7 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
       final packetDetail = state.packetDetail;
       for (var i = 0; i < packetDetail.questions.length; i++) {
         final question = packetDetail.questions[i];
+        debugPrint("Insert ke SQLite: ${question.id}");
         _fullTestTable.insertQuestion(question, (i + 1));
       }
     } catch (e) {
@@ -125,6 +128,7 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
   }
 
   Future<void> getQuestionByNumber(int number) async {
+    debugPrint("Ambil soal nomor: $number");
     var ableToGet = true;
     for (var element in state.selectedQuestions) {
       if (element.number == number) {
@@ -137,6 +141,7 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
       await Future.delayed(const Duration(milliseconds: 50));
       try {
         final question = await _fullTestTable.getQuestionByNumber(number);
+        debugPrint("Soal ditemukan: ${question.id} - ${question.question}");
         if (question.nestedQuestionId.isNotEmpty) {
           final nestedQuestion = await _fullTestTable
               .getQuestionsByGroupId(question.nestedQuestionId);
@@ -199,7 +204,6 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
     state = state.copyWith(isSubmitLoading: true);
     try {
       final questions = await _fullTestTable.getAllAnswer();
-
       final request = questions
           .map((e) => {
                 "question_id": e?.id ?? "",

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:toefl/routes/navigator_key.dart';
-
 import '../../utils/colors.dart';
 import '../../utils/custom_text_style.dart';
 import '../../utils/hex_color.dart';
 
 class BottomSheetFullTest extends StatefulWidget {
-  const BottomSheetFullTest(
-      {super.key, required this.filledStatus, required this.onTap});
+  const BottomSheetFullTest({
+    Key? key,
+    required this.filledStatus,
+    required this.onTap,
+  }) : super(key: key);
 
   final List<bool> filledStatus;
   final Function(int) onTap;
@@ -17,8 +19,8 @@ class BottomSheetFullTest extends StatefulWidget {
 }
 
 class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
-  var selectedPage = 0;
-  var pageController = PageController();
+  int selectedPage = 0;
+  final PageController pageController = PageController();
 
   @override
   void dispose() {
@@ -26,6 +28,7 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
     super.dispose();
   }
 
+  // Fungsi untuk mengubah status pertanyaan menjadi answered (true)
   void updateFilledStatus(int index) {
     setState(() {
       widget.filledStatus[index] = true;
@@ -60,40 +63,53 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
               ),
             ),
             const SizedBox(height: 30),
+            // Menu tab: All, Answered, Unanswered
             Row(
               children: [
                 buildMenu(
-                    "All(${widget.filledStatus.length})", selectedPage == 0,
-                    () {
-                  setState(() {
-                    selectedPage = 0;
-                    pageController.animateToPage(0,
+                  "All(${widget.filledStatus.length})",
+                  selectedPage == 0,
+                  () {
+                    setState(() {
+                      selectedPage = 0;
+                      pageController.animateToPage(
+                        0,
                         duration: const Duration(milliseconds: 10),
-                        curve: Curves.easeIn);
-                  });
-                }),
+                        curve: Curves.easeIn,
+                      );
+                    });
+                  },
+                ),
                 const Spacer(),
                 buildMenu(
-                    "Answered(${widget.filledStatus.where((element) => element).length})",
-                    selectedPage == 1, () {
-                  setState(() {
-                    selectedPage = 1;
-                    pageController.animateToPage(1,
+                  "Answered(${widget.filledStatus.where((element) => element).length})",
+                  selectedPage == 1,
+                  () {
+                    setState(() {
+                      selectedPage = 1;
+                      pageController.animateToPage(
+                        1,
                         duration: const Duration(milliseconds: 10),
-                        curve: Curves.easeIn);
-                  });
-                }),
+                        curve: Curves.easeIn,
+                      );
+                    });
+                  },
+                ),
                 const Spacer(),
                 buildMenu(
-                    "Unanswered(${widget.filledStatus.where((element) => !element).length})",
-                    selectedPage == 2, () {
-                  setState(() {
-                    selectedPage = 2;
-                    pageController.animateToPage(2,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeIn);
-                  });
-                }),
+                  "Unanswered(${widget.filledStatus.where((element) => !element).length})",
+                  selectedPage == 2,
+                  () {
+                    setState(() {
+                      selectedPage = 2;
+                      pageController.animateToPage(
+                        2,
+                        duration: const Duration(milliseconds: 10),
+                        curve: Curves.easeIn,
+                      );
+                    });
+                  },
+                ),
               ],
             ),
             Divider(height: 2, color: HexColor(neutral40)),
@@ -107,9 +123,11 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
                   });
                 },
                 children: [
-                  buildQuestionGrid(),
-                  buildQuestionGrid(answeredOnly: true),
-                  buildQuestionGrid(unansweredOnly: true),
+                  buildQuestionGrid(), // Semua pertanyaan
+                  buildQuestionGrid(
+                      answeredOnly: true), // Hanya yang sudah dijawab
+                  buildQuestionGrid(
+                      unansweredOnly: true), // Hanya yang belum dijawab
                 ],
               ),
             ),
@@ -127,11 +145,11 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
 
     if (answeredOnly) {
       questionNumbers = questionNumbers
-          .where((index) => widget.filledStatus[index - 1])
+          .where((number) => widget.filledStatus[number - 1])
           .toList();
     } else if (unansweredOnly) {
       questionNumbers = questionNumbers
-          .where((index) => !widget.filledStatus[index - 1])
+          .where((number) => !widget.filledStatus[number - 1])
           .toList();
     }
 
@@ -140,15 +158,16 @@ class _BottomSheetFullTestState extends State<BottomSheetFullTest> {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 15),
           child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
             spacing: screenWidth * 0.03,
             runSpacing: screenWidth * 0.03,
             children: questionNumbers.map((number) {
               return buildNumOption(
                 number,
                 () {
+                  // Set pertanyaan terjawab dan kembalikan nomor pertanyaan
                   updateFilledStatus(number - 1);
                   Navigator.of(context).pop(number);
+                  widget.onTap(number);
                 },
                 isActive: widget.filledStatus[number - 1],
               );
