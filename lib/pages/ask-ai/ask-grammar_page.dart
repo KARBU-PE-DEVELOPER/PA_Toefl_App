@@ -80,64 +80,82 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 6,
-              shadowColor: Colors.black26,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: HexColor(softBlue),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _accuracyPercentage == "0"
-                          ? "Sentence"
-                          : "Accuracy Percentage",
-                      style: CustomTextStyle.askGrammarSubtitle,
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 80, // Adjust height as needed
-                      child: SingleChildScrollView(
-                        child: Text(
-                          _accuracyPercentage == "0"
-                              ? _question
-                              : _accuracyPercentage,
-                          style: CustomTextStyle.askGrammarBody,
-                          textAlign: TextAlign.center,
+                elevation: 6,
+                shadowColor: Colors.black26,
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: HexColor(softBlue),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _accuracyPercentage == "0"
+                            ? "Sentence"
+                            : "Accuracy Percentage",
+                        style: CustomTextStyle.askGrammarSubtitle,
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 100, // Adjust height as needed
+                        child: SingleChildScrollView(
+                          child: Text(
+                            _accuracyPercentage == "0"
+                                ? _question
+                                : _accuracyPercentage,
+                            style: CustomTextStyle.askGrammarBody,
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _textController,
+                decoration: InputDecoration(
+                  hintText: "Write Something...",
+                  hintStyle: CustomTextStyle.askGrammarBody,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.send, color: Colors.black),
+                    onPressed: _sendMessage,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (_englishSentence.isNotEmpty)
+                Card(
+                  color: HexColor(softBlue),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      "Correct Word: $_englishSentence",
+                      style: CustomTextStyle.askGrammarSubtitle,
+                      textAlign: TextAlign.center,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _textController,
-              decoration: InputDecoration(
-                hintText: "Write Something...",
-                hintStyle: CustomTextStyle.askGrammarBody,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.send, color: Colors.black),
-                  onPressed: _sendMessage,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (_englishSentence.isNotEmpty)
+              const SizedBox(height: 16),
               Card(
                 color: HexColor(softBlue),
                 shape: RoundedRectangleBorder(
@@ -146,31 +164,13 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    "Correct Word: $_englishSentence",
-                    style: CustomTextStyle.askGrammarSubtitle,
-                    textAlign: TextAlign.center,
+                    _explanation,
+                    style: CustomTextStyle.askGrammarBody,
                   ),
                 ),
               ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Card(
-                color: HexColor(softBlue),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SingleChildScrollView(
-                    child: Text(
-                      _explanation,
-                      style: CustomTextStyle.askGrammarBody,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
