@@ -6,6 +6,7 @@ import 'package:toefl/models/test/test_status.dart';
 import 'package:toefl/remote/api/full_test_api.dart';
 import 'package:toefl/remote/local/shared_pref/test_shared_preferences.dart';
 import 'package:toefl/remote/local/sqlite/full_test_table.dart';
+import 'package:toefl/utils/list_ext.dart';
 
 part 'full_test_provider.freezed.dart';
 
@@ -95,7 +96,10 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
       await resetPacketTable();
       await _getPacketDetailFromApi(id);
       await _insertQuestionsToLocal();
-      state = state.copyWith(isLoading: false);
+
+      state = state.copyWith(
+          isLoading: false,
+          totalQuestions: state.packetDetail.questions.length);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false);
@@ -103,12 +107,25 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
     }
   }
 
+  // Future<void> _getPacketDetailFromApi(String id) async {
+  //   try {
+  //     final packetDetail = await _fullTestApi.getPacketDetail(id);
+  //     debugPrint(
+  //         "Packet Detail dari API: ${packetDetail.questions.length} pertanyaan");
+  //     state = state.copyWith(packetDetail: packetDetail);
+  //   } catch (e) {
+  //     rethrow;
+  //   }
+  // }
+
   Future<void> _getPacketDetailFromApi(String id) async {
     try {
       final packetDetail = await _fullTestApi.getPacketDetail(id);
       debugPrint(
           "Packet Detail dari API: ${packetDetail.questions.length} pertanyaan");
-      state = state.copyWith(packetDetail: packetDetail);
+      state = state.copyWith(
+          packetDetail: packetDetail,
+          totalQuestions: packetDetail.questions.length);
     } catch (e) {
       rethrow;
     }
@@ -128,7 +145,6 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
   }
 
   Future<void> getQuestionByNumber(int number) async {
-    debugPrint("Ambil soal nomor: $number");
     var ableToGet = true;
     for (var element in state.selectedQuestions) {
       if (element.number == number) {
@@ -141,7 +157,6 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
       await Future.delayed(const Duration(milliseconds: 50));
       try {
         final question = await _fullTestTable.getQuestionByNumber(number);
-        debugPrint("Soal ditemukan: ${question.id} - ${question.question}");
         if (question.nestedQuestionId.isNotEmpty) {
           final nestedQuestion = await _fullTestTable
               .getQuestionsByGroupId(question.nestedQuestionId);
@@ -170,9 +185,19 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
     }
   }
 
+  // Future<void> updateAnswer(int number, String answer) async {
+  //   try {
+  //     await _fullTestTable.updateAnswer(number, answer);
+  //   } catch (e) {
+  //     debugPrint("error: $e");
+  //   }
+  // }
+
   Future<void> updateAnswer(int number, String answer) async {
     try {
       await _fullTestTable.updateAnswer(number, answer);
+      final filledStatus = await getQuestionsFilledStatus();
+      state = state.copyWith(questionsFilledStatus: filledStatus);
     } catch (e) {
       debugPrint("error: $e");
     }
@@ -190,14 +215,28 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
   //   }
   // }
 
+  // Future<List<bool>> getQuestionsFilledStatus() async {
+  //   final totalQuestions =
+  //       state.packetDetail.questions.length; // Ambil dari API
+  //   return List.generate(totalQuestions, (index) {
+  //     return state.questionsFilledStatus.length > index
+  //         ? state.questionsFilledStatus[index]
+  //         : false;
+  //   });
+  // }
+
   Future<List<bool>> getQuestionsFilledStatus() async {
-    final totalQuestions =
-        state.packetDetail.questions.length; // Ambil dari API
-    return List.generate(totalQuestions, (index) {
-      return state.questionsFilledStatus.length > index
-          ? state.questionsFilledStatus[index]
-          : false;
-    });
+    try {
+      final questions = await _fullTestTable.getAllAnswer();
+      return state.packetDetail.questions.map((q) {
+        final userAnswer = questions.firstWhereOrNull((ans) => ans?.id == q.id);
+
+        return userAnswer?.answer.isNotEmpty ?? false;
+      }).toList();
+    } catch (e) {
+      debugPrint("error: $e");
+      return List.filled(state.packetDetail.questions.length, false);
+    }
   }
 
   Future<bool> submitAnswer() async {
@@ -280,6 +319,7 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
       isLoading: true,
       isSubmitLoading: false,
       questionsFilledStatus: [],
+      totalQuestions: 0, // Memastikan totalQuestions juga di-reset
       testStatus: TestStatus(
           id: '', startTime: '', resetTable: false, name: '', isRetake: false),
     );
