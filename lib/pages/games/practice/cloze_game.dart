@@ -1,20 +1,10 @@
-import 'package:toefl/widgets/blue_container.dart';
-import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:toefl/models/games/game_tense.dart';
-import 'package:toefl/remote/api/mini_game_api.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
-import 'package:toefl/widgets/answer_validation_container.dart';
-import 'package:toefl/widgets/blue_button.dart';
-import 'package:collection/collection.dart';
-import '../../../widgets/games/game_app_bar.dart';
+import 'package:toefl/widgets/games/game_app_bar.dart';
+import 'package:toefl/widgets/blue_container.dart';
 
 class ClozeGamePage extends StatefulWidget {
   const ClozeGamePage({super.key});
@@ -45,114 +35,153 @@ class _ClozeGameScreenState extends State<ClozeGamePage> {
   int currentQuestionIndex = 0;
   String? selectedAnswer;
   bool isAnswered = false;
+  bool? isCorrectAnswer;
+  double score = 100;
 
   void checkAnswer(String answer) {
+    final isCorrect = answer == questions[currentQuestionIndex]["correct"];
     setState(() {
       selectedAnswer = answer;
       isAnswered = true;
-    });
-    Future.delayed(Duration(seconds: 1), () {
-      setState(() {
-        if (currentQuestionIndex < questions.length - 1) {
-          currentQuestionIndex++;
-          selectedAnswer = null;
-          isAnswered = false;
-        } else {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text("Game Over"),
-              content: Text("You've completed all questions!"),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    setState(() {
-                      currentQuestionIndex = 0;
-                      selectedAnswer = null;
-                      isAnswered = false;
-                    });
-                  },
-                  child: Text("Restart"),
-                ),
-              ],
-            ),
-          );
-        }
-      });
+      isCorrectAnswer = isCorrect;
+      if (!isCorrect) {
+        score = (score - 30).clamp(0, 100);
+      }
     });
   }
 
+  void nextQuestion() {
+    if (currentQuestionIndex < questions.length - 1) {
+      setState(() {
+        currentQuestionIndex++;
+        selectedAnswer = null;
+        isAnswered = false;
+        isCorrectAnswer = null;
+      });
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Game Over"),
+          content: Text("Your final score: ${score.toInt()}"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  currentQuestionIndex = 0;
+                  selectedAnswer = null;
+                  isAnswered = false;
+                  isCorrectAnswer = null;
+                  score = 100;
+                });
+              },
+              child: Text("Restart"),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
-
-    @override
+  @override
   Widget build(BuildContext context) {
     var question = questions[currentQuestionIndex];
     List<String> shuffledOptions = List<String>.from(question["options"]);
-    shuffledOptions.shuffle(Random());
+
     return Scaffold(
-      appBar: GameAppBar(
-        title: 'Scrambled Word',
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(5.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            BlueContainer(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  question["sentence"].replaceAll("_____", "____?____"),
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.nunito(
+      appBar: GameAppBar(title: 'Cloze Game'),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 20),
+              BlueContainer(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    question["sentence"].replaceAll("_____", "_________"),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
-                      color: HexColor(mariner900)),
+                      color: HexColor(mariner900),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 15),
-            Text(
-              'Fill the blanks using suitable words!',
-              style: GoogleFonts.nunito(
-                  fontSize: 14, fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 20),
-            GridView.builder(
-              shrinkWrap: true,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 2.5,
-              ),
-              itemCount: shuffledOptions.length,
-              itemBuilder: (context, index) {
-                String option = shuffledOptions[index];
-                bool isCorrect = option == question["correct"];
-                bool isSelected = selectedAnswer == option;
+              SizedBox(height: 24),
+              GridView.builder(
+                shrinkWrap: true,
+                itemCount: shuffledOptions.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 2.8,
+                ),
+                itemBuilder: (context, index) {
+                  String option = shuffledOptions[index];
+                  bool isSelected = selectedAnswer == option;
+                  bool isCorrect = option == question["correct"];
+                  Color cardColor = Colors.white;
 
-                return GestureDetector(
-                  onTap: isAnswered ? null : () => checkAnswer(option),
-                  child: Card(
-                    color: isSelected
-                        ? (isCorrect ? Colors.green : Colors.red)
-                        : Colors.white,
-                    child: Center(
-                      child: Text(
-                        option,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
+                  if (isAnswered) {
+                    if (isSelected && !isCorrect) {
+                      cardColor = Colors.red;
+                    } else if (isCorrect) {
+                      cardColor = Colors.green;
+                    }
+                  }
+
+                  return Card(
+                    color: cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: HexColor(mariner500), width: 2),
+                    ),
+                    elevation: 4,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: isAnswered ? null : () => checkAnswer(option),
+                      child: Center(
+                        child: Text(
+                          option,
+                          style: GoogleFonts.nunito(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ),
+                  );
+                },
+              ),
+              SizedBox(height: 24),
+              if (isAnswered)
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HexColor(mariner500),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                   ),
-                );
-              },
-            ),
-          ],
+                  onPressed: nextQuestion,
+                  child: Text(
+                    currentQuestionIndex == questions.length - 1 ? 'Finish' : 'Next',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
