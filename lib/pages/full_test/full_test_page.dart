@@ -107,29 +107,73 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                         ),
                         Row(
                           children: [
-                            Text(
-                              "${ref.watch(fullTestProvider).questionsFilledStatus.where((element) => element == true).length}/140",
-                              style: CustomTextStyle.bold16.copyWith(
-                                color: HexColor(mariner700),
-                                fontSize: 14,
-                              ),
+                            // Text(
+
+                            //   "${ref.watch(fullTestProvider).questionsFilledStatus.where((element) => element == true).length}/140",
+                            //   style: CustomTextStyle.bold16.copyWith(
+                            //     color: HexColor(mariner700),
+                            //     fontSize: 14,
+                            //   ),
+                            // ),
+
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final state = ref.watch(fullTestProvider);
+                                final totalQuestions = state
+                                    .totalQuestions; // Ambil jumlah total soal
+                                final answeredQuestions = state
+                                    .questionsFilledStatus
+                                    .where((element) => element == true)
+                                    .length;
+
+                                return Text(
+                                  "$answeredQuestions/$totalQuestions",
+                                  style: CustomTextStyle.bold16.copyWith(
+                                    color: HexColor(mariner700),
+                                    fontSize: 14,
+                                  ),
+                                );
+                              },
                             ),
+
                             const Spacer(),
-                            SizedBox(
-                              width: screenWidth * 0.5,
-                              child: LinearProgressIndicator(
-                                value: ref
-                                        .watch(fullTestProvider)
-                                        .questionsFilledStatus
-                                        .where((element) => element == true)
-                                        .length /
-                                    140,
-                                backgroundColor: HexColor(neutral40),
-                                color: HexColor(mariner700),
-                                minHeight: 7,
-                                borderRadius: BorderRadius.circular(9),
-                              ),
+                            // SizedBox(
+                            //   width: screenWidth * 0.5,
+                            //   child: LinearProgressIndicator(
+                            //
+
+                            //         140,
+                            //     backgroundColor: HexColor(neutral40),
+                            //     color: HexColor(mariner700),
+                            //     minHeight: 7,
+                            //     borderRadius: BorderRadius.circular(9),
+                            //   ),
+                            // ),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final state = ref.watch(fullTestProvider);
+                                final totalQuestions = state
+                                    .totalQuestions; // Ambil jumlah total soal
+                                final answeredQuestions = state
+                                    .questionsFilledStatus
+                                    .where((element) => element == true)
+                                    .length;
+
+                                return SizedBox(
+                                  width: screenWidth * 0.5,
+                                  child: LinearProgressIndicator(
+                                    value: totalQuestions > 0
+                                        ? answeredQuestions / totalQuestions
+                                        : 0,
+                                    backgroundColor: HexColor(neutral40),
+                                    color: HexColor(mariner700),
+                                    minHeight: 7,
+                                    borderRadius: BorderRadius.circular(9),
+                                  ),
+                                );
+                              },
                             ),
+
                             const Spacer(),
                             Icon(
                               Icons.timer,
@@ -305,17 +349,26 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                                 .read(fullTestProvider.notifier)
                                 .getQuestionsFilledStatus()
                                 .then((value) {
-                              showModalBottomSheet(
-                                  context: context,
-                                  builder: (context) {
-                                    return BottomSheetFullTest(
-                                      filledStatus: value,
-                                      onTap: (number) {},
-                                    );
-                                  }).then((value) {
-                                ref
-                                    .read(fullTestProvider.notifier)
-                                    .getQuestionByNumber(value);
+                              ref
+                                  .read(fullTestProvider.notifier)
+                                  .getQuestionsFilledStatus()
+                                  .then((value) {
+                                if (value != null) {
+                                  showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) {
+                                        return BottomSheetFullTest(
+                                          filledStatus: value,
+                                          onTap: (number) {},
+                                        );
+                                      }).then((selectedNumber) {
+                                    if (selectedNumber != null) {
+                                      ref
+                                          .read(fullTestProvider.notifier)
+                                          .getQuestionByNumber(selectedNumber);
+                                    }
+                                  });
+                                }
                               });
                             });
                           },
