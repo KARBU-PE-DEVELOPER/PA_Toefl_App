@@ -1,52 +1,51 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:toefl/models/games/cloze_game.dart';
+import 'package:toefl/remote/api/games/cloze_api.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
-import 'package:toefl/widgets/games/game_app_bar.dart';
 import 'package:toefl/widgets/blue_container.dart';
+import 'package:toefl/widgets/games/game_app_bar.dart';
 
 class ClozeGamePage extends StatefulWidget {
   const ClozeGamePage({super.key});
 
   @override
-  _ClozeGameScreenState createState() => _ClozeGameScreenState();
+  State<ClozeGamePage> createState() => _ClozeGamePageState();
 }
 
-class _ClozeGameScreenState extends State<ClozeGamePage> {
-  final List<Map<String, dynamic>> questions = [
-    {
-      "sentence": "She _____ to school every morning.",
-      "correct": "goes",
-      "options": ["go", "going", "goes", "gone"]
-    },
-    {
-      "sentence": "They _____ football every weekend.",
-      "correct": "play",
-      "options": ["playing", "plays", "play", "played"]
-    },
-    {
-      "sentence": "I _____ a book last night.",
-      "correct": "read",
-      "options": ["read", "reads", "reading", "wrote"]
-    }
-  ];
-
+class _ClozeGamePageState extends State<ClozeGamePage> {
+  List<ClozeQuestion> questions = [];
   int currentQuestionIndex = 0;
   String? selectedAnswer;
   bool isAnswered = false;
   bool? isCorrectAnswer;
   double score = 100;
+  bool isLoading = true;
+
+  final api = ClozeGameApi();
+
+  @override
+  void initState() {
+    super.initState();
+    loadQuestions();
+  }
+
+  Future<void> loadQuestions() async {
+    final response = await api.fetchClozeQuestions();
+    setState(() {
+      questions = response;
+      isLoading = false;
+    });
+  }
 
   void checkAnswer(String answer) {
-    final isCorrect = answer == questions[currentQuestionIndex]["correct"];
+    final isCorrect = answer == questions[currentQuestionIndex].keyAnswer;
     setState(() {
       selectedAnswer = answer;
       isAnswered = true;
       isCorrectAnswer = isCorrect;
-      if (!isCorrect) {
-        score = (score - 30).clamp(0, 100);
-      }
+      if (!isCorrect) score = (score - 30).clamp(0, 100);
     });
   }
 
@@ -62,7 +61,7 @@ class _ClozeGameScreenState extends State<ClozeGamePage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text("Game Over"),
+          title: const Text("Game Over"),
           content: Text("Your final score: ${score.toInt()}"),
           actions: [
             TextButton(
@@ -76,33 +75,39 @@ class _ClozeGameScreenState extends State<ClozeGamePage> {
                   score = 100;
                 });
               },
-              child: Text("Restart"),
+              child: const Text("Restart"),
             ),
           ],
         ),
       );
+      api.submitClozeResult(score);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    var question = questions[currentQuestionIndex];
-    List<String> shuffledOptions = List<String>.from(question["options"]);
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final question = questions[currentQuestionIndex];
+    final options = question.answers;
 
     return Scaffold(
-      appBar: GameAppBar(title: 'Cloze Game'),
+      appBar: const GameAppBar(title: 'Cloze Game'),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 20),
               BlueContainer(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    question["sentence"].replaceAll("_____", "_________"),
+                    question.question.replaceAll("_____", "_________"),
                     textAlign: TextAlign.center,
                     style: GoogleFonts.nunito(
                       fontSize: 20,
@@ -112,20 +117,20 @@ class _ClozeGameScreenState extends State<ClozeGamePage> {
                   ),
                 ),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               GridView.builder(
                 shrinkWrap: true,
-                itemCount: shuffledOptions.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                itemCount: options.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
                   childAspectRatio: 2.8,
                 ),
                 itemBuilder: (context, index) {
-                  String option = shuffledOptions[index];
-                  bool isSelected = selectedAnswer == option;
-                  bool isCorrect = option == question["correct"];
+                  final option = options[index];
+                  final isSelected = selectedAnswer == option;
+                  final isCorrect = option == question.keyAnswer;
                   Color cardColor = Colors.white;
 
                   if (isAnswered) {
@@ -160,7 +165,7 @@ class _ClozeGameScreenState extends State<ClozeGamePage> {
                   );
                 },
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               if (isAnswered)
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -168,7 +173,7 @@ class _ClozeGameScreenState extends State<ClozeGamePage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                   ),
                   onPressed: nextQuestion,
                   child: Text(
