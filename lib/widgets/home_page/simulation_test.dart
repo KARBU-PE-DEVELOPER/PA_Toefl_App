@@ -19,8 +19,12 @@ class SimulationTestWidget extends StatelessWidget {
               children: [
                 InkWell(
                   borderRadius: BorderRadius.circular(10),
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(RouteKey.simulationpage),
+                  onTap: () => Navigator.of(context).pushNamed(
+                    RouteKey.simulationpage,
+                    arguments: {
+                      "type": "test", // Mengirim tipe "test"
+                    },
+                  ),
                   child: TryCard(
                     isBgLight: false,
                     title: "Test",
@@ -37,8 +41,12 @@ class SimulationTestWidget extends StatelessWidget {
                 ),
                 InkWell(
                   borderRadius: BorderRadius.circular(10),
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(RouteKey.simulationpage),
+                  onTap: () => Navigator.of(context).pushNamed(
+                    RouteKey.simulationpage,
+                    arguments: {
+                      "type": "simulation", // Mengirim tipe "test"
+                    },
+                  ),
                   child: TryCard(
                     title: "Simulation",
                     icon: "assets/images/pesawat.svg",

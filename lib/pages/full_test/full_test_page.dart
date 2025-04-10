@@ -16,11 +16,16 @@ import 'bookmark_button.dart';
 import 'bottom_sheet_full_test.dart';
 
 class FullTestPage extends ConsumerStatefulWidget {
-  const FullTestPage(
-      {super.key, required this.diffInSec, required this.isRetake});
+  const FullTestPage({
+    super.key,
+    required this.diffInSec,
+    required this.isRetake,
+    required this.packetType,
+  });
 
   final int diffInSec;
   final bool isRetake;
+  final String packetType;
 
   @override
   ConsumerState<FullTestPage> createState() => _FullTestPageState();
@@ -30,16 +35,20 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
   @override
   void initState() {
     super.initState();
-    FlutterLockTask().startLockTask().then((value) {
-      debugPrint("startLockTask: $value");
-    });
+    if (widget.packetType == "test") {
+      FlutterLockTask().startLockTask().then((value) {
+        debugPrint("startLockTask: $value");
+      });
+    }
   }
 
   @override
   void dispose() {
-    FlutterLockTask().stopLockTask().then((value) {
-      debugPrint("stopLockTask: $value");
-    });
+    if (widget.packetType == "test") {
+      FlutterLockTask().stopLockTask().then((value) {
+        debugPrint("stopLockTask: $value");
+      });
+    }
     super.dispose();
   }
 
@@ -430,15 +439,19 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                   submitResult = await ref
                       .read(fullTestProvider.notifier)
                       .resubmitAnswer();
-                  FlutterLockTask().stopLockTask().then((value) {
-                    print("stopLockTask: " + value.toString());
-                  });
+                  if (widget.packetType == "test") {
+                    FlutterLockTask().stopLockTask().then((value) {
+                      debugPrint("stopLockTask: $value");
+                    });
+                  }
                 } else {
                   submitResult =
                       await ref.read(fullTestProvider.notifier).submitAnswer();
-                  FlutterLockTask().stopLockTask().then((value) {
-                    print("stopLockTask 3: " + value.toString());
-                  });
+                  if (widget.packetType == "test") {
+                    FlutterLockTask().stopLockTask().then((value) {
+                      debugPrint("stopLockTask: $value");
+                    });
+                  }
                 }
                 if (submitResult) {
                   bool resetResult =
@@ -449,9 +462,11 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                         (route) =>
                             RouteKey.openingLoadingTest == route.settings.name);
                   }
-                  FlutterLockTask().stopLockTask().then((value) {
-                    print("stopLockTask: " + value.toString());
-                  });
+                  if (widget.packetType == "test") {
+                    FlutterLockTask().stopLockTask().then((value) {
+                      debugPrint("stopLockTask: $value");
+                    });
+                  }
                 }
               },
               unAnsweredQuestion: ref

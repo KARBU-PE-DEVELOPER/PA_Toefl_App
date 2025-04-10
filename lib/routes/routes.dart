@@ -29,7 +29,6 @@ import 'package:toefl/pages/auth/regist_page.dart';
 import 'package:toefl/pages/games/games_page.dart';
 import 'package:toefl/pages/review_test/review_test_page.dart';
 import 'package:toefl/pages/user/search_user_page.dart';
-import 'package:toefl/pages/user/setgoal_page.dart';
 import 'package:toefl/pages/splash_page.dart';
 import 'package:toefl/pages/auth/success_password_page.dart';
 import 'package:toefl/pages/user/setting_page.dart';
@@ -75,9 +74,12 @@ final routes = <String, Widget Function(BuildContext)>{
     final Map<String, dynamic>? data =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     debugPrint("data: $data");
+    debugPrint("Navigating to fullTest with: $data");
+
     return FullTestPage(
       diffInSec: data?["diffInSeconds"] ?? 0,
       isRetake: data?["isRetake"] ?? false,
+      packetType: data?['packetType'] ?? '',
     );
   },
   RouteKey.regist: (context) => const RegistPage(),
@@ -142,10 +144,13 @@ final routes = <String, Widget Function(BuildContext)>{
   RouteKey.openingLoadingTest: (context) {
     final Map<String, dynamic>? data =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    debugPrint("Navigating to OpeningLoadingPage with: $data");
+
     return OpeningLoadingPage(
       packetId: data?["id"] ?? "",
       isRetake: data?["isRetake"] ?? false,
       packetName: data?["packetName"] ?? "",
+      packetType: data?["packetType"] ?? "",
     );
   },
   RouteKey.reviewTestPage: (context) {

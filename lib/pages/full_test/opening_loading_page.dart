@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lock_task/flutter_lock_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:toefl/models/test/test_status.dart';
@@ -8,15 +7,18 @@ import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/state_management/full_test_provider.dart';
 
 class OpeningLoadingPage extends ConsumerStatefulWidget {
-  const OpeningLoadingPage(
-      {super.key,
-      required this.packetId,
-      required this.isRetake,
-      required this.packetName});
+  const OpeningLoadingPage({
+    super.key,
+    required this.packetId,
+    required this.isRetake,
+    required this.packetName,
+    required this.packetType,
+  });
 
   final String packetId;
   final bool isRetake;
   final String packetName;
+  final String packetType;
 
   @override
   ConsumerState<OpeningLoadingPage> createState() => _OpeningLoadingPageState();
@@ -46,6 +48,8 @@ class _OpeningLoadingPageState extends ConsumerState<OpeningLoadingPage> {
     }
     await ref.read(fullTestProvider.notifier).onInit();
     await Future.delayed(const Duration(seconds: 4));
+    debugPrint(
+        "OpeningLoadingPage: ${widget.packetId}, ${widget.packetName}, ${widget.packetType}, ${widget.isRetake}");
 
     final diff = DateTime.now().difference(startDate);
     if (!mounted) {
@@ -57,6 +61,7 @@ class _OpeningLoadingPageState extends ConsumerState<OpeningLoadingPage> {
         arguments: {
           "diffInSeconds": diff.inSeconds + 4,
           "isRetake": widget.isRetake,
+          "packetType": widget.packetType,
         },
       ).then((value) {
         Navigator.of(context).pop();
