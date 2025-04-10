@@ -55,6 +55,17 @@ class _FormSectionState extends ConsumerState<FormSection> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final paragraphs = questions.first.bigQuestion
+        .split('\n')
+        .where((e) => e.trim().isNotEmpty)
+        .toList();
+
+    final formattedHtml = List.generate(paragraphs.length, (index) {
+      final content = paragraphs[index];
+      final indent = index == 0 ? 'text-indent: 16px;' : '';
+      return '<p style="$indent">$content</p>';
+    }).join();
+
 
     return Stack(
       children: [
@@ -74,7 +85,17 @@ class _FormSectionState extends ConsumerState<FormSection> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               HtmlWidget(
-                                questions.first.bigQuestion,
+                                formattedHtml,
+                                customStylesBuilder: (element) {
+                                  if (element.localName == 'p') {
+                                    return {
+                                      'text-align': 'justify',
+                                      'margin-top': '6px',
+                                      'margin-bottom': '6px',
+                                    };
+                                  }
+                                  return null;
+                                },
                               )
                             ],
                           ),
@@ -164,11 +185,16 @@ class _FormSectionState extends ConsumerState<FormSection> {
     return Skeleton.leaf(
       child: GestureDetector(
         onTap: () {
+          final formattedHtml = questions.first.bigQuestion
+              .split('\n')
+              .map((e) => '<p>$e</p>')
+              .join();
+
           showModalBottomSheet(
               context: context,
               builder: (context) {
                 return BottomSheetTranscript(
-                  htmlText: questions.first.bigQuestion,
+                  htmlText: formattedHtml,
                 );
               });
         },

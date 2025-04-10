@@ -60,6 +60,12 @@ class BottomSheetTranscript extends StatelessWidget {
                   children: [
                     HtmlWidget(
                       htmlText,
+                      customStylesBuilder: (element) {
+                        return {
+                          'text-align': 'justify',
+                          // 'line-height': '1.6',
+                        };
+                      },
                     )
                   ],
                 ),

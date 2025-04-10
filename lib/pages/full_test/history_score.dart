@@ -74,7 +74,7 @@ class _HistoryScoreState extends State<HistoryScore> {
                       backgroundColor: WidgetStateProperty.all(
                         selectedType == "Test"
                             ? HexColor(mariner500)
-                            : HexColor(neutral50),
+                            : HexColor(mariner300),
                       ),
                       shape: WidgetStateProperty.all(
                         const RoundedRectangleBorder(
@@ -109,7 +109,7 @@ class _HistoryScoreState extends State<HistoryScore> {
                       backgroundColor: WidgetStateProperty.all(
                         selectedType == "Simulation"
                             ? HexColor(mariner500)
-                            : HexColor(neutral50),
+                            : HexColor(mariner300),
                       ),
                       shape: WidgetStateProperty.all(
                         const RoundedRectangleBorder(
