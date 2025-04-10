@@ -10,13 +10,14 @@ class SpeakGameApi {
   SpeakGameApi({this.dio});
   Future<List<SpeakGame>> getWord() async {
     try {
-      final response = await DioToefl.instance.get("${Env.apiUrl}/minigames/speakingGames/get-speaking-word");
+      final response = await DioToefl.instance
+          .get("${Env.apiUrl}/minigames/speakingGames/get-speaking-word");
+
       if (response.statusCode == 200) {
-        final data = SpeakGame.fromJson(response.data);
-        
-        return (data.sentence as List)
-          .map((e) => SpeakGame.fromJson(e as Map<String, dynamic>))
-          .toList();
+        final List<dynamic> sentenceList = response.data['payload']['sentence'];
+        return sentenceList
+            .map((s) => SpeakGame.fromJson({'sentence': s}))
+            .toList();
       } else {
         throw Exception("Failed to load words");
       }

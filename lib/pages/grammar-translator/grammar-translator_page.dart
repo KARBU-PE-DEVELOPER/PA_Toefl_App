@@ -3,16 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/utils/custom_text_style.dart';
-import 'package:toefl/state_management/ask-ai/ask-ai_provider_state.dart';
+import 'package:toefl/state_management/grammar-translator/grammarTranslator_provider_state.dart';
 
-class AskGrammarPage extends ConsumerStatefulWidget {
-  const AskGrammarPage({super.key});
+class GrammarTranslatorPage extends ConsumerStatefulWidget {
+  const GrammarTranslatorPage({super.key});
 
   @override
-  ConsumerState<AskGrammarPage> createState() => _AskGrammarPageState();
+  ConsumerState<GrammarTranslatorPage> createState() =>
+      _GrammarTranslatorPageState();
 }
 
-class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
+class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
   final TextEditingController _textController = TextEditingController();
   String _accuracyPercentage = "0";
   String _explanation = "Please enter an English sentence first !!";
@@ -28,8 +29,9 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
   }
 
   void _fetchQuestion() async {
-    final response =
-        await ref.read(askGrammarProviderStatesProvider.notifier).getQuestion();
+    final response = await ref
+        .read(grammarTranslatorProviderStatesProvider.notifier)
+        .getQuestion();
     if (response != null) {
       setState(() {
         _question = response.question ?? "";
@@ -43,7 +45,7 @@ class _AskGrammarPageState extends ConsumerState<AskGrammarPage> {
     String userMessage = _textController.text.trim();
 
     final response = await ref
-        .read(askGrammarProviderStatesProvider.notifier)
+        .read(grammarTranslatorProviderStatesProvider.notifier)
         .storeMessage({"user_message": userMessage, "question": _question});
 
     if (response != null) {

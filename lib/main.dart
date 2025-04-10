@@ -30,7 +30,7 @@ import 'package:toefl/utils/locale.dart';
 //         home: const ClozeGamePage());
 //   }
 // }
-  
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   requestNotificationPermission();

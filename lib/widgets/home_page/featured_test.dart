@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
-import 'package:toefl/pages/ask-ai/ask-grammar_page.dart';
+import 'package:toefl/pages/grammar-translator/grammar-translator_page.dart';
 import 'package:toefl/pages/games/practice/scrambled_word.dart';
 import 'package:toefl/pages/games/practice/speaking_game.dart';
 import 'package:toefl/widgets/home_page/featured_card.dart';
@@ -90,10 +90,10 @@ class FeatureTest extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => AskGrammarPage(),
+                      builder: (context) => GrammarTranslatorPage(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: false,
+                      isBgLight: true,
                       icon: "assets/images/vector_game_listening.svg",
                       title: "Learn Grammar",
                       subtitle: "Let's practice your grammar skill !!!",

@@ -64,8 +64,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   void _loadWords() async {
     try {
       List<SpeakGame> words = await SpeakGameApi().getWord();
+      debugPrint("$words");
       setState(() {
-        _answerKey = words.first.sentence ?? '';
+        _answerKey = '';
       });
     } catch (e) {
       print("Error loading words: $e");
