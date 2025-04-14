@@ -4,7 +4,7 @@ part 'speak_game.g.dart';
 
 @JsonSerializable()
 class SpeakGame {
-  final List sentence;
+  final List<String> sentence;
 
   SpeakGame({required this.sentence});
 
