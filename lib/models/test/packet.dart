@@ -10,6 +10,8 @@ class Packet {
   final dynamic id;
   @JsonKey(name: 'packet_name', defaultValue: '')
   final String name;
+  @JsonKey(name: 'packet_type', defaultValue: '')
+  final String packetType;
   @JsonKey(name: 'akurasi', defaultValue: 0)
   final int accuracy;
   @JsonKey(name: 'question_count', defaultValue: 0)
@@ -20,6 +22,7 @@ class Packet {
   Packet({
     required this.id,
     required this.name,
+    required this.packetType,
     required this.accuracy,
     required this.questionCount,
     required this.wasFilled,

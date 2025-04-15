@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:toefl/pages/games/practice/cloze_game.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
 import 'package:toefl/pages/grammar-translator/grammar-translator_page.dart';
@@ -43,14 +44,14 @@ class FeatureTest extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => WordScramblePage(),
+                      builder: (context) => ClozeGamePage(),
                     )),
                     child: FeaturedCard(
                       isBgLight: false,
                       icon: "assets/images/word_scramble.svg",
-                      title: "Word Scramble",
+                      title: "Cloze Game",
                       subtitle:
-                          "Rearrange the letters to form the correct word",
+                          "Fill The Blank",
                     ),
                   ),
                 ),

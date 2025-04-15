@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:toefl/pages/full_test/history_score.dart';
 import 'package:toefl/remote/local/shared_pref/test_shared_preferences.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
@@ -187,32 +188,25 @@ class _HomePageState extends State<HomePage> {
               SizedBox(
                 height: 15,
               ),
-              // Padding(
-              //   padding: EdgeInsets.symmetric(horizontal: 24),
-              //   child: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       Text(
-              //         'learning_path'.tr(),
-              //         style: TextStyle(
-              //             fontSize: 18,
-              //             fontWeight: FontWeight.bold,
-              //             color: HexColor(neutral90)),
-              //       ),
-              //       Text(
-              //         'part_toefl'.tr(),
-              //         style: TextStyle(
-              //             fontSize: 14,
-              //             fontWeight: FontWeight.bold,
-              //             color: HexColor(neutral50)),
-              //       ),
-              //     ],
-              //   ),
-              // ),
-              // SizedBox(
-              //   height: 15,
-              // ),
-              // LearningPath(),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'history_score'.tr(),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: HexColor(neutral90)),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 15,
+              ),
+              HistoryScore(),
               SizedBox(
                 height: 30,
               ),
