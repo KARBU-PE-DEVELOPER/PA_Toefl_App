@@ -1,23 +1,22 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:toefl/models/ask-ai/ask-ai_detail.dart';
+import 'package:toefl/models/grammar-commentator/grammarCommentator_detail.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:toefl/models/ask-ai/question-ai_detail.dart';
+import 'package:toefl/models/grammar-commentator/question-grammarCommentator_detail.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
 
 import '../base_response.dart';
 
-class AskAIAPI {
+class GrammarCommentatorAPI {
   final Dio? dio;
 
-  AskAIAPI({this.dio});
-  Future<AskAI?> storeMessage(Map<String, dynamic> request) async {
+  GrammarCommentatorAPI({this.dio});
+  Future<GrammarCommentator?> storeMessage(Map<String, dynamic> request) async {
     try {
       final Response rawResponse = await DioToefl.instance.post(
-        '${Env.apiUrl}/grammar/ask-ai',
+        '${Env.apiUrl}/grammar-commentator/ask-ai',
         data: request,
       );
 
@@ -30,38 +29,37 @@ class AskAIAPI {
 
       final Map<String, dynamic> dataMessage = response.payload;
 
-      return AskAI.fromJson(dataMessage);
+      return GrammarCommentator.fromJson(dataMessage);
     } catch (e) {
       print("Error in storeMessage API: $e");
       return null;
     }
   }
 
-  Future<QuestionAskAI?> getQuestion() async {
+  Future<QuestionGrammarCommentator?> getQuestion() async {
     try {
-      final Response rawResponse = await DioToefl.instance.get(
-        '${Env.apiUrl}/grammar/get-question');
+      final Response rawResponse = await DioToefl.instance
+          .get('${Env.apiUrl}/grammar-commentator/get-question');
 
       final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
 
       final Map<String, dynamic> dataMessage = response.payload;
 
-      return QuestionAskAI.fromJson(dataMessage);
+      return QuestionGrammarCommentator.fromJson(dataMessage);
     } catch (e) {
       print("Error in storeMessage API: $e");
       return null;
     }
   }
 
-
-  Future<List<AskAI>> getAllAskGrammar() async {
+  Future<List<GrammarCommentator>> getAllGrammarCommentator() async {
     try {
-      final Response rawResponse =
-          await DioToefl.instance.get('${Env.apiUrl}/grammar/get-history');
+      final Response rawResponse = await DioToefl.instance
+          .get('${Env.apiUrl}/grammar-commentator/get-history');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       return (response.payload as List)
-          .map((e) => AskAI.fromJson(e as Map<String, dynamic>))
+          .map((e) => GrammarCommentator.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
       return [];
