@@ -16,11 +16,16 @@ import 'bookmark_button.dart';
 import 'bottom_sheet_full_test.dart';
 
 class FullTestPage extends ConsumerStatefulWidget {
-  const FullTestPage(
-      {super.key, required this.diffInSec, required this.isRetake});
+  const FullTestPage({
+    super.key,
+    required this.diffInSec,
+    required this.isRetake,
+    required this.packetType,
+  });
 
   final int diffInSec;
   final bool isRetake;
+  final String packetType;
 
   @override
   ConsumerState<FullTestPage> createState() => _FullTestPageState();
@@ -30,16 +35,20 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
   @override
   void initState() {
     super.initState();
-    FlutterLockTask().startLockTask().then((value) {
-      debugPrint("startLockTask: $value");
-    });
+    if (widget.packetType == "test") {
+      FlutterLockTask().startLockTask().then((value) {
+        debugPrint("startLockTask: $value");
+      });
+    }
   }
 
   @override
   void dispose() {
-    FlutterLockTask().stopLockTask().then((value) {
-      debugPrint("stopLockTask: $value");
-    });
+    if (widget.packetType == "test") {
+      FlutterLockTask().stopLockTask().then((value) {
+        debugPrint("stopLockTask: $value");
+      });
+    }
     super.dispose();
   }
 
@@ -107,29 +116,73 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                         ),
                         Row(
                           children: [
-                            Text(
-                              "${ref.watch(fullTestProvider).questionsFilledStatus.where((element) => element == true).length}/140",
-                              style: CustomTextStyle.bold16.copyWith(
-                                color: HexColor(mariner700),
-                                fontSize: 14,
-                              ),
+                            // Text(
+
+                            //   "${ref.watch(fullTestProvider).questionsFilledStatus.where((element) => element == true).length}/140",
+                            //   style: CustomTextStyle.bold16.copyWith(
+                            //     color: HexColor(mariner700),
+                            //     fontSize: 14,
+                            //   ),
+                            // ),
+
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final state = ref.watch(fullTestProvider);
+                                final totalQuestions = state
+                                    .totalQuestions; // Ambil jumlah total soal
+                                final answeredQuestions = state
+                                    .questionsFilledStatus
+                                    .where((element) => element == true)
+                                    .length;
+
+                                return Text(
+                                  "$answeredQuestions/$totalQuestions",
+                                  style: CustomTextStyle.bold16.copyWith(
+                                    color: HexColor(mariner700),
+                                    fontSize: 14,
+                                  ),
+                                );
+                              },
                             ),
+
                             const Spacer(),
-                            SizedBox(
-                              width: screenWidth * 0.5,
-                              child: LinearProgressIndicator(
-                                value: ref
-                                        .watch(fullTestProvider)
-                                        .questionsFilledStatus
-                                        .where((element) => element == true)
-                                        .length /
-                                    140,
-                                backgroundColor: HexColor(neutral40),
-                                color: HexColor(mariner700),
-                                minHeight: 7,
-                                borderRadius: BorderRadius.circular(9),
-                              ),
+                            // SizedBox(
+                            //   width: screenWidth * 0.5,
+                            //   child: LinearProgressIndicator(
+                            //
+
+                            //         140,
+                            //     backgroundColor: HexColor(neutral40),
+                            //     color: HexColor(mariner700),
+                            //     minHeight: 7,
+                            //     borderRadius: BorderRadius.circular(9),
+                            //   ),
+                            // ),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final state = ref.watch(fullTestProvider);
+                                final totalQuestions = state
+                                    .totalQuestions; // Ambil jumlah total soal
+                                final answeredQuestions = state
+                                    .questionsFilledStatus
+                                    .where((element) => element == true)
+                                    .length;
+
+                                return SizedBox(
+                                  width: screenWidth * 0.5,
+                                  child: LinearProgressIndicator(
+                                    value: totalQuestions > 0
+                                        ? answeredQuestions / totalQuestions
+                                        : 0,
+                                    backgroundColor: HexColor(neutral40),
+                                    color: HexColor(mariner700),
+                                    minHeight: 7,
+                                    borderRadius: BorderRadius.circular(9),
+                                  ),
+                                );
+                              },
                             ),
+
                             const Spacer(),
                             Icon(
                               Icons.timer,
@@ -305,17 +358,26 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                                 .read(fullTestProvider.notifier)
                                 .getQuestionsFilledStatus()
                                 .then((value) {
-                              showModalBottomSheet(
-                                  context: context,
-                                  builder: (context) {
-                                    return BottomSheetFullTest(
-                                      filledStatus: value,
-                                      onTap: (number) {},
-                                    );
-                                  }).then((value) {
-                                ref
-                                    .read(fullTestProvider.notifier)
-                                    .getQuestionByNumber(value);
+                              ref
+                                  .read(fullTestProvider.notifier)
+                                  .getQuestionsFilledStatus()
+                                  .then((value) {
+                                if (value != null) {
+                                  showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) {
+                                        return BottomSheetFullTest(
+                                          filledStatus: value,
+                                          onTap: (number) {},
+                                        );
+                                      }).then((selectedNumber) {
+                                    if (selectedNumber != null) {
+                                      ref
+                                          .read(fullTestProvider.notifier)
+                                          .getQuestionByNumber(selectedNumber);
+                                    }
+                                  });
+                                }
                               });
                             });
                           },
@@ -377,15 +439,19 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                   submitResult = await ref
                       .read(fullTestProvider.notifier)
                       .resubmitAnswer();
-                  FlutterLockTask().stopLockTask().then((value) {
-                    print("stopLockTask: " + value.toString());
-                  });
+                  if (widget.packetType == "test") {
+                    FlutterLockTask().stopLockTask().then((value) {
+                      debugPrint("stopLockTask: $value");
+                    });
+                  }
                 } else {
                   submitResult =
                       await ref.read(fullTestProvider.notifier).submitAnswer();
-                  FlutterLockTask().stopLockTask().then((value) {
-                    print("stopLockTask 3: " + value.toString());
-                  });
+                  if (widget.packetType == "test") {
+                    FlutterLockTask().stopLockTask().then((value) {
+                      debugPrint("stopLockTask: $value");
+                    });
+                  }
                 }
                 if (submitResult) {
                   bool resetResult =
@@ -396,9 +462,11 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                         (route) =>
                             RouteKey.openingLoadingTest == route.settings.name);
                   }
-                  FlutterLockTask().stopLockTask().then((value) {
-                    print("stopLockTask: " + value.toString());
-                  });
+                  if (widget.packetType == "test") {
+                    FlutterLockTask().stopLockTask().then((value) {
+                      debugPrint("stopLockTask: $value");
+                    });
+                  }
                 }
               },
               unAnsweredQuestion: ref
