@@ -39,7 +39,7 @@ class GrammarCommentatorAPI {
   Future<QuestionGrammarCommentator?> getQuestion() async {
     try {
       final Response rawResponse = await DioToefl.instance
-          .get('${Env.apiUrl}/grammar-commentator/get-question');
+          .get('${Env.apiUrl}/grammar-commentator/get-statement');
 
       final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
 

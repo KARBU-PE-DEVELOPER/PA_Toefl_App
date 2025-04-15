@@ -19,18 +19,18 @@ class SpeakGameProviderStates extends _$SpeakGameProviderStates {
   @override
   FutureOr<SpeakGameProviderState> build() async {
     final askAIList = await SpeakGameApi().getWord();
-    
+
     return SpeakGameProviderState(speakGame: askAIList);
   }
 
-  // Future<SpeakGame?> getQuestion() async {
-  //   state = const AsyncLoading(); // Set state loading
-  //   try {
-  //     final sentenceResponse = await SpeakGameApi().getWord();
-  //     return SpeakGame(sentence: sentenceResponse?.sentence);
-  //   } catch (e, stackTrace) {
-  //     state = AsyncError(e, stackTrace);
-  //     return null;
-  //   }
-  // }
+  Future<List<SpeakGame>> getQuestion() async {
+    state = const AsyncLoading(); // Set state loading
+    try {
+      final sentenceResponse = await SpeakGameApi().getWord();
+      return sentenceResponse;
+    } catch (e, stackTrace) {
+      state = AsyncError(e, stackTrace);
+      return [];
+    }
+  }
 }

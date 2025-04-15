@@ -13,13 +13,21 @@ class SpeakGameApi {
       final response = await DioToefl.instance
           .get("${Env.apiUrl}/minigames/speakingGames/get-speaking-word");
 
-      if (response.statusCode == 200) {
-        final List<dynamic> sentenceList = response.data['payload']['sentence'];
-        return sentenceList
-            .map((s) => SpeakGame.fromJson({'sentence': s}))
+      // Decode JSON jika masih berupa String
+      final Map<String, dynamic> decodedData = response.data is String
+          ? jsonDecode(response.data)
+          : response.data;
+      if (decodedData.containsKey('payload') &&
+          decodedData['payload'].containsKey('sentence')) {
+        final List<dynamic> sentence = decodedData['payload']['sentence'];
+
+        return sentence
+            .whereType<
+                Map<String, dynamic>>() // Pastikan hanya map yang diproses
+            .map((e) => SpeakGame.fromJson(e))
             .toList();
       } else {
-        throw Exception("Failed to load words");
+        throw Exception("Format response tidak sesuai");
       }
     } catch (e) {
       throw Exception("Error fetching words: $e");

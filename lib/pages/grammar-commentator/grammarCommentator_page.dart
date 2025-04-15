@@ -3,21 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/utils/custom_text_style.dart';
-import 'package:toefl/state_management/grammar-translator/grammarTranslator_provider_state.dart';
+// import 'package:toefl/state_management/grammar-translator/grammarTranslator_provider_state.dart';
+import 'package:toefl/state_management/grammar-commentator/grammarCommentator_provider_state.dart';
 
-class GrammarTranslatorPage extends ConsumerStatefulWidget {
-  const GrammarTranslatorPage({super.key});
+class GrammarCommentatorPage extends ConsumerStatefulWidget {
+  const GrammarCommentatorPage({super.key});
 
   @override
-  ConsumerState<GrammarTranslatorPage> createState() =>
-      _GrammarTranslatorPageState();
+  ConsumerState<GrammarCommentatorPage> createState() =>
+      _GrammarCommentatorPageState();
 }
 
-class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
+class _GrammarCommentatorPageState extends ConsumerState<GrammarCommentatorPage> {
   final TextEditingController _textController = TextEditingController();
-  String _accuracyPercentage = "0";
+  String _grammarPercentage = "0";
   String _explanation = "Please enter an English sentence first !!";
-  String _englishSentence = "";
+  String _correctResponse = "";
   String _question = "Loading question...";
 
   @override
@@ -30,7 +31,7 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
 
   void _fetchQuestion() async {
     final response = await ref
-        .read(grammarTranslatorProviderStatesProvider.notifier)
+        .read(grammarCommentatorProviderStatesProvider.notifier)
         .getQuestion();
     if (response != null) {
       setState(() {
@@ -45,7 +46,7 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
     String userMessage = _textController.text.trim();
 
     final response = await ref
-        .read(grammarTranslatorProviderStatesProvider.notifier)
+        .read(grammarCommentatorProviderStatesProvider.notifier)
         .storeMessage({"user_message": userMessage, "question": _question});
 
     if (response != null) {
@@ -53,8 +54,8 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
         _explanation = response.explanation?.trim().isNotEmpty == true
             ? response.explanation!.trim()
             : response.botResponse?.trim() ?? "No explanation provided.";
-        _accuracyPercentage = response.accuracyScore?.toString() ?? "0";
-        _englishSentence = response.englishSentence?.trim() ?? "";
+        _grammarPercentage = response.grammarScore?.toString() ?? "0";
+        _correctResponse = response.correctResponse?.trim() ?? "";
       });
       _textController.clear();
     }
@@ -71,7 +72,7 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
           icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Ask Grammar", style: CustomTextStyle.askGrammarTitle),
+        title: Text("Grammar Commentator", style: CustomTextStyle.askGrammarTitle),
         centerTitle: true,
         actions: [
           IconButton(
@@ -104,9 +105,9 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        _accuracyPercentage == "0"
+                        _grammarPercentage == "0"
                             ? "Sentence"
-                            : "Accuracy Percentage",
+                            : "grammar Percentage",
                         style: CustomTextStyle.askGrammarSubtitle,
                       ),
                       const SizedBox(height: 8),
@@ -114,9 +115,9 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
                         height: 100, // Adjust height as needed
                         child: SingleChildScrollView(
                           child: Text(
-                            _accuracyPercentage == "0"
+                            _grammarPercentage == "0"
                                 ? _question
-                                : _accuracyPercentage,
+                                : _grammarPercentage,
                             style: CustomTextStyle.askGrammarBody,
                             textAlign: TextAlign.center,
                           ),
@@ -142,7 +143,7 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (_englishSentence.isNotEmpty)
+              if (_correctResponse.isNotEmpty)
                 Card(
                   color: HexColor(softBlue),
                   shape: RoundedRectangleBorder(
@@ -151,7 +152,7 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
-                      "Correct Word: $_englishSentence",
+                      "Correct Word: $_correctResponse",
                       style: CustomTextStyle.askGrammarSubtitle,
                       textAlign: TextAlign.center,
                     ),
