@@ -59,13 +59,24 @@ class FullTestApi {
       List<Map<String, dynamic>> request, String packetId) async {
     try {
       final Response rawResponse = await DioToefl.instance.post(
-        '${Env.simulationUrl}/submit-answers/$packetId',
+        '${Env.simulationUrl}/submit-answer/$packetId',
         data: {"answers": request},
       );
 
       if ((rawResponse.statusCode ?? 0) >= 200 &&
           (rawResponse.statusCode ?? 0) < 300) {
-        return true;
+        // Jalankan URL tambahan untuk menghitung setelah submit berhasil
+        final Response calcResponse = await DioToefl.instance.post(
+          'http://103.106.72.182:8040/api/submit-answers/$packetId',
+        );
+
+        if ((calcResponse.statusCode ?? 0) >= 200 &&
+            (calcResponse.statusCode ?? 0) < 300) {
+          return true;
+        } else {
+          debugPrint('Gagal hitung setelah submit: ${calcResponse.statusCode}');
+          return false;
+        }
       } else {
         return false;
       }
@@ -121,7 +132,7 @@ class FullTestApi {
       debugPrint('error get test result: $e');
       return Result(
         id: '',
-        precentage: 0,
+        percentage: 0,
         toeflScore: 0,
         correctQuestionAll: 0,
         totalQuestionAll: 0,

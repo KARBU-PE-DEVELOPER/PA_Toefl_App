@@ -76,9 +76,9 @@ class _TestResultPageState extends State<TestResultPage> {
                                 height: 120,
                                 child: ToeflProgressIndicator(
                                   value:
-                                      ((result?.precentage ?? 0).toDouble() < 9
+                                      ((result?.percentage ?? 0).toDouble() < 9
                                               ? 9
-                                              : (result?.precentage ?? 0)
+                                              : (result?.percentage ?? 0)
                                                   .toDouble()) /
                                           100,
                                   activeHexColor: mariner800,
@@ -96,7 +96,7 @@ class _TestResultPageState extends State<TestResultPage> {
                                 right: 0,
                                 child: Center(
                                   child: Text(
-                                    "${result?.precentage ?? "0"}%",
+                                    "${result?.percentage ?? "0"}%",
                                     textAlign: TextAlign.center,
                                     style: CustomTextStyle.extrabold24
                                         .copyWith(color: HexColor(mariner800)),

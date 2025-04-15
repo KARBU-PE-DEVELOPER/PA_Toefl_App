@@ -407,12 +407,11 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                       builder: (BuildContext
                                                           attentionContext) {
                                                         return AlertDialog(
-                                                          title:
-                                                              Text("Attention"),
+                                                          title: Text(
+                                                              "attention".tr()),
                                                           content: Text(
-                                                              "Enable Camera: Make sure the camera is on to detect facial movements and prevent cheating.\n\n"
-                                                              "Enable Lock Task Mode: Lock the application so that it cannot switch to other applications during the exam.\n\n"
-                                                              "Prepare Yourself: Sit comfortably and make sure the room is free from distractions, use headphones to listen to the questions."),
+                                                              "isiContent"
+                                                                  .tr()),
                                                           actions: [
                                                             TextButton(
                                                               onPressed: () {
