@@ -8,11 +8,9 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'package:string_similarity/string_similarity.dart';
 import 'package:toefl/models/games/speak_game.dart';
 import 'package:toefl/remote/api/games/speakgame_api.dart';
-<<<<<<< HEAD
-import 'package:toefl/state_management/games/speaking_games_provider_state.dart';
-=======
+
 import 'package:toefl/remote/local/shared_pref/auth_shared_preferences.dart';
->>>>>>> 4b323c465a35fbd301f7e29366e8819d4f7ab1dc
+
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/answer_validation_container.dart';
@@ -28,6 +26,7 @@ class SpeakingGame extends ConsumerStatefulWidget {
 
 class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   final SpeechToText _speechToText = SpeechToText();
+  List<double> _scores = [];
   bool _speechEnabled = false;
   String _userAnswer = '';
   String _answerKey = "";
@@ -42,11 +41,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
-    // _loadWords();
-=======
+
     _loadSentences();
->>>>>>> 4b323c465a35fbd301f7e29366e8819d4f7ab1dc
+
     _initSpeech();
   }
 
@@ -72,24 +69,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     });
   }
 
-<<<<<<< HEAD
-  // void _loadWords() async {
-  //   try {
-  //     List<SpeakGame> words = await SpeakGameApi().getWord();
-  //     debugPrint("$words");
-  //     setState(() {
-  //       _answerKey = '';
-  //     });
-  //   } catch (e) {
-  //     print("Error loading words: $e");
-  //   }
-  // }
-=======
   void _loadSentences() async {
     try {
-      final game =
-          await SpeakGameApi(dio: Dio(), authPref: AuthSharedPreference())
-              .getWord();
+      final game = await SpeakGameApi(dio: Dio()).getWord();
       setState(() {
         _sentences = game.sentence;
         if (_sentences.isNotEmpty) {
@@ -103,7 +85,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
       );
     }
   }
->>>>>>> 4b323c465a35fbd301f7e29366e8819d4f7ab1dc
 
   void _checkAnswer() {
     final cleanedAnswer =
@@ -117,24 +98,51 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
       accuracy = similarity;
       _isCorrect = similarity > 0.7; // Threshold diturunkan ke 70%
       _isCheck = true;
+
+      // Simpan skor ke dalam list
+      if (_scores.length == _currentSentenceIndex) {
+        _scores.add(similarity * 10); // Skor dari 0-10
+      }
     });
   }
 
-  void _nextSentence() {
+  double _calculateTotalScore() {
+    return _scores.fold(0, (sum, item) => sum + item);
+  }
+
+  Future<double> _storeScore() async {
+    double totalScore = _calculateTotalScore();
+
+    try {
+      await SpeakGameApi(dio: Dio()).store(totalScore); // Kirim skor ke API
+    } catch (e) {
+      print("Error storing score: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Gagal menyimpan skor")),
+      );
+    }
+
+    return totalScore;
+  }
+
+  double _calculateAverageScore() {
+    if (_scores.isEmpty) return 0;
+    return _calculateTotalScore() / _scores.length;
+  }
+
+  void _nextSentence() async {
     if (_isCheck && _currentSentenceIndex < _sentences.length - 1) {
       setState(() {
         _currentSentenceIndex++;
         _answerKey = _sentences[_currentSentenceIndex];
         _resetState();
       });
-<<<<<<< HEAD
-      // _loadWords();
-    } else if (_userAnswer.isNotEmpty) {
-=======
     } else if (_isCheck) {
-      _showCompletionDialog();
+      final totalScore = await _storeScore(); // Simpan dan dapatkan skor
+      final score = _calculateTotalScore();
+      final averageScore = score / _scores.length;
+      _showCompletionDialog(score, averageScore); // Panggil dialog dengan skor
     } else {
->>>>>>> 4b323c465a35fbd301f7e29366e8819d4f7ab1dc
       _checkAnswer();
     }
   }
@@ -146,12 +154,16 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     _disable = true;
   }
 
-  void _showCompletionDialog() {
+  void _showCompletionDialog(double score, double averageScore) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Selamat!"),
-        content: Text("Anda telah menyelesaikan semua soal."),
+        content: Text(
+          "Anda telah menyelesaikan semua soal.\n\n"
+          "Skor total: ${score.toStringAsFixed(1)} / ${_sentences.length * 10}\n"
+          "Rata-rata: ${averageScore.toStringAsFixed(1)} / 10",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -164,60 +176,13 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(speakGameProviderStatesProvider);
-
     return Scaffold(
-      appBar: GameAppBar(title: 'Pronunciation Practice'),
+      appBar: GameAppBar(title: 'Speaking Games'),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-<<<<<<< HEAD
-            state.when(
-              loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text("Error: $e"),
-              data: (data) {
-                final sentences =
-                    data.speakGame.expand((e) => e.sentence).toList();
-
-                return Expanded(
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    itemCount: sentences.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 2.5,
-                    ),
-                    itemBuilder: (context, index) {
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[100],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Text(
-                            sentences[index],
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.nunito(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[900],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-=======
             // Progress Indicator
             Text(
               "Soal ${_currentSentenceIndex + 1} dari ${_sentences.length}",
@@ -261,9 +226,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                 ),
               ),
             const SizedBox(height: 16),
-
-            // Microphone Button
->>>>>>> 4b323c465a35fbd301f7e29366e8819d4f7ab1dc
             GestureDetector(
               onTap: _speechToText.isNotListening
                   ? _startListening
@@ -279,14 +241,10 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-<<<<<<< HEAD
-                    Icon(Icons.mic, color: Colors.blue[900]),
-=======
                     Icon(
                       _speechToText.isListening ? Icons.mic_off : Icons.mic,
                       color: Colors.blue[900],
                     ),
->>>>>>> 4b323c465a35fbd301f7e29366e8819d4f7ab1dc
                     const SizedBox(width: 8),
                     Text(
                       _speechToText.isListening
@@ -303,18 +261,13 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
               ),
             ),
             const Spacer(),
-<<<<<<< HEAD
-=======
-
-            // Validation Section
->>>>>>> 4b323c465a35fbd301f7e29366e8819d4f7ab1dc
             if (_isCheck)
               AnswerValidationContainer(
                 isCorrect: _isCorrect,
                 keyAnswer: _answerKey,
                 explanation: 'Skor: ${(accuracy * 10).toStringAsFixed(1)}/10',
               ),
-<<<<<<< HEAD
+
             Text(
               "TEKAN UNTUK BERBICARA",
               style: GoogleFonts.nunito(
@@ -324,10 +277,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
               ),
             ),
             const SizedBox(height: 8),
-=======
-
-            // Check/Next Button
->>>>>>> 4b323c465a35fbd301f7e29366e8819d4f7ab1dc
             BlueButton(
               isDisabled: _disable && !_isCheck,
               title: _isCheck
