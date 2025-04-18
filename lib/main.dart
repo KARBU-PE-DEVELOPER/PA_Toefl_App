@@ -30,11 +30,7 @@ import 'package:toefl/utils/locale.dart';
 //         home: const ClozeGamePage());
 //   }
 // }
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> main
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   requestNotificationPermission();
@@ -92,8 +88,6 @@ class MyApp extends StatelessWidget {
       ],
     );
   }
-<<<<<<< HEAD
+
 }
-=======
-}
->>>>>>> main
+

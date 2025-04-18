@@ -51,8 +51,7 @@ class FeatureTest extends StatelessWidget {
                       isBgLight: false,
                       icon: "assets/images/word_scramble.svg",
                       title: "Cloze Game",
-                      subtitle:
-                          "Fill The Blank",
+                      subtitle: "Fill The Blank",
                     ),
                   ),
                 ),
@@ -95,22 +94,22 @@ class FeatureTest extends StatelessWidget {
                     )),
                     child: FeaturedCard(
                       isBgLight: true,
-                      icon: "assets/images/vector_game_listening.svg",
+                      icon: "assets/images/Group39369.svg",
                       title: "Grammar Translator",
                       subtitle: "Let's practice your grammar skill !!!",
                     ),
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(right: 24),
+                  padding: const EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => GrammarCommentatorPage(),
+                      builder: (context) => const GrammarCommentatorPage(),
                     )),
                     child: FeaturedCard(
                       isBgLight: false,
-                      icon: "assets/images/vector_game_listening.svg",
+                      icon: "assets/images/Group39370.svg",
                       title: "Grammar Commentator",
                       subtitle: "Let's practice your grammar skill !!!",
                     ),

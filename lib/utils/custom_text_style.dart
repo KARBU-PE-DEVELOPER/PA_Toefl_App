@@ -94,7 +94,6 @@ class CustomTextStyle {
   );
 
   static TextStyle askGrammarSubtitle = GoogleFonts.balooBhaijaan2(
-<<<<<<< HEAD
     fontSize: 18,
     fontWeight: FontWeight.w600,
     color: HexColor(mariner700),
@@ -106,16 +105,4 @@ class CustomTextStyle {
     color: HexColor(neutral70),
   );
 
-=======
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: HexColor(deepSkyBlue),
-  );
-
-  static TextStyle askGrammarBody = GoogleFonts.balooBhaijaan2(
-    fontSize: 18,
-    fontWeight: FontWeight.w400,
-    color: HexColor(royalBlue),
-  );
->>>>>>> main
 }

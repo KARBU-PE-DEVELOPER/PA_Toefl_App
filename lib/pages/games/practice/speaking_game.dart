@@ -138,7 +138,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
         _resetState();
       });
     } else if (_isCheck) {
-      final totalScore = await _storeScore(); // Simpan dan dapatkan skor
+      await _storeScore(); // Simpan dan dapatkan skor
       final score = _calculateTotalScore();
       final averageScore = score / _scores.length;
       _showCompletionDialog(score, averageScore); // Panggil dialog dengan skor

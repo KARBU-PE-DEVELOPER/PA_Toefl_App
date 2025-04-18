@@ -36,6 +36,9 @@ class _GrammarCommentatorPageState extends ConsumerState<GrammarCommentatorPage>
     if (response != null) {
       setState(() {
         _question = response.question ?? "";
+        _grammarPercentage = "0";
+        _explanation = "Please enter an English sentence first !!";
+        _correctResponse = "";
       });
     }
   }
