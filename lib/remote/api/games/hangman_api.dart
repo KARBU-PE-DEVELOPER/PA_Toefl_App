@@ -1,44 +1,42 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:toefl/models/games/cloze_game.dart';
+import 'package:toefl/models/games/hangman_game.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
 import '../../base_response.dart';
 
-class ClozeGameApi {
+class HangmanGameApi {
   final Dio _dio = DioToefl.instance;
 
-  Future<List<ClozeQuestion>> fetchClozeQuestions() async {
+  Future<HangmanData?> fetchHangmanWord() async {
     try {
       final Response rawResponse = await _dio.get(
-        '${Env.gameUrl}/clozeGame/get-cloze-word',
+        '${Env.gameUrl}/hangmanGame/get-hangman-word',
       );
 
-      print("API Response (Cloze): ${rawResponse.data}");
+      print("API Response (Hangman): ${rawResponse.data}");
 
       final Map<String, dynamic> decodedData = rawResponse.data is String
           ? jsonDecode(rawResponse.data)
           : rawResponse.data;
 
-      return parseClozeQuestions(decodedData);
+      return parseHangmanData(decodedData);
     } catch (e) {
-      print("Error in fetchClozeQuestions API: $e");
-      return [];
+      print("Error fetching Hangman word: $e");
+      return null;
     }
   }
 
-
-
-  Future<bool> submitClozeResult(double score) async {
+  Future<bool> submitHangmanResult(double score) async {
     try {
       final Response rawResponse = await _dio.post(
-        '${Env.gameUrl}/clozeGame/submit-answers',
+        '${Env.gameUrl}/hangmanGame/submit-answers',
         data: {
           'score': score,
         },
       );
 
-      print("Submit Response (Cloze): ${rawResponse.data}");
+      print("Submit Response (Hangman): ${rawResponse.data}");
 
       final Map<String, dynamic> decodedData = rawResponse.data is String
           ? jsonDecode(rawResponse.data)
@@ -47,7 +45,7 @@ class ClozeGameApi {
       final response = BaseResponse.fromJson(decodedData);
       return response.payload;
     } catch (e) {
-      print("Error submitting cloze result: $e");
+      print("Error submitting Hangman result: $e");
       return false;
     }
   }

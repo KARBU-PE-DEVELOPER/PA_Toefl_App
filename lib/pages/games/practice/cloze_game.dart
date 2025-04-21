@@ -66,6 +66,7 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
           actions: [
             TextButton(
               onPressed: () {
+                loadQuestions();
                 Navigator.of(context).pop();
                 setState(() {
                   currentQuestionIndex = 0;
@@ -76,7 +77,9 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
                 });
               },
               child: const Text("Restart"),
+              
             ),
+            
           ],
         ),
       );

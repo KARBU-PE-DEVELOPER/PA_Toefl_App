@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:toefl/pages/games/practice/cloze_game.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
+import 'package:toefl/pages/games/practice/hangman_game.dart';
 import 'package:toefl/pages/grammar-translator/grammar-translator_page.dart';
 import 'package:toefl/pages/games/practice/scrambled_word.dart';
 import 'package:toefl/pages/games/practice/speaking_game.dart';
@@ -36,6 +37,22 @@ class FeatureTest extends StatelessWidget {
                       icon: "assets/images/vector_game_speaking.svg",
                       title: "Speaking Game",
                       subtitle: "Challange your speaking",
+                    ),
+                  ),
+                ),
+                 Padding(
+                  padding: EdgeInsets.only(right: 24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => HangmanGame(),
+                    )),
+                    child: FeaturedCard(
+                      isBgLight: false,
+                      icon: "assets/images/word_scramble.svg",
+                      title: "Hangman Game",
+                      subtitle:
+                          "D I E",
                     ),
                   ),
                 ),
