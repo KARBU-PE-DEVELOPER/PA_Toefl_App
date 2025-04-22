@@ -107,7 +107,7 @@ class MiniTestApi {
       debugPrint('error get test result: $e');
       return Result(
         id: '',
-        precentage: 0,
+        percentage: 0,
         toeflScore: 0,
         correctQuestionAll: 0,
         totalQuestionAll: 0,
