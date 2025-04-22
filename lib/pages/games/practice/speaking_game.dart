@@ -154,6 +154,22 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     _disable = true;
   }
 
+  void restartGame() {
+    Navigator.pop(context); // Tutup dialog
+
+    setState(() {
+      _scores.clear();
+      _userAnswer = '';
+      _answerKey = '';
+      _isCheck = false;
+      _isCorrect = false;
+      _disable = true;
+      _currentSentenceIndex = 0;
+    });
+
+    _loadSentences(); // Fetch ulang soal
+  }
+
   void _showCompletionDialog(double score, double averageScore) {
     showDialog(
       context: context,
@@ -166,9 +182,15 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
-          )
+            onPressed: restartGame,
+            child: Text("Restart"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.popUntil(context, (route) => route.isFirst);
+            },
+            child: Text("Exit"),
+          ),
         ],
       ),
     );
@@ -197,7 +219,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue[100],
+                color: const Color(0xFFD8E9FF),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -206,60 +228,119 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                 style: GoogleFonts.nunito(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue[900],
+                  color: Color(0xFF387EFF),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-
-            // User Answer Display
-            if (_userAnswer.isNotEmpty)
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _userAnswer,
-                  style: GoogleFonts.nunito(fontSize: 16),
-                ),
-              ),
             const SizedBox(height: 16),
             GestureDetector(
               onTap: _speechToText.isNotListening
                   ? _startListening
                   : _stopListening,
               child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: _speechToText.isListening
-                      ? Colors.red[100]
-                      : Colors.blue[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                width: 302,
+                height: 99,
+                child: Stack(
                   children: [
-                    Icon(
-                      _speechToText.isListening ? Icons.mic_off : Icons.mic,
-                      color: Colors.blue[900],
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: Container(
+                        width: 302,
+                        height: 99,
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFD8E9FF),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(7.5),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                              spreadRadius: 0,
+                            )
+                          ],
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _speechToText.isListening
-                          ? "KETUK UNTUK BERHENTI"
-                          : "KETUK UNTUK BICARA",
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue[900],
+                    Positioned(
+                      left: 58,
+                      top: 34,
+                      child: Text(
+                        _speechToText.isListening
+                            ? 'KETUK UNTUK BERHENTI'
+                            : 'KETUK UNTUK BICARA',
+                        style: const TextStyle(
+                          color: Color(0xFF387EFF),
+                          fontSize: 20,
+                          fontFamily: 'Baloo Bhaijaan',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 14,
+                      top: 29,
+                      child: Icon(
+                        _speechToText.isListening ? Icons.mic_off : Icons.mic,
+                        size: 36,
+                        color: Color(0xFF387EFF),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+            // User Answer Display
+            const SizedBox(height: 16),
+            if (_userAnswer.isNotEmpty)
+              Container(
+                width: 302,
+                decoration: ShapeDecoration(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    // Background Box
+                    Positioned.fill(
+                      child: Container(
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFD8E9FF),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Color(0x3F888888),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                              spreadRadius: 0,
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Scrollable Text
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SingleChildScrollView(
+                        child: Text(
+                          _userAnswer,
+                          style: const TextStyle(
+                            color: Color(0xFF387EFF),
+                            fontSize: 20,
+                            fontFamily: 'Baloo Bhaijaan 2',
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const Spacer(),
             if (_isCheck)
               AnswerValidationContainer(
@@ -270,10 +351,10 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
             Text(
               "TEKAN UNTUK BERBICARA",
-              style: GoogleFonts.nunito(
-                fontSize: 14,
+              style: GoogleFonts.balooPaaji2(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: HexColor(grey),
               ),
             ),
             const SizedBox(height: 8),
