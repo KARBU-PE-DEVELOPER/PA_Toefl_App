@@ -8,7 +8,9 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'package:string_similarity/string_similarity.dart';
 import 'package:toefl/models/games/speak_game.dart';
 import 'package:toefl/remote/api/games/speakgame_api.dart';
+
 import 'package:toefl/remote/local/shared_pref/auth_shared_preferences.dart';
+
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/answer_validation_container.dart';
@@ -24,6 +26,7 @@ class SpeakingGame extends ConsumerStatefulWidget {
 
 class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   final SpeechToText _speechToText = SpeechToText();
+  List<double> _scores = [];
   bool _speechEnabled = false;
   String _userAnswer = '';
   String _answerKey = "";
@@ -38,7 +41,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   @override
   void initState() {
     super.initState();
+
     _loadSentences();
+
     _initSpeech();
   }
 
@@ -66,9 +71,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
   void _loadSentences() async {
     try {
-      final game =
-          await SpeakGameApi(dio: Dio(), authPref: AuthSharedPreference())
-              .getWord();
+      final game = await SpeakGameApi(dio: Dio()).getWord();
       setState(() {
         _sentences = game.sentence;
         if (_sentences.isNotEmpty) {
@@ -95,10 +98,39 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
       accuracy = similarity;
       _isCorrect = similarity > 0.7; // Threshold diturunkan ke 70%
       _isCheck = true;
+
+      // Simpan skor ke dalam list
+      if (_scores.length == _currentSentenceIndex) {
+        _scores.add(similarity * 10); // Skor dari 0-10
+      }
     });
   }
 
-  void _nextSentence() {
+  double _calculateTotalScore() {
+    return _scores.fold(0, (sum, item) => sum + item);
+  }
+
+  Future<double> _storeScore() async {
+    double totalScore = _calculateTotalScore();
+
+    try {
+      await SpeakGameApi(dio: Dio()).store(totalScore); // Kirim skor ke API
+    } catch (e) {
+      print("Error storing score: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Gagal menyimpan skor")),
+      );
+    }
+
+    return totalScore;
+  }
+
+  double _calculateAverageScore() {
+    if (_scores.isEmpty) return 0;
+    return _calculateTotalScore() / _scores.length;
+  }
+
+  void _nextSentence() async {
     if (_isCheck && _currentSentenceIndex < _sentences.length - 1) {
       setState(() {
         _currentSentenceIndex++;
@@ -106,7 +138,10 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
         _resetState();
       });
     } else if (_isCheck) {
-      _showCompletionDialog();
+      await _storeScore(); // Simpan dan dapatkan skor
+      final score = _calculateTotalScore();
+      final averageScore = score / _scores.length;
+      _showCompletionDialog(score, averageScore); // Panggil dialog dengan skor
     } else {
       _checkAnswer();
     }
@@ -119,12 +154,16 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     _disable = true;
   }
 
-  void _showCompletionDialog() {
+  void _showCompletionDialog(double score, double averageScore) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Selamat!"),
-        content: Text("Anda telah menyelesaikan semua soal."),
+        content: Text(
+          "Anda telah menyelesaikan semua soal.\n\n"
+          "Skor total: ${score.toStringAsFixed(1)} / ${_sentences.length * 10}\n"
+          "Rata-rata: ${averageScore.toStringAsFixed(1)} / 10",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -138,7 +177,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GameAppBar(title: 'Pronunciation Practice'),
+      appBar: GameAppBar(title: 'Speaking Games'),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -187,14 +226,12 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                 ),
               ),
             const SizedBox(height: 16),
-
-            // Microphone Button
             GestureDetector(
               onTap: _speechToText.isNotListening
                   ? _startListening
                   : _stopListening,
               child: Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: _speechToText.isListening
                       ? Colors.red[100]
@@ -224,8 +261,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
               ),
             ),
             const Spacer(),
-
-            // Validation Section
             if (_isCheck)
               AnswerValidationContainer(
                 isCorrect: _isCorrect,
@@ -233,7 +268,15 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                 explanation: 'Skor: ${(accuracy * 10).toStringAsFixed(1)}/10',
               ),
 
-            // Check/Next Button
+            Text(
+              "TEKAN UNTUK BERBICARA",
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 8),
             BlueButton(
               isDisabled: _disable && !_isCheck,
               title: _isCheck

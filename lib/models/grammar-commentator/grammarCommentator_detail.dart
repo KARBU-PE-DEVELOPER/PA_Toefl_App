@@ -17,8 +17,8 @@ class GrammarCommentator {
   @JsonKey(defaultValue: false, name: 'english_correct')
   final bool? englishCorrect;
 
-  @JsonKey(defaultValue: '', name: 'relevance')
-  final String? relevance;
+  @JsonKey(defaultValue: false, name: 'relevance')
+  final bool? relevance;
 
   @JsonKey(defaultValue: '', name: 'coherence_score')
   final String? coherenceScore;
@@ -63,7 +63,7 @@ class GrammarCommentator {
       userMessage: json['user_message'] ?? '',
       botResponse: json['bot_response'] ?? '',
       englishCorrect: json['english_correct'] ?? false,
-      relevance: json['relevance'] ?? '',
+      relevance: json['relevance'] ?? false,
       coherenceScore: json['conherence_score'] is int
           ? json['conherence_score'].toString() // Konversi ke string jika int
           : json['conherence_score'] ?? '',

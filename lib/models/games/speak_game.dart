@@ -13,3 +13,4 @@ class SpeakGame {
 
   Map<String, dynamic> toJson() => _$SpeakGameToJson(this);
 }
+

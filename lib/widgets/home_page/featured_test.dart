@@ -5,6 +5,8 @@ import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
 import 'package:toefl/pages/games/practice/hangman_game.dart';
 import 'package:toefl/pages/grammar-translator/grammar-translator_page.dart';
+import 'package:toefl/pages/grammar-translator/grammarTranslator_page.dart';
+import 'package:toefl/pages/grammar-commentator/grammarCommentator_page.dart';
 import 'package:toefl/pages/games/practice/scrambled_word.dart';
 import 'package:toefl/pages/games/practice/speaking_game.dart';
 import 'package:toefl/widgets/home_page/featured_card.dart';
@@ -67,8 +69,7 @@ class FeatureTest extends StatelessWidget {
                       isBgLight: false,
                       icon: "assets/images/word_scramble.svg",
                       title: "Cloze Game",
-                      subtitle:
-                          "Fill The Blank",
+                      subtitle: "Fill The Blank",
                     ),
                   ),
                 ),
@@ -106,14 +107,28 @@ class FeatureTest extends StatelessWidget {
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => GrammarTranslatorPage(),
                     )),
                     child: FeaturedCard(
                       isBgLight: true,
-                      icon: "assets/images/vector_game_listening.svg",
-                      title: "Learn Grammar",
+                      icon: "assets/images/Group39369.svg",
+                      title: "Grammar Translator",
+                      subtitle: "Let's practice your grammar skill !!!",
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const GrammarCommentatorPage(),
+                    )),
+                    child: FeaturedCard(
+                      isBgLight: false,
+                      icon: "assets/images/Group39370.svg",
+                      title: "Grammar Commentator",
                       subtitle: "Let's practice your grammar skill !!!",
                     ),
                   ),

@@ -3,31 +3,27 @@ import 'package:toefl/models/games/speak_game.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
 import 'dart:convert';
+import '../../base_response.dart';
 
 import 'package:toefl/remote/local/shared_pref/auth_shared_preferences.dart';
 
 class SpeakGameApi {
-  final Dio dio;
-  final AuthSharedPreference authPref; // Tambahkan ini
+  final Dio? dio;
 
-  SpeakGameApi(
-      {required this.dio, required this.authPref}); // Update constructor
+  SpeakGameApi({required this.dio}); // Update constructor
 
   Future<SpeakGame> getWord() async {
     try {
       // 2. Ambil token dari SharedPreferences
-      final token = await authPref.getBearerToken();
+      // final token = await authPref.getBearerToken();
 
-      if (token == null) {
-        throw Exception("Authentication token not found");
-      }
+      // if (token == null) {
+      //   throw Exception("Authentication token not found");
+      // }
 
       // 3. Tambahkan header Authorization
-      final response = await dio.get(
+      final response = await DioToefl.instance.get(
         "${Env.apiUrl}/minigames/speakingGames/get-speaking-word",
-        options: Options(headers: {
-          'Authorization': token,
-        }),
       );
 
       final contentType = response.headers['content-type']?.toString();
@@ -82,6 +78,28 @@ class SpeakGameApi {
       return rawList.map((item) => item.toString()).toList();
     } catch (e) {
       throw Exception("Gagal mengkonversi kalimat: $e");
+    }
+  }
+
+  Future<bool> store(double score) async {
+    try {
+      final Response rawResponse = await DioToefl.instance.post(
+        '${Env.gameUrl}/speakingGames/submit-answers',
+        data: {
+          'score': score,
+        },
+      );
+      print("Submit Response: ${rawResponse.data}");
+
+      final Map<String, dynamic> decodedData = rawResponse.data is String
+          ? jsonDecode(rawResponse.data)
+          : rawResponse.data;
+
+      final response = BaseResponse.fromJson(decodedData);
+      return response.payload;
+    } catch (e) {
+      print("Error submitting result: $e");
+      return false;
     }
   }
 }

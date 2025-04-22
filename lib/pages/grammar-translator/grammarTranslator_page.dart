@@ -35,6 +35,9 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
     if (response != null) {
       setState(() {
         _question = response.question ?? "";
+        _accuracyPercentage = "0";
+        _explanation = "Please enter an English sentence first !!";
+        _englishSentence = "";
       });
     }
   }
@@ -50,9 +53,18 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
 
     if (response != null) {
       setState(() {
-        _explanation = response.explanation?.trim().isNotEmpty == true
-            ? response.explanation!.trim()
-            : response.botResponse?.trim() ?? "No explanation provided.";
+        if (response.explanation != null &&
+            response.explanation!.trim().isNotEmpty) {
+          _explanation = response.explanation!.trim();
+          _accuracyPercentage = "0";
+        } else if (response.botResponse != null &&
+            response.botResponse!.trim().isNotEmpty) {
+          _explanation = response.botResponse!.trim();
+          _accuracyPercentage = "0";
+        } else {
+          _explanation = "No explanation provided.";
+        }
+
         _accuracyPercentage = response.accuracyScore?.toString() ?? "0";
         _englishSentence = response.englishSentence?.trim() ?? "";
       });
@@ -71,7 +83,8 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
           icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Ask Grammar", style: CustomTextStyle.askGrammarTitle),
+        title:
+            Text("Grammar Translator", style: CustomTextStyle.askGrammarTitle),
         centerTitle: true,
         actions: [
           IconButton(
