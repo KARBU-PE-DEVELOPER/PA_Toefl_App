@@ -90,7 +90,7 @@ class _HistoryScoreState extends State<HistoryScore> {
                       style: TextStyle(
                         color: selectedType == "Test"
                             ? HexColor(primaryWhite)
-                            : HexColor(primaryWhite),
+                            : HexColor(mariner900),
                       ),
                     ),
                   ),
@@ -124,7 +124,7 @@ class _HistoryScoreState extends State<HistoryScore> {
                       style: TextStyle(
                         color: selectedType == "Simulation"
                             ? HexColor(primaryWhite)
-                            : HexColor(primaryWhite),
+                            : HexColor(mariner900),
                       ),
                     ),
                   ),
@@ -132,30 +132,32 @@ class _HistoryScoreState extends State<HistoryScore> {
               ],
             ),
             const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text("No")),
-                  DataColumn(label: Text("Date")),
-                  DataColumn(label: Text("Time")),
-                  DataColumn(label: Text("Listening")),
-                  DataColumn(label: Text("Structure")),
-                  DataColumn(label: Text("Reading")),
-                  DataColumn(label: Text("Total")),
-                ],
-                rows: List.generate(filteredData.length, (index) {
-                  final data = filteredData[index];
-                  return DataRow(cells: [
-                    DataCell(Text("${index + 1}")),
-                    DataCell(Text("${data["date"]}")),
-                    DataCell(Text("${data["time"]}")),
-                    DataCell(Text("${data["listening"]}")),
-                    DataCell(Text("${data["structure"]}")),
-                    DataCell(Text("${data["reading"]}")),
-                    DataCell(Text("${data["total"]}")),
-                  ]);
-                }),
+            Scrollbar(
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text("No")),
+                    DataColumn(label: Text("Total")),
+                    DataColumn(label: Text("Date & Time")),
+                    DataColumn(label: Text("Listening")),
+                    DataColumn(label: Text("Structure")),
+                    DataColumn(label: Text("Reading")),
+                  ],
+                  rows: List.generate(filteredData.length, (index) {
+                    final data = filteredData[index];
+                    final dateTime = "${data["date"]} ${data["time"]}";
+                    return DataRow(cells: [
+                      DataCell(Text("${index + 1}")),
+                      DataCell(Text("${data["total"]}")),
+                      DataCell(Text(dateTime)),
+                      DataCell(Text("${data["listening"]}")),
+                      DataCell(Text("${data["structure"]}")),
+                      DataCell(Text("${data["reading"]}")),
+                    ]);
+                  }),
+                ),
               ),
             ),
           ],

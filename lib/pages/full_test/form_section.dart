@@ -51,6 +51,27 @@ class _FormSectionState extends ConsumerState<FormSection> {
     super.initState();
   }
 
+  // @override
+  // void initState() {
+  //   print("Original questions:");
+  //   for (var q in widget.questions) {
+  //     print("nestedId: ${q.nestedQuestionId}, number: ${q.number}");
+  //   }
+  //   if (widget.questions.isNotEmpty) {
+  //     // Salin dan urutkan berdasarkan nestedQuestionId dan number
+  //     questions = List<Question>.from(widget.questions)
+  //       ..sort((a, b) {
+  //         final groupCompare = a.nestedQuestionId.compareTo(b.nestedQuestionId);
+  //         if (groupCompare != 0) return groupCompare;
+  //         return a.number.compareTo(b.number);
+  //       });
+  //   } else {
+  //     print("No questions available.");
+  //   }
+
+  //   super.initState();
+  // }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -65,7 +86,6 @@ class _FormSectionState extends ConsumerState<FormSection> {
       final indent = index == 0 ? 'text-indent: 16px;' : '';
       return '<p style="$indent">$content</p>';
     }).join();
-
 
     return Stack(
       children: [
@@ -145,6 +165,7 @@ class _FormSectionState extends ConsumerState<FormSection> {
         padding: EdgeInsets.only(bottom: question.question.isEmpty ? 8.0 : 0),
         child: Text(
           "Question ${question.number}",
+          // "Question ${questions.indexOf(question) + 1}",
           style: CustomTextStyle.bold16.copyWith(fontSize: 14),
         ),
       ),
