@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'result.g.dart';
@@ -8,67 +7,97 @@ part 'result.g.dart';
 class Result {
   @JsonKey(defaultValue: '', fromJson: _stringFromJson)
   final String id;
-  @JsonKey(defaultValue: 0, name: 'score')
-  final int precentage;
-  @JsonKey(defaultValue: 0, name: 'score_toefl')
-  final int toeflScore;
-  @JsonKey(defaultValue: 0, name: 'correct_question_all')
-  final int correctQuestionAll;
-  @JsonKey(defaultValue: 0, name: 'total_question_all')
-  final int totalQuestionAll;
-  @JsonKey(defaultValue: 0, name: 'correct_question_listening_all')
-  final int correctListeningAll;
-  @JsonKey(defaultValue: 0, name: 'total_question_listening_all')
-  final int totalListeningAll;
-  @JsonKey(defaultValue: 0, name: 'listening_part_a_correct')
-  final int listeningPartACorrect;
-  @JsonKey(defaultValue: 0, name: 'total_question_listening_part_a')
-  final int totalListeningPartA;
-  @JsonKey(defaultValue: 0, name: 'accuracy_listening_part_a')
-  final int accuracyListeningPartA;
-  @JsonKey(defaultValue: 0, name: 'correct_question_listening_part_b')
-  final int correctListeningPartB;
-  @JsonKey(defaultValue: 0, name: 'total_question_listening_part_b')
-  final int totalListeningPartB;
-  @JsonKey(defaultValue: 0, name: 'accuracy_listening_part_b')
-  final int accuracyListeningPartB;
-  @JsonKey(defaultValue: 0, name: 'correct_question_listening_part_c')
-  final int correctListeningPartC;
-  @JsonKey(defaultValue: 0, name: 'total_question_listening_part_c')
-  final int totalListeningPartC;
-  @JsonKey(defaultValue: 0, name: 'accuracy_listening_part_c')
-  final int accuracyListeningPartC;
-  @JsonKey(defaultValue: 0, name: 'correct_question_structure_all')
-  final int correctStructureAll;
-  @JsonKey(defaultValue: 0, name: 'total_question_structure_all')
-  final int totalStructureAll;
-  @JsonKey(defaultValue: 0, name: 'correct_question_structure_part_a')
-  final int correctStructurePartA;
-  @JsonKey(defaultValue: 0, name: 'total_question_structure_part_a')
-  final int totalStructurePartA;
-  @JsonKey(defaultValue: 0, name: 'accuracy_structure_part_a')
-  final int accuracyStructurePartA;
-  @JsonKey(defaultValue: 0, name: 'correct_question_structure_part_b')
-  final int correctStructurePartB;
-  @JsonKey(defaultValue: 0, name: 'total_question_structure_part_b')
-  final int totalStructurePartB;
-  @JsonKey(defaultValue: 0, name: 'accuracy_structure_part_b')
-  final int accuracyStructurePartB;
-  @JsonKey(defaultValue: 0, name: 'correct_question_reading')
-  final int correctReading;
-  @JsonKey(defaultValue: 0, name: 'total_question_reading')
-  final int totalReading;
-  @JsonKey(defaultValue: 0, name: 'accuracy_reading')
-  final int accuracyReading;
-  @JsonKey(defaultValue: 0, name: 'target_user')
+
+  @JsonKey(defaultValue: 0, name: 'score', fromJson: _intFromNullableJson)
+  final int percentage;
+
+  @JsonKey(defaultValue: 0.0, name: 'score_toefl', fromJson: _doubleFromJson)
+  final double toeflScore;
+
+  @JsonKey(defaultValue: 0, name: 'target_user', fromJson: _intFromNullableJson)
   final int targetUser;
+
   @JsonKey(defaultValue: 0, name: 'answered_question')
   final int answeredQuestion;
 
+  @JsonKey(defaultValue: 0, name: 'correct_question_all')
+  final int correctQuestionAll;
+
+  @JsonKey(defaultValue: 0, name: 'total_question_all')
+  final int totalQuestionAll;
+
+  @JsonKey(defaultValue: 0, name: 'correct_question_listening_all')
+  final int correctListeningAll;
+
+  @JsonKey(defaultValue: 0, name: 'total_question_listening_all')
+  final int totalListeningAll;
+
+  @JsonKey(defaultValue: 0, name: 'listening_part_a_correct')
+  final int listeningPartACorrect;
+
+  @JsonKey(defaultValue: 0, name: 'total_question_listening_part_a')
+  final int totalListeningPartA;
+
+  @JsonKey(defaultValue: 0, name: 'accuracy_listening_part_a')
+  final int accuracyListeningPartA;
+
+  @JsonKey(defaultValue: 0, name: 'correct_question_listening_part_b')
+  final int correctListeningPartB;
+
+  @JsonKey(defaultValue: 0, name: 'total_question_listening_part_b')
+  final int totalListeningPartB;
+
+  @JsonKey(defaultValue: 0, name: 'accuracy_listening_part_b')
+  final int accuracyListeningPartB;
+
+  @JsonKey(defaultValue: 0, name: 'correct_question_listening_part_c')
+  final int correctListeningPartC;
+
+  @JsonKey(defaultValue: 0, name: 'total_question_listening_part_c')
+  final int totalListeningPartC;
+
+  @JsonKey(defaultValue: 0, name: 'accuracy_listening_part_c')
+  final int accuracyListeningPartC;
+
+  @JsonKey(defaultValue: 0, name: 'correct_question_structure_all')
+  final int correctStructureAll;
+
+  @JsonKey(defaultValue: 0, name: 'total_question_structure_all')
+  final int totalStructureAll;
+
+  @JsonKey(defaultValue: 0, name: 'correct_question_structure_part_a')
+  final int correctStructurePartA;
+
+  @JsonKey(defaultValue: 0, name: 'total_question_structure_part_a')
+  final int totalStructurePartA;
+
+  @JsonKey(defaultValue: 0, name: 'accuracy_structure_part_a')
+  final int accuracyStructurePartA;
+
+  @JsonKey(defaultValue: 0, name: 'correct_question_structure_part_b')
+  final int correctStructurePartB;
+
+  @JsonKey(defaultValue: 0, name: 'total_question_structure_part_b')
+  final int totalStructurePartB;
+
+  @JsonKey(defaultValue: 0, name: 'accuracy_structure_part_b')
+  final int accuracyStructurePartB;
+
+  @JsonKey(defaultValue: 0, name: 'correct_question_reading')
+  final int correctReading;
+
+  @JsonKey(defaultValue: 0, name: 'total_question_reading')
+  final int totalReading;
+
+  @JsonKey(defaultValue: 0, name: 'accuracy_reading')
+  final int accuracyReading;
+
   Result({
     required this.id,
-    required this.precentage,
+    required this.percentage,
     required this.toeflScore,
+    required this.targetUser,
+    required this.answeredQuestion,
     required this.correctQuestionAll,
     required this.totalQuestionAll,
     required this.correctListeningAll,
@@ -93,8 +122,6 @@ class Result {
     required this.correctReading,
     required this.totalReading,
     required this.accuracyReading,
-    required this.targetUser,
-    required this.answeredQuestion,
   });
 
   factory Result.fromJson(Map<String, dynamic> json) => _$ResultFromJson(json);
@@ -107,7 +134,22 @@ class Result {
   String toStringJson() => jsonEncode(toJson());
 }
 
+// 🔧 Custom deserializers
 String _stringFromJson(dynamic value) {
   if (value == null) return '';
   return value.toString();
+}
+
+double _doubleFromJson(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  if (value is num) return value.toDouble();
+  return 0.0;
+}
+
+int _intFromNullableJson(dynamic value) {
+  if (value == null) return 0;
+  if (value is String) return int.tryParse(value) ?? 0;
+  if (value is int) return value;
+  return 0;
 }

@@ -82,5 +82,8 @@
   "add_friend": "Tambah Teman",
   "find_friend": "Cari Teman",
   "friend_result": "{} Ditemukan",
-  "search": "Cari..."
+  "search": "Cari...",
+  "attention":"Perhatian",
+  "isiContent": "Aktifkan Kamera: Pastikan kamera menyala untuk mendeteksi gerakan wajah dan mencegah kecurangan.\n\nAktifkan Mode Lock Task: Kunci aplikasi agar tidak bisa beralih ke aplikasi lain selama ujian.\n\nPersiapkan Diri: Duduk dengan nyaman dan pastikan ruangan bebas dari gangguan, gunakan headphone untuk mendengarkan soal."
+  
 }
