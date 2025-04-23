@@ -1,13 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:toefl/models/games/user_rank.dart';
 import 'package:toefl/models/leader_board.dart';
-import 'package:toefl/remote/api/leader_board_api.dart';
+import 'package:toefl/remote/api/games/leaderboard_api.dart';
 import 'package:toefl/utils/colors.dart';
-import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/common_app_bar.dart';
 import 'package:toefl/widgets/rank_page/list_rank.dart';
@@ -15,7 +10,7 @@ import 'package:toefl/widgets/rank_page/profile_rank.dart';
 import 'dart:math' as math;
 
 class RankPage extends StatefulWidget {
-  final UserRank dataRank;
+  final List<LeaderBoard> dataRank;
   const RankPage({super.key, required this.dataRank});
 
   @override
@@ -23,163 +18,168 @@ class RankPage extends StatefulWidget {
 }
 
 class _RankPageState extends State<RankPage> {
-  late UserRank listRank;
+  List<LeaderBoard> listRank = [];
+
   bool isLoading = false;
 
-  Future<UserRank> refreshData() async {
-    if (mounted) {
-      isLoading = true;
-    }
-    UserRank data = await LeaderBoardApi().getLeaderBoardEntries();
-    setState(() {
-      listRank = data;
-    });
-    if (mounted) {
-      isLoading = false;
-    }
-    return data;
-  }
+  // Fetch leaderboard data when the page is opened
+  Future<void> refreshData() async {
+  if (mounted) setState(() => isLoading = true);
+  List<LeaderBoard> data = await LeaderBoardApi().getLeaderBoardEntries();
+
+  // Urutkan data berdasarkan skor tertinggi (descending)
+  data.sort((a, b) => 
+    (double.tryParse(b.highestScore) ?? 0).compareTo(double.tryParse(a.highestScore) ?? 0)
+  );
+
+  if (mounted) setState(() {
+    listRank = data;
+    isLoading = false;
+  });
+}
+
 
   @override
   void initState() {
     super.initState();
-    listRank = widget.dataRank;
+    refreshData();  // Fetch leaderboard data when the page is opened
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: CommonAppBar(
-          title: 'Leaderboard',
-          backgroundColor: HexColor(mariner100),
-        ),
-        body: RefreshIndicator(
-          onRefresh: () => refreshData(),
-          child: Skeletonizer(
-              enabled: isLoading,
-              child: Skeleton.leaf(
-                child: Stack(
+      appBar: CommonAppBar(
+        title: 'Leaderboard',
+        backgroundColor: HexColor(mariner100),
+      ),
+      body: RefreshIndicator(
+        onRefresh: refreshData,
+        child: Skeletonizer(
+          enabled: isLoading,
+          child: Skeleton.leaf(
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                Container(
+                  height: MediaQuery.of(context).size.height / 2,
                   alignment: Alignment.bottomCenter,
-                  children: [
-                    Container(
-                      height: MediaQuery.of(context).size.height / 2,
-                      alignment: Alignment.bottomCenter,
-                      child: listRank.data != null
-                          ? ListView.builder(
-                              itemCount: math.max(0, listRank.data!.length - 3),
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                      top: index == 0 ? 90 : 8,
-                                      bottom: index ==
-                                              math.max(
-                                                      0,
-                                                      listRank.data!.length -
-                                                          3) -
-                                                  1
-                                          ? 20
-                                          : 8,
-                                      left: 24,
-                                      right: 24),
-                                  child: ListRank(
-                                    index: index + 4,
-                                    name: listRank.data![index + 3].user.name!,
-                                    score: listRank.data![index + 3].totalScore,
-                                  ),
-                                );
-                              },
-                            )
-                          : Padding(
-                              padding: EdgeInsets.all(24),
-                              child: Text('Take a game to participate'),
-                            ),
-                    ),
-                    Positioned(
-                      top: -200,
-                      child: CustomPaint(
-                        size: Size(650, 600),
-                        painter: BgRank(),
+                  child: listRank.isNotEmpty
+                      ? ListView.builder(
+                          itemCount: math.max(0, listRank.length),  // Don't add extra 3
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                top: index == 0 ? 90 : 8,
+                                bottom: index == listRank.length - 1 ? 20 : 8,
+                                left: 24,
+                                right: 24,
+                              ),
+                              child: ListRank(
+                                index: index + 1, // Adjust the rank for display
+                                name: listRank[index].userName,
+                                score: (double.tryParse(
+                                            listRank[index].highestScore) ?? 
+                                        0)
+                                    .toInt(),
+                              ),
+                            );
+                          },
+                        )
+                      : const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text('Take a game to participate'),
+                        ),
+                ),
+                Positioned(
+                  top: -200,
+                  child: CustomPaint(
+                    size: const Size(650, 600),
+                    painter: BgRank(),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  alignment: Alignment.topCenter,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Text(
+                          "Take a game to participate",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: HexColor(neutral60),
+                          ),
+                        ),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      alignment: Alignment.topCenter,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Center(
-                            child: Text(
-                              "Take a game to participate",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: HexColor(neutral60),
+                      const SizedBox(height: 30),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        verticalDirection: VerticalDirection.up,
+                        children: <Widget>[
+                          Expanded(
+                            child: Transform.translate(
+                              offset: const Offset(0, 80),
+                              child: ProfileRank(
+                                name: listRank.length > 1
+                                    ? listRank[1].userName
+                                    : "?",
+                                score: listRank.length > 1
+                                    ? (double.tryParse(
+                                                listRank[1].highestScore) ?? 
+                                            0)
+                                        .toInt()
+                                    : 0,
+                                category: "Silver",
+                                rank: 2,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 30),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            verticalDirection: VerticalDirection.up,
-                            children: <Widget>[
-                              Expanded(
-                                child: Transform.translate(
-                                  offset: const Offset(0, 80),
-                                  child: ProfileRank(
-                                    name: listRank.data != null &&
-                                            listRank.data!.length > 1
-                                        ? listRank.data![1].user.name!
-                                        : "?",
-                                    score: listRank.data != null &&
-                                            listRank.data!.length > 1
-                                        ? listRank.data![1].totalScore
-                                        : 0,
-                                    category: "Silver",
-                                    rank: 2,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: ProfileRank(
-                                  isMiddle: true,
-                                  name: listRank.data != null &&
-                                          listRank.data!.isNotEmpty
-                                      ? listRank.data![0].user.name!
-                                      : "?",
-                                  score: listRank.data != null &&
-                                          listRank.data!.isNotEmpty
-                                      ? listRank.data![0].totalScore
-                                      : 0,
-                                  category: "Gold",
-                                  rank: 1,
-                                ),
-                              ),
-                              Expanded(
-                                child: Transform.translate(
-                                  offset: const Offset(0, 80),
-                                  child: ProfileRank(
-                                    name: listRank.data != null &&
-                                            listRank.data!.length > 2
-                                        ? listRank.data![2].user.name!
-                                        : "?",
-                                    score: listRank.data != null &&
-                                            listRank.data!.length > 2
-                                        ? listRank.data![2].totalScore
-                                        : 0,
-                                    category: "Bronze",
-                                    rank: 3,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          Expanded(
+                            child: ProfileRank(
+                              isMiddle: true,
+                              name: listRank.isNotEmpty
+                                  ? listRank[0].userName
+                                  : "?",
+                              score: listRank.isNotEmpty
+                                  ? (double.tryParse(
+                                              listRank[0].highestScore) ?? 
+                                          0)
+                                      .toInt()
+                                  : 0,
+                              category: "Gold",
+                              rank: 1,
+                            ),
                           ),
-                          // const SizedBox(height: 170),
+                          Expanded(
+                            child: Transform.translate(
+                              offset: const Offset(0, 80),
+                              child: ProfileRank(
+                                name: listRank.length > 2
+                                    ? listRank[2].userName
+                                    : "?",
+                                score: listRank.length > 2
+                                    ? (double.tryParse(
+                                                listRank[2].highestScore) ?? 
+                                            0)
+                                        .toInt()
+                                    : 0,
+                                category: "Bronze",
+                                rank: 3,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              )),
-        ));
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -198,7 +198,5 @@ class BgRank extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
-  }
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
