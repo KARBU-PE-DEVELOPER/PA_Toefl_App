@@ -233,41 +233,35 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
               ),
             ),
             const SizedBox(height: 16),
-            GestureDetector(
-              onTap: _speechToText.isNotListening
-                  ? _startListening
-                  : _stopListening,
-              child: Container(
-                width: 302,
-                height: 99,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: Container(
-                        width: 302,
-                        height: 99,
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFD8E9FF),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(7.5),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
+            Center(
+              child: GestureDetector(
+                onTap: _speechToText.isNotListening
+                    ? _startListening
+                    : _stopListening,
+                child: Container(
+                  width: 302,
+                  height: 99,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD8E9FF),
+                    borderRadius: BorderRadius.circular(7.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x3F000000),
+                        blurRadius: 4,
+                        offset: Offset(0, 4),
                       ),
-                    ),
-                    Positioned(
-                      left: 58,
-                      top: 34,
-                      child: Text(
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _speechToText.isListening ? Icons.mic_off : Icons.mic,
+                        size: 36,
+                        color: const Color(0xFF387EFF),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
                         _speechToText.isListening
                             ? 'KETUK UNTUK BERHENTI'
                             : 'KETUK UNTUK BICARA',
@@ -278,67 +272,40 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: 14,
-                      top: 29,
-                      child: Icon(
-                        _speechToText.isListening ? Icons.mic_off : Icons.mic,
-                        size: 36,
-                        color: Color(0xFF387EFF),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
             // User Answer Display
             const SizedBox(height: 16),
             if (_userAnswer.isNotEmpty)
-              Container(
-                width: 302,
-                decoration: ShapeDecoration(
-                  shape: RoundedRectangleBorder(
+              Center(
+                child: Container(
+                  width: 302,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD8E9FF),
                     borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x3F888888),
+                        blurRadius: 4,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ),
-                child: Stack(
-                  children: [
-                    // Background Box
-                    Positioned.fill(
-                      child: Container(
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFD8E9FF),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x3F888888),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      _userAnswer,
+                      style: const TextStyle(
+                        color: Color(0xFF387EFF),
+                        fontSize: 20,
+                        fontFamily: 'Baloo Bhaijaan 2',
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    // Scrollable Text
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SingleChildScrollView(
-                        child: Text(
-                          _userAnswer,
-                          style: const TextStyle(
-                            color: Color(0xFF387EFF),
-                            fontSize: 20,
-                            fontFamily: 'Baloo Bhaijaan 2',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             const Spacer(),

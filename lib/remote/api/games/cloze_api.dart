@@ -27,8 +27,6 @@ class ClozeGameApi {
     }
   }
 
-
-
   Future<bool> submitClozeResult(double score) async {
     try {
       final Response rawResponse = await _dio.post(

@@ -4,6 +4,7 @@ import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/state_management/grammar-translator/grammarTranslator_provider_state.dart';
+import 'package:toefl/widgets/blue_button.dart';
 
 class GrammarTranslatorPage extends ConsumerStatefulWidget {
   const GrammarTranslatorPage({super.key});
@@ -15,10 +16,13 @@ class GrammarTranslatorPage extends ConsumerStatefulWidget {
 
 class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
   final TextEditingController _textController = TextEditingController();
+  bool _showTextField = true;
   String _accuracyPercentage = "0";
   String _explanation = "Please enter an English sentence first !!";
   String _englishSentence = "";
   String _question = "Loading question...";
+  bool _isCheck = false;
+  bool _disable = true;
 
   @override
   void initState() {
@@ -38,6 +42,8 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
         _accuracyPercentage = "0";
         _explanation = "Please enter an English sentence first !!";
         _englishSentence = "";
+        _showTextField = true;
+        _disable = true;
       });
     }
   }
@@ -46,6 +52,12 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
     if (_textController.text.trim().isEmpty) return;
 
     String userMessage = _textController.text.trim();
+
+    setState(() {
+      _showTextField = false; // Hide text field after sending
+      _isCheck = true;
+      _disable = false;
+    });
 
     final response = await ref
         .read(grammarTranslatorProviderStatesProvider.notifier)
@@ -84,14 +96,8 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title:
-            Text("Grammar Translator", style: CustomTextStyle.askGrammarTitle),
+            Text("Quiz Translate Game", style: CustomTextStyle.askGrammarTitle),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: _fetchQuestion,
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -123,34 +129,42 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
                         style: CustomTextStyle.askGrammarSubtitle,
                       ),
                       const SizedBox(height: 8),
-                      SizedBox(
-                        height: 100, // Adjust height as needed
-                        child: SingleChildScrollView(
-                          child: Text(
-                            _accuracyPercentage == "0"
-                                ? _question
-                                : _accuracyPercentage,
-                            style: CustomTextStyle.askGrammarBody,
-                            textAlign: TextAlign.center,
+                      if (_showTextField)
+                        SizedBox(
+                          height: 100,
+                          child: SingleChildScrollView(
+                            child: Text(
+                              _question,
+                              style: CustomTextStyle.askGrammarBody,
+                              textAlign: TextAlign.center,
+                            ),
                           ),
+                        )
+                      else
+                        Text(
+                          _accuracyPercentage,
+                          style: CustomTextStyle.askGrammarBody,
+                          textAlign: TextAlign.center,
                         ),
-                      ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _textController,
-                decoration: InputDecoration(
-                  hintText: "Write Something...",
-                  hintStyle: CustomTextStyle.askGrammarBody,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.black),
-                    onPressed: _sendMessage,
+              Visibility(
+                visible: _showTextField,
+                child: TextField(
+                  controller: _textController,
+                  decoration: InputDecoration(
+                    hintText: "Write Something...",
+                    hintStyle: CustomTextStyle.askGrammarBody,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.send, color: Colors.black),
+                      onPressed: _sendMessage,
+                    ),
                   ),
                 ),
               ),
@@ -186,6 +200,14 @@ class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
               ),
             ],
           ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: BlueButton(
+          isDisabled: _disable,
+          title: 'Restart Game',
+          onTap: _fetchQuestion,
         ),
       ),
     );

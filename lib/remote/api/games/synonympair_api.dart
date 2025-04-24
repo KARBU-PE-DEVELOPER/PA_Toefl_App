@@ -11,7 +11,7 @@ class PairingGameApi {
   Future<List<SynonymPair>> fetchSynonyms() async {
     try {
       final Response rawResponse = await _dio.get(
-        '${Env.gameUrl}/pairingGames/get-pairing-word',
+        '${Env.gameUrl}/minigames/pairingGames/get-pairing-word',
       );
 
       print("API Response: ${rawResponse.data}");
@@ -42,7 +42,7 @@ class PairingGameApi {
   Future<bool> submitPairingGameResult(double score) async {
     try {
       final Response rawResponse = await _dio.post(
-        '${Env.gameUrl}/pairingGames/submit-answers',
+        '${Env.gameUrl}/minigames/pairingGames/submit-answers',
         data: {
           'score': score,
         },

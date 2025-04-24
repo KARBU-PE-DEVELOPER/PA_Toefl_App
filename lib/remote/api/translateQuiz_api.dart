@@ -17,7 +17,7 @@ class GrammarTranslatorAPI {
   Future<GrammarTranslator?> storeMessage(Map<String, dynamic> request) async {
     try {
       final Response rawResponse = await DioToefl.instance.post(
-        '${Env.apiUrl}/grammar-translator/ask-ai',
+        '${Env.gameUrl}/minigames/translateQuizGames/submit-answers',
         data: request,
       );
 
@@ -40,7 +40,7 @@ class GrammarTranslatorAPI {
   Future<QuestionGrammarTranslator?> getQuestion() async {
     try {
       final Response rawResponse = await DioToefl.instance.get(
-        '${Env.apiUrl}/grammar-translator/get-question');
+        '${Env.gameUrl}/minigames/translateQuizGames/get-question');
 
       final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
 
@@ -57,7 +57,7 @@ class GrammarTranslatorAPI {
   Future<List<GrammarTranslator>> getAllGrammarTranslator() async {
     try {
       final Response rawResponse =
-          await DioToefl.instance.get('${Env.apiUrl}/grammar-translator/get-history');
+          await DioToefl.instance.get('${Env.gameUrl}/minigames/translateQuizGames/get-history');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       return (response.payload as List)

@@ -4,8 +4,7 @@ import 'package:toefl/pages/games/practice/cloze_game.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
 import 'package:toefl/pages/games/practice/hangman_game.dart';
-import 'package:toefl/pages/grammar-translator/grammar-translator_page.dart';
-import 'package:toefl/pages/grammar-translator/grammarTranslator_page.dart';
+import 'package:toefl/pages/games/practice/translateQuiz_page.dart';
 import 'package:toefl/pages/grammar-commentator/grammarCommentator_page.dart';
 import 'package:toefl/pages/games/practice/scrambled_word.dart';
 import 'package:toefl/pages/games/practice/speaking_game.dart';
@@ -66,7 +65,7 @@ class FeatureTest extends StatelessWidget {
                       builder: (context) => ClozeGamePage(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: false,
+                      isBgLight: true,
                       icon: "assets/images/word_scramble.svg",
                       title: "Cloze Game",
                       subtitle: "Fill The Blank",
@@ -81,7 +80,7 @@ class FeatureTest extends StatelessWidget {
                       builder: (context) => PairingGame(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: true,
+                      isBgLight: false,
                       icon: "assets/images/synonim_pairing.svg",
                       title: "Synonim Pairing",
                       subtitle: "A game that contains synonymous words",
@@ -96,7 +95,7 @@ class FeatureTest extends StatelessWidget {
                       builder: (context) => SentenceScramblePage(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: false,
+                      isBgLight: true,
                       icon: "assets/images/vector_game_listening.svg",
                       title: "Listening Game",
                       subtitle: "Can you hear what i said?",
@@ -111,10 +110,10 @@ class FeatureTest extends StatelessWidget {
                       builder: (context) => GrammarTranslatorPage(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: true,
+                      isBgLight: false,
                       icon: "assets/images/Group39369.svg",
-                      title: "Grammar Translator",
-                      subtitle: "Let's practice your grammar skill !!!",
+                      title: "Translate Quiz",
+                      subtitle: "Translate sentences & sharpen your English!",
                     ),
                   ),
                 ),
@@ -126,10 +125,10 @@ class FeatureTest extends StatelessWidget {
                       builder: (context) => const GrammarCommentatorPage(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: false,
+                      isBgLight: true,
                       icon: "assets/images/Group39370.svg",
-                      title: "Grammar Commentator",
-                      subtitle: "Let's practice your grammar skill !!!",
+                      title: "Comment Practice",
+                      subtitle: "Write it right with guided grammar!",
                     ),
                   ),
                 )

@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:toefl/models/grammar-translator/grammarTranslator_detail.dart';
 import 'package:toefl/models/grammar-translator/question-grammarTranslator_detail.dart';
-import 'package:toefl/remote/api/grammarTranslator_api.dart';
+import 'package:toefl/remote/api/translateQuiz_api.dart';
 
 part 'grammarTranslator_provider_state.freezed.dart';
 part 'grammarTranslator_provider_state.g.dart';
