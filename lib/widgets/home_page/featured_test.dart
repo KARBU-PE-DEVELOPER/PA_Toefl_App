@@ -4,7 +4,6 @@ import 'package:toefl/pages/games/practice/cloze_game.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
 import 'package:toefl/pages/games/practice/hangman_game.dart';
-import 'package:toefl/pages/grammar-translator/grammar-translator_page.dart';
 import 'package:toefl/pages/grammar-translator/grammarTranslator_page.dart';
 import 'package:toefl/pages/grammar-commentator/grammarCommentator_page.dart';
 import 'package:toefl/pages/games/practice/scrambled_word.dart';
