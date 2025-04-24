@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:toefl/pages/games/games_page.dart';
 import 'package:toefl/pages/home_page.dart';
+import 'package:toefl/pages/rank_page.dart';
 import 'package:toefl/pages/user/profile_page.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
@@ -19,7 +20,7 @@ class _MainPageState extends State<MainPage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     HomePage(),
-    GamesPage(),
+    RankPage(dataRank: [],),
     ProfilePage(),
   ];
 
