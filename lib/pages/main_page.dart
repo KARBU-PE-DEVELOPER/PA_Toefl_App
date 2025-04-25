@@ -20,7 +20,9 @@ class _MainPageState extends State<MainPage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     HomePage(),
-    RankPage(dataRank: [],),
+    RankPage(
+      dataRank: [],
+    ),
     ProfilePage(),
   ];
 
@@ -36,7 +38,7 @@ class _MainPageState extends State<MainPage> {
       backgroundColor: Colors.white,
       body: _widgetOptions.elementAt(_index),
       bottomNavigationBar: Container(
-        height: 75,
+        height: 100,
         decoration:
             const BoxDecoration(boxShadow: [BoxShadow()], color: Colors.white),
         child: BottomNavigationBar(

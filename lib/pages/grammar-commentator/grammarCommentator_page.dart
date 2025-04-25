@@ -75,7 +75,7 @@ class _GrammarCommentatorPageState extends ConsumerState<GrammarCommentatorPage>
           icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Grammar Commentator", style: CustomTextStyle.askGrammarTitle),
+        title: Text("Writing Practice", style: CustomTextStyle.askGrammarTitle),
         centerTitle: true,
         actions: [
           IconButton(
