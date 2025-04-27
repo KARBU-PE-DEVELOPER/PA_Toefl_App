@@ -14,16 +14,8 @@ class SpeakGameApi {
 
   Future<SpeakGame> getWord() async {
     try {
-      // 2. Ambil token dari SharedPreferences
-      // final token = await authPref.getBearerToken();
-
-      // if (token == null) {
-      //   throw Exception("Authentication token not found");
-      // }
-
-      // 3. Tambahkan header Authorization
       final response = await DioToefl.instance.get(
-        "${Env.apiUrl}/minigames/speakingGames/get-speaking-word",
+        "${Env.gameUrl}/minigames/speakingGames/get-speaking-word",
       );
 
       final contentType = response.headers['content-type']?.toString();
@@ -84,7 +76,7 @@ class SpeakGameApi {
   Future<bool> store(double score) async {
     try {
       final Response rawResponse = await DioToefl.instance.post(
-        '${Env.gameUrl}/speakingGames/submit-answers',
+        '${Env.gameUrl}/minigames/speakingGames/submit-answers',
         data: {
           'score': score,
         },

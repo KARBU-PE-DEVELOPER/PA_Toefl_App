@@ -78,22 +78,22 @@ class UserApi {
   Future<UserTarget> getUserTarget() async {
     try {
       final Response rawResponse =
-          await DioToefl.instance.get('${Env.simulationUrl}/get-all/targets');
+          await DioToefl.instance.get('${Env.userUrl}/get-score-toefl');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       return UserTarget.fromJson(response.payload);
     } catch (e) {
       debugPrint("Error in getUserTarget: $e");
       return UserTarget(
-          selectedTarget: TestTarget(id: "", name: "", score: 0),
+          selectedTarget: TestTarget(id: 0, name: "", score: 0),
           allTargets: []);
     }
   }
 
-  Future<bool> updateBookmark(String id) async {
+  Future<bool> updateBookmark(int id) async {
     try {
       await DioToefl.instance
-          .patch('${Env.simulationUrl}/add-and-patch-target', data: {
+          .patch('${Env.userUrl}/add-and-patch-target', data: {
         'target_id': id,
       });
       return true;

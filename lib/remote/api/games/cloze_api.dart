@@ -11,7 +11,7 @@ class ClozeGameApi {
   Future<List<ClozeQuestion>> fetchClozeQuestions() async {
     try {
       final Response rawResponse = await _dio.get(
-        '${Env.gameUrl}/clozeGame/get-cloze-word',
+        '${Env.gameUrl}/minigames/clozeGame/get-cloze-word',
       );
 
       print("API Response (Cloze): ${rawResponse.data}");
@@ -27,12 +27,10 @@ class ClozeGameApi {
     }
   }
 
-
-
   Future<bool> submitClozeResult(double score) async {
     try {
       final Response rawResponse = await _dio.post(
-        '${Env.gameUrl}/clozeGame/submit-answers',
+        '${Env.gameUrl}/minigames/clozeGame/submit-answers',
         data: {
           'score': score,
         },

@@ -11,7 +11,7 @@ class HangmanGameApi {
   Future<HangmanData?> fetchHangmanWord() async {
     try {
       final Response rawResponse = await _dio.get(
-        '${Env.gameUrl}/hangmanGame/get-hangman-word',
+        '${Env.gameUrl}/minigames/hangmanGame/get-hangman-word',
       );
 
       print("API Response (Hangman): ${rawResponse.data}");
@@ -30,7 +30,7 @@ class HangmanGameApi {
   Future<bool> submitHangmanResult(double score) async {
     try {
       final Response rawResponse = await _dio.post(
-        '${Env.gameUrl}/hangmanGame/submit-answers',
+        '${Env.gameUrl}/minigames/hangmanGame/submit-answers',
         data: {
           'score': score,
         },

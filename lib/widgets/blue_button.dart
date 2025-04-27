@@ -28,7 +28,8 @@ class BlueButton extends StatelessWidget {
       onTap: isDisabled ? () {} : onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: HexColor(isDisabled ? neutral20 : mariner700),
+          color: isDisabled ? HexColor("#939393").withOpacity(0.27) : HexColor(mariner700),
+
           borderRadius: BorderRadius.circular(10),
         ),
         width: buttonSize,
