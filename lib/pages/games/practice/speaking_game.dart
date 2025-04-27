@@ -8,7 +8,7 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'package:string_similarity/string_similarity.dart';
 import 'package:toefl/models/games/speak_game.dart';
 import 'package:toefl/remote/api/games/speakgame_api.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:toefl/remote/local/shared_pref/auth_shared_preferences.dart';
 
 import 'package:toefl/utils/colors.dart';
@@ -79,9 +79,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
         }
       });
     } catch (e) {
-      print("Error loading sentences: $e");
+      print('error_loading_sentences'.tr(args: [e.toString()]));
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Gagal memuat soal")),
+        SnackBar(content: Text("failed_load_questions".tr())),
       );
     }
   }
@@ -96,12 +96,12 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
     setState(() {
       accuracy = similarity;
-      _isCorrect = similarity > 0.7; // Threshold diturunkan ke 70%
+      _isCorrect = similarity > 0.7; // Threshold tetap 70%
       _isCheck = true;
 
-      // Simpan skor ke dalam list
+      // Skor skala 100
       if (_scores.length == _currentSentenceIndex) {
-        _scores.add(similarity * 10); // Skor dari 0-10
+        _scores.add(similarity * 100);
       }
     });
   }
@@ -112,17 +112,19 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
   Future<double> _storeScore() async {
     double totalScore = _calculateTotalScore();
+    double averageScore = totalScore / _sentences.length; // karena 3 soal
 
     try {
-      await SpeakGameApi(dio: Dio()).store(totalScore); // Kirim skor ke API
+      await SpeakGameApi(dio: Dio())
+          .store(averageScore); // Kirim nilai rata-rata
     } catch (e) {
       print("Error storing score: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Gagal menyimpan skor")),
+        SnackBar(content: Text("failed_save_score".tr())),
       );
     }
 
-    return totalScore;
+    return averageScore;
   }
 
   double _calculateAverageScore() {
@@ -138,10 +140,8 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
         _resetState();
       });
     } else if (_isCheck) {
-      await _storeScore(); // Simpan dan dapatkan skor
-      final score = _calculateTotalScore();
-      final averageScore = score / _scores.length;
-      _showCompletionDialog(score, averageScore); // Panggil dialog dengan skor
+      final averageScore = await _storeScore();
+      _showCompletionDialog(averageScore); // Show dialog pakai skor rata-rata
     } else {
       _checkAnswer();
     }
@@ -170,26 +170,25 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     _loadSentences(); // Fetch ulang soal
   }
 
-  void _showCompletionDialog(double score, double averageScore) {
+  void _showCompletionDialog(double averageScore) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Selamat!"),
+        title: Text('congratulations'.tr()),
         content: Text(
-          "Anda telah menyelesaikan semua soal.\n\n"
-          "Skor total: ${score.toStringAsFixed(1)} / ${_sentences.length * 10}\n"
-          "Rata-rata: ${averageScore.toStringAsFixed(1)} / 10",
+          '${'completed_all_questions'.tr()}\n\n'
+          '${'average_score'.tr()}: ${averageScore.toStringAsFixed(1)} / 100',
         ),
         actions: [
           TextButton(
             onPressed: restartGame,
-            child: Text("Restart"),
+            child: Text("restart".tr()),
           ),
           TextButton(
             onPressed: () {
               Navigator.popUntil(context, (route) => route.isFirst);
             },
-            child: Text("Exit"),
+            child: Text("quit".tr()),
           ),
         ],
       ),
@@ -199,7 +198,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GameAppBar(title: 'Speaking Games'),
+      appBar: GameAppBar(title: 'speaking_game'.tr()),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -207,7 +206,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
           children: [
             // Progress Indicator
             Text(
-              "Soal ${_currentSentenceIndex + 1} dari ${_sentences.length}",
+              "${'question'.tr()} ${_currentSentenceIndex + 1} ${'of'.tr()} ${_sentences.length}",
               style: GoogleFonts.nunito(
                 fontSize: 16,
                 color: Colors.grey[600],
@@ -263,8 +262,8 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                       const SizedBox(width: 12),
                       Text(
                         _speechToText.isListening
-                            ? 'KETUK UNTUK BERHENTI'
-                            : 'KETUK UNTUK BICARA',
+                            ? 'mic_on'.tr()
+                            : 'mic_off'.tr(),
                         style: const TextStyle(
                           color: Color(0xFF387EFF),
                           fontSize: 20,
@@ -313,11 +312,11 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
               AnswerValidationContainer(
                 isCorrect: _isCorrect,
                 keyAnswer: _answerKey,
-                explanation: 'Skor: ${(accuracy * 10).toStringAsFixed(1)}/10',
+                explanation: 'Skor: ${(accuracy * 100).toStringAsFixed(1)}/100',
               ),
 
             Text(
-              "TEKAN UNTUK BERBICARA",
+              "mic_off".tr(),
               style: GoogleFonts.balooPaaji2(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -329,9 +328,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
               isDisabled: _disable && !_isCheck,
               title: _isCheck
                   ? (_currentSentenceIndex < _sentences.length - 1
-                      ? 'Soal Selanjutnya'
-                      : 'Selesai')
-                  : 'Periksa Jawaban',
+                      ? 'next_question'.tr()
+                      : 'end'.tr())
+                  : 'check_answer'.tr(),
               onTap: _nextSentence,
             ),
           ],

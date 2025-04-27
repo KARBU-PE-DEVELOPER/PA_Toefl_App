@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:toefl/models/games/user_rank.dart';
+import 'package:toefl/models/grammar-commentator/grammarCommentator_detail.dart';
 import 'package:toefl/models/quiz.dart';
 import 'package:toefl/models/quiz_type.dart';
 import 'package:toefl/pages/games/quiz/finish_quiz_page.dart';
@@ -19,6 +20,8 @@ import 'package:toefl/pages/full_test/opening_loading_page.dart';
 import 'package:toefl/pages/auth/new_password_page.dart';
 import 'package:toefl/pages/auth/otp_verification_page.dart';
 import 'package:toefl/pages/user/profile_page.dart';
+import 'package:toefl/pages/games/practice/speaking_game.dart';
+import 'package:toefl/pages/writingPractice/writingPractice_page.dart';
 import 'package:toefl/pages/full_test/full_test_page.dart';
 import 'package:toefl/pages/full_test/simulation_page.dart';
 import 'package:toefl/pages/full_test/test_result_page.dart';
@@ -107,6 +110,8 @@ final routes = <String, Widget Function(BuildContext)>{
   RouteKey.login: (context) => const LoginPage(),
   // RouteKey.setGoal: (context) => const SetGoal(),
   RouteKey.onBoarding: (context) => const OnBoarding(),
+  RouteKey.speakingGame: (context) => const SpeakingGame(),
+  RouteKey.writingPractice: (context) => const WritingpracticePage(),
   RouteKey.simulationpage: (context) => const SimulationPage(),
   RouteKey.testresult: (context) {
     final Map? data = ModalRoute.of(context)?.settings.arguments as Map?;
@@ -179,6 +184,7 @@ final routes = <String, Widget Function(BuildContext)>{
   //   );
   // },
   // RouteKey.miniSimulationTest: (context) => const MiniSimulationPage(),
+
   RouteKey.bookmark: (context) => const BookmarkedPage(),
   RouteKey.bookmarkDetail: (context) {
     final String? data = ModalRoute.of(context)?.settings.arguments as String?;

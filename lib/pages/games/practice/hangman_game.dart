@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:math';
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:toefl/models/games/hangman_game.dart';
+import 'package:toefl/pages/full_test/set_target_page.dart';
 import 'package:toefl/remote/api/games/hangman_api.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
@@ -95,9 +96,9 @@ class _HangmanGameState extends State<HangmanGame> {
       context: context,
       builder: (context) {
         return ModalConfirmation(
-          message: _isWordGuessed() ? "You Won!" : "Game Over",
-          leftTitle: "Quit",
-          rightTitle: "Retry",
+          message: _isWordGuessed() ? "You Won!" : "game_over".tr(),
+          leftTitle: "quit".tr(),
+          rightTitle: "restart".tr(),
           rightFunction: () {
             Navigator.pop(context);
             _startNewGame();
@@ -147,7 +148,7 @@ class _HangmanGameState extends State<HangmanGame> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: Text(
-                    'Attempts Left: $attemptsLeft',
+                    'attempts_left'.tr(args: [attemptsLeft.toString()]),
                     style: GoogleFonts.nunito(
                       fontSize: 20,
                       color: HexColor(mariner500),
@@ -159,9 +160,12 @@ class _HangmanGameState extends State<HangmanGame> {
                     alignment: WrapAlignment.center,
                     spacing: 8,
                     runSpacing: 8,
-                    children: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter) {
+                    children:
+                        'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter) {
                       return GestureDetector(
-                        onTap: guessedLetters.contains(letter) ? null : () => _onLetterTap(letter),
+                        onTap: guessedLetters.contains(letter)
+                            ? null
+                            : () => _onLetterTap(letter),
                         child: CircleAvatar(
                           backgroundColor: guessedLetters.contains(letter)
                               ? Colors.grey
@@ -185,6 +189,9 @@ class _HangmanGameState extends State<HangmanGame> {
   }
 
   String _displayWord() {
-    return word.split('').map((letter) => guessedLetters.contains(letter) ? letter : '_').join(' ');
+    return word
+        .split('')
+        .map((letter) => guessedLetters.contains(letter) ? letter : '_')
+        .join(' ');
   }
 }

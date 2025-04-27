@@ -4,22 +4,23 @@ import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/utils/custom_text_style.dart';
 // import 'package:toefl/state_management/grammar-translator/grammarTranslator_provider_state.dart';
-import 'package:toefl/state_management/grammar-commentator/grammarCommentator_provider_state.dart';
+import 'package:toefl/state_management/writing_practice/grammarCommentator_provider_state.dart';
+import 'package:easy_localization/easy_localization.dart';
 
-class GrammarCommentatorPage extends ConsumerStatefulWidget {
-  const GrammarCommentatorPage({super.key});
+class WritingpracticePage extends ConsumerStatefulWidget {
+  const WritingpracticePage({super.key});
 
   @override
-  ConsumerState<GrammarCommentatorPage> createState() =>
-      _GrammarCommentatorPageState();
+  ConsumerState<WritingpracticePage> createState() =>
+      _WritingpracticePageState();
 }
 
-class _GrammarCommentatorPageState extends ConsumerState<GrammarCommentatorPage> {
+class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
   final TextEditingController _textController = TextEditingController();
   String _grammarPercentage = "0";
-  String _explanation = "Please enter an English sentence first !!";
+  String _explanation = "please_enter_an_english_sentence".tr();
   String _correctResponse = "";
-  String _question = "Loading question...";
+  String _question = "loading_question".tr();
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _GrammarCommentatorPageState extends ConsumerState<GrammarCommentatorPage>
       setState(() {
         _question = response.question ?? "";
         _grammarPercentage = "0";
-        _explanation = "Please enter an English sentence first !!";
+        _explanation = "please_enter_an_english_sentence".tr();
         _correctResponse = "";
       });
     }
@@ -56,7 +57,7 @@ class _GrammarCommentatorPageState extends ConsumerState<GrammarCommentatorPage>
       setState(() {
         _explanation = response.explanation?.trim().isNotEmpty == true
             ? response.explanation!.trim()
-            : response.botResponse?.trim() ?? "No explanation provided.";
+            : response.botResponse?.trim() ?? "no_explanation_provided".tr();
         _grammarPercentage = response.grammarScore?.toString() ?? "0";
         _correctResponse = response.correctResponse?.trim() ?? "";
       });
@@ -75,7 +76,8 @@ class _GrammarCommentatorPageState extends ConsumerState<GrammarCommentatorPage>
           icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Writing Practice", style: CustomTextStyle.askGrammarTitle),
+        title: Text("comment_practice".tr(),
+            style: CustomTextStyle.askGrammarTitle),
         centerTitle: true,
         actions: [
           IconButton(
@@ -109,8 +111,8 @@ class _GrammarCommentatorPageState extends ConsumerState<GrammarCommentatorPage>
                     children: [
                       Text(
                         _grammarPercentage == "0"
-                            ? "Sentence"
-                            : "grammar Percentage",
+                            ? "translate_quiz_sentence".tr()
+                            : "grammar_percentage".tr(),
                         style: CustomTextStyle.askGrammarSubtitle,
                       ),
                       const SizedBox(height: 8),
@@ -134,7 +136,7 @@ class _GrammarCommentatorPageState extends ConsumerState<GrammarCommentatorPage>
               TextField(
                 controller: _textController,
                 decoration: InputDecoration(
-                  hintText: "Write Something...",
+                  hintText: "write_something".tr(),
                   hintStyle: CustomTextStyle.askGrammarBody,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),

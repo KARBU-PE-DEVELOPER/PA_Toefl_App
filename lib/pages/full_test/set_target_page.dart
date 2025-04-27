@@ -19,7 +19,7 @@ class SetTargetPage extends StatefulWidget {
 
 class _SetTargetPageState extends State<SetTargetPage> {
   TestTarget selectedTarget = TestTarget(
-    id: "",
+    id: 0,
     name: "",
     score: 0,
   );

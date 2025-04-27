@@ -11,7 +11,28 @@ class EstimatedScoreApi {
   Future<EstimatedScore> getEstimatedScore() async {
     try {
       final Response rawResponse =
-          await DioToefl.instance.get('${Env.simulationUrl}/get-score-toefl');
+          await DioToefl.instance.get('${Env.userUrl}/get-score-toefl');
+      // debugPrint(json.decode(rawResponse.data)['data'].toString());
+      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
+      // debugPrint(response.toString());
+      return EstimatedScore.fromJson(response.payload);
+    } catch (e, stack) {
+      debugPrint("aa" + e.toString() + stack.toString());
+      return EstimatedScore(
+          targetUser: 0,
+          userScore: 0,
+          scoreListening: 0,
+          scoreStructure: 0,
+          scoreReading: 0);
+    }
+  }
+
+  Future<EstimatedScore> addAndUpdateScore(Map<String, dynamic> request) async {
+    try {
+      final Response rawResponse = await DioToefl.instance.post(
+        '${Env.simulationUrl}/add-and-patch-target',
+        data: request,
+      );
       // debugPrint(json.decode(rawResponse.data)['data'].toString());
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       // debugPrint(response.toString());
