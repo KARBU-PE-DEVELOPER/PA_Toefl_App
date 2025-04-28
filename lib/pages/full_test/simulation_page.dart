@@ -138,7 +138,9 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CommonAppBar(title: 'FULL TEST'),
+      appBar: CommonAppBar(
+        title: selectedType == 'simulation' ? 'Simulation' : 'Test',
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: SingleChildScrollView(
