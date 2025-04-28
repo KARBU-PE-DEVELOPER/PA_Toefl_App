@@ -40,8 +40,8 @@ class _HangmanGameState extends State<HangmanGame> {
       attemptsLeft = 6;
     });
 
-    final api = HangmanGameApi(); // Your custom API wrapper
-    final data = await api.fetchHangmanWord(); // Fetch from backend
+    final api = HangmanGameApi();
+    final data = await api.fetchHangmanWord();
 
     if (data != null) {
       setState(() {
@@ -51,7 +51,6 @@ class _HangmanGameState extends State<HangmanGame> {
       });
       _revealRandomLetter();
     } else {
-      // fallback
       setState(() {
         word = "ROBOT";
         clue = "A machine that can move";
@@ -70,6 +69,7 @@ class _HangmanGameState extends State<HangmanGame> {
   }
 
   void _onLetterTap(String letter) {
+    if (guessedLetters.contains(letter)) return;
     setState(() {
       guessedLetters.add(letter);
       if (!word.contains(letter)) {
@@ -78,7 +78,7 @@ class _HangmanGameState extends State<HangmanGame> {
     });
 
     if (_isGameOver()) {
-      _showGameOverModal();
+      _showResultModal();
     }
   }
 
@@ -90,23 +90,97 @@ class _HangmanGameState extends State<HangmanGame> {
     return word.split('').every((letter) => guessedLetters.contains(letter));
   }
 
-  void _showGameOverModal() {
+  int _calculateScore() {
+    return max(0, attemptsLeft * 10); // Misal: 6 attempts = 60 score
+  }
+
+  void _showResultModal() {
+    final isWin = _isWordGuessed();
+    final score = _calculateScore();
+
     showDialog(
-      barrierDismissible: false,
       context: context,
+      barrierDismissible: false,
       builder: (context) {
-        return ModalConfirmation(
-          message: _isWordGuessed() ? "You Won!" : "game_over".tr(),
-          leftTitle: "quit".tr(),
-          rightTitle: "restart".tr(),
-          rightFunction: () {
-            Navigator.pop(context);
-            _startNewGame();
-          },
-          leftFunction: () => Navigator.pushNamedAndRemoveUntil(
-            context,
-            RouteKey.main,
-            (route) => false,
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            isWin ? 'congratulations'.tr() : 'game_over'.tr(),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunito(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isWin) ...[
+                Text(
+                  'the_correct_word_was'.tr(),
+                  style: GoogleFonts.nunito(fontSize: 18),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  word,
+                  style: GoogleFonts.nunito(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+              ],
+              Text(
+                "${'score'.tr()}: $score",
+                style: GoogleFonts.nunito(
+                  fontSize: 22,
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                "Your Score: $score",
+                style: GoogleFonts.nunito(
+                  fontSize: 22,
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _startNewGame();
+                },
+                child: Text('restart'.tr()),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    RouteKey.main,
+                    (route) => false,
+                  );
+                },
+                child: Text('quit'.tr()),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    RouteKey.main,
+                    (route) => false,
+                  );
+                },
+                child: Text('Exit'),
+              ),
+            ],
           ),
         );
       },
@@ -116,7 +190,7 @@ class _HangmanGameState extends State<HangmanGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GameAppBar(title: 'Hangman'),
+      appBar: GameAppBar(title: 'hangman_game'.tr()),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(

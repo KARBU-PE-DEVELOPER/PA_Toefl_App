@@ -3,6 +3,7 @@ import 'package:toefl/models/games/user_rank.dart';
 import 'package:toefl/models/grammar-commentator/grammarCommentator_detail.dart';
 import 'package:toefl/models/quiz.dart';
 import 'package:toefl/models/quiz_type.dart';
+import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/quiz/finish_quiz_page.dart';
 import 'package:toefl/pages/games/quiz/init_quiz.dart';
 import 'package:toefl/pages/auth/forgot_password_page.dart';
@@ -21,6 +22,10 @@ import 'package:toefl/pages/auth/new_password_page.dart';
 import 'package:toefl/pages/auth/otp_verification_page.dart';
 import 'package:toefl/pages/user/profile_page.dart';
 import 'package:toefl/pages/games/practice/speaking_game.dart';
+import 'package:toefl/pages/games/practice/cloze_game.dart';
+import 'package:toefl/pages/games/practice/hangman_game.dart';
+import 'package:toefl/pages/games/practice/pairing_game.dart';
+import 'package:toefl/pages/games/practice/translateQuiz_page.dart';
 import 'package:toefl/pages/writingPractice/writingPractice_page.dart';
 import 'package:toefl/pages/full_test/full_test_page.dart';
 import 'package:toefl/pages/full_test/simulation_page.dart';
@@ -111,6 +116,10 @@ final routes = <String, Widget Function(BuildContext)>{
   // RouteKey.setGoal: (context) => const SetGoal(),
   RouteKey.onBoarding: (context) => const OnBoarding(),
   RouteKey.speakingGame: (context) => const SpeakingGame(),
+  RouteKey.clozeGame: (context) => const ClozeGamePage(),
+  RouteKey.translateQuiz: (context) => const TranslatequizPage(),
+  RouteKey.hangmanGame: (context) => const HangmanGame(),
+  RouteKey.pairingGame: (context) => const PairingGame(),
   RouteKey.writingPractice: (context) => const WritingpracticePage(),
   RouteKey.simulationpage: (context) => const SimulationPage(),
   RouteKey.testresult: (context) {

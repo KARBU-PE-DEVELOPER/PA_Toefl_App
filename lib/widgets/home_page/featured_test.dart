@@ -1,12 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
 import 'package:toefl/pages/games/practice/hangman_game.dart';
-import 'package:toefl/pages/games/practice/translateQuiz_page.dart';
 import 'package:toefl/widgets/home_page/featured_card.dart';
-import 'package:toefl/widgets/home_page/try_card.dart';
 import 'package:toefl/routes/route_key.dart';
 
 class FeatureTest extends StatelessWidget {
@@ -28,8 +24,8 @@ class FeatureTest extends StatelessWidget {
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(RouteKey.speakingGame),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.speakingGame),
                     child: FeaturedCard(
                       isBgLight: true,
                       icon: "assets/images/vector_game_speaking.svg",
@@ -42,9 +38,8 @@ class FeatureTest extends StatelessWidget {
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => HangmanGame(),
-                    )),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.hangmanGame),
                     child: FeaturedCard(
                       isBgLight: false,
                       icon: "assets/images/word_scramble.svg",
@@ -58,7 +53,7 @@ class FeatureTest extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () =>
-                        Navigator.of(context).pushNamed(RouteKey.speakingGame),
+                        Navigator.of(context).pushNamed(RouteKey.clozeGame),
                     child: FeaturedCard(
                       isBgLight: true,
                       icon: "assets/images/word_scramble.svg",
@@ -71,9 +66,8 @@ class FeatureTest extends StatelessWidget {
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => PairingGame(),
-                    )),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.pairingGame),
                     child: FeaturedCard(
                       isBgLight: false,
                       icon: "assets/images/synonim_pairing.svg",
@@ -101,9 +95,8 @@ class FeatureTest extends StatelessWidget {
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => GrammarTranslatorPage(),
-                    )),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.translateQuiz),
                     child: FeaturedCard(
                       isBgLight: false,
                       icon: "assets/images/Group39369.svg",

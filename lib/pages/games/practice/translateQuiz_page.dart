@@ -7,15 +7,15 @@ import 'package:toefl/state_management/translate_quiz/translateQuiz_provider_sta
 import 'package:toefl/widgets/blue_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-class GrammarTranslatorPage extends ConsumerStatefulWidget {
-  const GrammarTranslatorPage({super.key});
+class TranslatequizPage extends ConsumerStatefulWidget {
+  const TranslatequizPage({super.key});
 
   @override
-  ConsumerState<GrammarTranslatorPage> createState() =>
-      _GrammarTranslatorPageState();
+  ConsumerState<TranslatequizPage> createState() =>
+      _TranslatequizPageState();
 }
 
-class _GrammarTranslatorPageState extends ConsumerState<GrammarTranslatorPage> {
+class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
   final TextEditingController _textController = TextEditingController();
   bool _showTextField = true;
   String _accuracyPercentage = "0";
