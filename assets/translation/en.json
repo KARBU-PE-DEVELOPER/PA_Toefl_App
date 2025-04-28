@@ -128,5 +128,8 @@
   "completed_all_questions": "You have completed all questions",
   "average_score": "Average Score",
   "question": "Question",
-  "of": "of"
+  "of": "of",
+  "the_correct_word_was": "The correct word was:",
+  "play_again": "Play Again",
+  "exit": "Exit"
 }

@@ -4,6 +4,10 @@ class RouteKey {
   static const root = '/';
   static const grammar = '/grammar';
   static const speakingGame = '/speaking-game';
+  static const hangmanGame = '/hangman-game';
+  static const clozeGame = '/cloze-game';
+  static const pairingGame = '/pairing-game';
+  static const translateQuiz = '/translate-quiz';
   static const writingPractice = '/writing-practice';
   static const askAI = '/ask-ai';
   static const initQuiz = '/init-quiz';
