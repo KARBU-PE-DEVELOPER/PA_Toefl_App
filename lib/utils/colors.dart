@@ -57,3 +57,5 @@ const brightRed = "#F44336";
 
 // NEUTRAL
 const softCream = "#FFF3D8";
+
+const grey = "#939393";

@@ -45,7 +45,7 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
     } finally {
       _setLoadingState(false);
     }
-  } 
+  }
 
   void _setLoadingState(bool isLoading) {
     if (mounted) {
@@ -60,9 +60,9 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
       setState(() {
         estimatedScore = temp;
         score = {
-          'Listening Score': temp.scoreListening,
-          'Structure Score': temp.scoreStructure,
-          'Reading Score': temp.scoreReading,
+          'listening_score'.tr(): temp.scoreListening,
+          'structure_score'.tr(): temp.scoreStructure,
+          'reading_score'.tr(): temp.scoreReading,
         };
       });
     }

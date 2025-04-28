@@ -1,15 +1,13 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:toefl/pages/games/practice/cloze_game.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
 import 'package:toefl/pages/games/practice/hangman_game.dart';
-import 'package:toefl/pages/grammar-translator/grammarTranslator_page.dart';
-import 'package:toefl/pages/grammar-commentator/grammarCommentator_page.dart';
-import 'package:toefl/pages/games/practice/scrambled_word.dart';
-import 'package:toefl/pages/games/practice/speaking_game.dart';
+import 'package:toefl/pages/games/practice/translateQuiz_page.dart';
 import 'package:toefl/widgets/home_page/featured_card.dart';
 import 'package:toefl/widgets/home_page/try_card.dart';
+import 'package:toefl/routes/route_key.dart';
 
 class FeatureTest extends StatelessWidget {
   const FeatureTest({super.key});
@@ -30,18 +28,17 @@ class FeatureTest extends StatelessWidget {
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => SpeakingGame(),
-                    )),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(RouteKey.speakingGame),
                     child: FeaturedCard(
                       isBgLight: true,
                       icon: "assets/images/vector_game_speaking.svg",
-                      title: "Speaking Game",
-                      subtitle: "Challange your speaking",
+                      title: "speaking_game".tr(),
+                      subtitle: "speaking_game_subtitle".tr(),
                     ),
                   ),
                 ),
-                 Padding(
+                Padding(
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
@@ -51,9 +48,8 @@ class FeatureTest extends StatelessWidget {
                     child: FeaturedCard(
                       isBgLight: false,
                       icon: "assets/images/word_scramble.svg",
-                      title: "Hangman Game",
-                      subtitle:
-                          "D I E",
+                      title: "hangman_game".tr(),
+                      subtitle: "hangman_game_subtitle".tr(),
                     ),
                   ),
                 ),
@@ -61,14 +57,13 @@ class FeatureTest extends StatelessWidget {
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => ClozeGamePage(),
-                    )),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.speakingGame),
                     child: FeaturedCard(
-                      isBgLight: false,
+                      isBgLight: true,
                       icon: "assets/images/word_scramble.svg",
-                      title: "Cloze Game",
-                      subtitle: "Fill The Blank",
+                      title: "cloze_game".tr(),
+                      subtitle: "cloze_game_subtitle".tr(),
                     ),
                   ),
                 ),
@@ -80,10 +75,10 @@ class FeatureTest extends StatelessWidget {
                       builder: (context) => PairingGame(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: true,
+                      isBgLight: false,
                       icon: "assets/images/synonim_pairing.svg",
-                      title: "Synonim Pairing",
-                      subtitle: "A game that contains synonymous words",
+                      title: "synonym_pair".tr(),
+                      subtitle: "synonim_pair_subtitle".tr(),
                     ),
                   ),
                 ),
@@ -95,10 +90,10 @@ class FeatureTest extends StatelessWidget {
                       builder: (context) => SentenceScramblePage(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: false,
+                      isBgLight: true,
                       icon: "assets/images/vector_game_listening.svg",
-                      title: "Listening Game",
-                      subtitle: "Can you hear what i said?",
+                      title: "listening_game".tr(),
+                      subtitle: "listening_game_subtitle".tr(),
                     ),
                   ),
                 ),
@@ -110,10 +105,10 @@ class FeatureTest extends StatelessWidget {
                       builder: (context) => GrammarTranslatorPage(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: true,
+                      isBgLight: false,
                       icon: "assets/images/Group39369.svg",
-                      title: "Grammar Translator",
-                      subtitle: "Let's practice your grammar skill !!!",
+                      title: "translate_quiz".tr(),
+                      subtitle: "translate_quiz_subtitle".tr(),
                     ),
                   ),
                 ),
@@ -121,14 +116,13 @@ class FeatureTest extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const GrammarCommentatorPage(),
-                    )),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(RouteKey.writingPractice),
                     child: FeaturedCard(
-                      isBgLight: false,
+                      isBgLight: true,
                       icon: "assets/images/Group39370.svg",
-                      title: "Grammar Commentator",
-                      subtitle: "Let's practice your grammar skill !!!",
+                      title: "comment_practice".tr(),
+                      subtitle: "comment_practice_subtitle".tr(),
                     ),
                   ),
                 )

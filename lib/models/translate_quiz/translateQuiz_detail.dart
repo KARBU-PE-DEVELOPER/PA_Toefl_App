@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'grammarTranslator_detail.g.dart';
+part 'translateQuiz_detail.g.dart';
 
 @JsonSerializable()
-class GrammarTranslator {
+class TranslateQuiz {
   @JsonKey(defaultValue: '', name: 'id')
   final String? id;
 
@@ -32,7 +32,7 @@ class GrammarTranslator {
   @JsonKey(defaultValue: '', name: 'explanation')
   final String? explanation;
 
-  GrammarTranslator({
+  TranslateQuiz({
     required this.id,
     required this.userMessage,
     required this.botResponse,
@@ -44,9 +44,9 @@ class GrammarTranslator {
     required this.explanation,
   });
 
-  /// Factory untuk menangani konversi dari JSON ke objek GrammarTranslator
-  factory GrammarTranslator.fromJson(Map<String, dynamic> json) {
-    return GrammarTranslator(
+  /// Factory untuk menangani konversi dari JSON ke objek TranslateQuiz
+  factory TranslateQuiz.fromJson(Map<String, dynamic> json) {
+    return TranslateQuiz(
       id: json['id'] ?? '',
       userMessage: json['user_message'] ?? '',
       botResponse: json['bot_response'] ?? '',
@@ -61,12 +61,12 @@ class GrammarTranslator {
     );
   }
 
-  /// Factory untuk menangani parsing dari JSON String ke objek GrammarTranslator
-  factory GrammarTranslator.fromJsonString(String jsonString) =>
-      GrammarTranslator.fromJson(jsonDecode(jsonString));
+  /// Factory untuk menangani parsing dari JSON String ke objek TranslateQuiz
+  factory TranslateQuiz.fromJsonString(String jsonString) =>
+      TranslateQuiz.fromJson(jsonDecode(jsonString));
 
   /// Konversi objek AskAI ke JSON
-  Map<String, dynamic> toJson() => _$GrammarTranslatorToJson(this);
+  Map<String, dynamic> toJson() => _$TranslateQuizToJson(this);
 
   /// Konversi objek AskAI ke JSON dalam bentuk String
   String toStringJson() => jsonEncode(toJson());

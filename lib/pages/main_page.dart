@@ -20,7 +20,9 @@ class _MainPageState extends State<MainPage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     HomePage(),
-    RankPage(dataRank: [],),
+    RankPage(
+      dataRank: [],
+    ),
     ProfilePage(),
   ];
 
@@ -36,7 +38,6 @@ class _MainPageState extends State<MainPage> {
       backgroundColor: Colors.white,
       body: _widgetOptions.elementAt(_index),
       bottomNavigationBar: Container(
-        height: 75,
         decoration:
             const BoxDecoration(boxShadow: [BoxShadow()], color: Colors.white),
         child: BottomNavigationBar(
@@ -67,18 +68,24 @@ class _MainPageState extends State<MainPage> {
               ),
               label: 'first_label_navbar'.tr(),
             ),
+            // BottomNavigationBarItem(
+            //   icon: SizedBox(
+            //     height: 32,
+            //     child: SvgPicture.asset(
+            //       // ignore: deprecated_member_use
+            //       color:
+            //           _index == 1 ? HexColor(mariner800) : HexColor(neutral40),
+            //       'assets/icons/ic_games.svg',
+            //       height: 25,
+            //       width: 30,
+            //       clipBehavior: Clip.none,
+            //     ),
+            //   ),
+            //   label: 'second_label_navbar'.tr(),
+            // ),
             BottomNavigationBarItem(
-              icon: SizedBox(
-                height: 32,
-                child: SvgPicture.asset(
-                  // ignore: deprecated_member_use
-                  color:
-                      _index == 1 ? HexColor(mariner800) : HexColor(neutral40),
-                  'assets/icons/ic_games.svg',
-                  height: 25,
-                  width: 30,
-                  clipBehavior: Clip.none,
-                ),
+              icon: Icon(
+                Icons.leaderboard,
               ),
               label: 'second_label_navbar'.tr(),
             ),

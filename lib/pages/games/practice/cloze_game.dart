@@ -6,6 +6,7 @@ import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/blue_container.dart';
 import 'package:toefl/widgets/games/game_app_bar.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ClozeGamePage extends StatefulWidget {
   const ClozeGamePage({super.key});
@@ -61,7 +62,7 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text("Game Over"),
+          title: const Text("game_over").tr(),
           content: Text("Your final score: ${score.toInt()}"),
           actions: [
             TextButton(
@@ -76,7 +77,7 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
                   score = 100;
                 });
               },
-              child: const Text("Restart"),
+              child: const Text("restart").tr(),
               
             ),
             
@@ -99,7 +100,7 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
     final options = question.answers;
 
     return Scaffold(
-      appBar: const GameAppBar(title: 'Cloze Game'),
+      appBar: GameAppBar(title: 'cloze_game'.tr()),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -180,7 +181,7 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
                   ),
                   onPressed: nextQuestion,
                   child: Text(
-                    currentQuestionIndex == questions.length - 1 ? 'Finish' : 'Next',
+                    currentQuestionIndex == questions.length - 1 ? 'finish'.tr() : 'next'.tr(),
                     style: GoogleFonts.nunito(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
