@@ -21,14 +21,14 @@ class BlueButton extends StatelessWidget {
   final String title;
   final void Function() onTap;
   final bool isDisabled;
-  final Widget? child; // <-- Tambah child opsional
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
     double buttonWidth =
         size >= 0 ? size : MediaQuery.of(context).size.width * 0.5;
     double buttonHeight =
-        size >= 0 ? size : MediaQuery.of(context).size.height * 0.3;
+        height >= 0 ? height : MediaQuery.of(context).size.height * 0.3;
 
     return GestureDetector(
       onTap: isDisabled ? () {} : onTap,
