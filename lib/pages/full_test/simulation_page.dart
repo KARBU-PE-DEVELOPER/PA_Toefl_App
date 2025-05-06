@@ -138,7 +138,9 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CommonAppBar(title: 'FULL TEST'),
+      appBar: CommonAppBar(
+        title: selectedType == 'simulation' ? 'Simulation' : 'Test',
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: SingleChildScrollView(
@@ -400,52 +402,107 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                   // Jika tipe test, tampilkan modal attention
                                                   if (selectedType !=
                                                       "simulation") {
+                                                    // showDialog(
+                                                    //   context: context,
+                                                    //   barrierDismissible:
+                                                    //       false, // Modal tidak bisa ditutup dengan klik di luar
+                                                    //   builder: (BuildContext
+                                                    //       attentionContext) {
+                                                    //     return AlertDialog(
+                                                    //       title: Text(
+                                                    //           "attention".tr()),
+                                                    //       content: Text(
+                                                    //           "isiContent"
+                                                    //               .tr()),
+                                                    //       actions: [
+                                                    //         TextButton(
+                                                    //           onPressed: () {
+                                                    //             Navigator.of(
+                                                    //                     attentionContext)
+                                                    //                 .pop();
+                                                    //             Navigator.of(
+                                                    //                     context)
+                                                    //                 .pushNamed(
+                                                    //               RouteKey
+                                                    //                   .openingLoadingTest,
+                                                    //               arguments: {
+                                                    //                 "id": packet
+                                                    //                     .id
+                                                    //                     .toString(),
+                                                    //                 "packetName":
+                                                    //                     packet
+                                                    //                         .name,
+                                                    //                 "isRetake":
+                                                    //                     packet
+                                                    //                         .wasFilled,
+                                                    //                 "packetType":
+                                                    //                     selectedType,
+                                                    //               },
+                                                    //             ).then((value) {
+                                                    //               _onInit();
+                                                    //               _pushReviewPage(
+                                                    //                   packet);
+                                                    //             });
+                                                    //           },
+                                                    //           child:
+                                                    //               Text("Start"),
+                                                    //         ),
+                                                    //       ],
+                                                    //     );
+                                                    //   },
+                                                    // );
+
                                                     showDialog(
                                                       context: context,
                                                       barrierDismissible:
-                                                          false, // Modal tidak bisa ditutup dengan klik di luar
+                                                          false, // Tidak bisa ditutup dengan klik di luar
                                                       builder: (BuildContext
                                                           attentionContext) {
-                                                        return AlertDialog(
-                                                          title: Text(
-                                                              "attention".tr()),
-                                                          content: Text(
-                                                              "isiContent"
-                                                                  .tr()),
-                                                          actions: [
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                Navigator.of(
-                                                                        attentionContext)
-                                                                    .pop();
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pushNamed(
-                                                                  RouteKey
-                                                                      .openingLoadingTest,
-                                                                  arguments: {
-                                                                    "id": packet
-                                                                        .id
-                                                                        .toString(),
-                                                                    "packetName":
-                                                                        packet
-                                                                            .name,
-                                                                    "isRetake":
-                                                                        packet
-                                                                            .wasFilled,
-                                                                    "packetType":
-                                                                        selectedType,
-                                                                  },
-                                                                ).then((value) {
-                                                                  _onInit();
-                                                                  _pushReviewPage(
-                                                                      packet);
-                                                                });
-                                                              },
-                                                              child:
-                                                                  Text("Start"),
-                                                            ),
-                                                          ],
+                                                        return WillPopScope(
+                                                          onWillPop: () async =>
+                                                              false, // Mencegah tombol back
+                                                          child: AlertDialog(
+                                                            title: Text(
+                                                                "attention"
+                                                                    .tr()),
+                                                            content: Text(
+                                                                "isiContent"
+                                                                    .tr()),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed: () {
+                                                                  Navigator.of(
+                                                                          attentionContext)
+                                                                      .pop();
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pushNamed(
+                                                                    RouteKey
+                                                                        .openingLoadingTest,
+                                                                    arguments: {
+                                                                      "id": packet
+                                                                          .id
+                                                                          .toString(),
+                                                                      "packetName":
+                                                                          packet
+                                                                              .name,
+                                                                      "isRetake":
+                                                                          packet
+                                                                              .wasFilled,
+                                                                      "packetType":
+                                                                          selectedType,
+                                                                    },
+                                                                  ).then((value) {
+                                                                    _onInit();
+                                                                    _pushReviewPage(
+                                                                        packet);
+                                                                  });
+                                                                },
+                                                                child: Text(
+                                                                    "Start"),
+                                                              ),
+                                                            ],
+                                                          ),
                                                         );
                                                       },
                                                     );
