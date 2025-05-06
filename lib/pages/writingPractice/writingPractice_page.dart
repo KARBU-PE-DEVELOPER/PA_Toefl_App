@@ -21,6 +21,7 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
   String _explanation = "please_enter_an_english_sentence".tr();
   String _correctResponse = "";
   String _question = "loading_question".tr();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -31,15 +32,19 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
   }
 
   void _fetchQuestion() async {
+    setState(() {
+      _isLoading = true;
+    });
     final response = await ref
         .read(grammarCommentatorProviderStatesProvider.notifier)
         .getQuestion();
     if (response != null) {
       setState(() {
-        _question = response.question ?? "";
         _grammarPercentage = "0";
         _explanation = "please_enter_an_english_sentence".tr();
         _correctResponse = "";
+        _isLoading = false;
+        _question = response.question ?? "";
       });
     }
   }
@@ -82,7 +87,8 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: _fetchQuestion,
+            onPressed:
+                _isLoading ? null : _fetchQuestion, // disable saat loading
           ),
         ],
       ),
@@ -115,24 +121,31 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
                             : "grammar_percentage".tr(),
                         style: CustomTextStyle.askGrammarSubtitle,
                       ),
-                      const SizedBox(height: 8),
                       SizedBox(
-                        height: 100, // Adjust height as needed
-                        child: SingleChildScrollView(
-                          child: Text(
-                            _grammarPercentage == "0"
-                                ? _question
-                                : _grammarPercentage,
-                            style: CustomTextStyle.askGrammarBody,
-                            textAlign: TextAlign.center,
-                          ),
+                        child: Center(
+                          child: _isLoading
+                              ? Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        HexColor(mariner700)), // biru hex
+                                  ),
+                                )
+                              : SingleChildScrollView(
+                                  child: Text(
+                                    _grammarPercentage == "0"
+                                        ? _question
+                                        : _grammarPercentage,
+                                    style: CustomTextStyle.askGrammarBody,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               TextField(
                 controller: _textController,
                 decoration: InputDecoration(

@@ -6,13 +6,13 @@ import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/state_management/translate_quiz/translateQuiz_provider_state.dart';
 import 'package:toefl/widgets/blue_button.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../widgets/games/game_app_bar.dart';
 
 class TranslatequizPage extends ConsumerStatefulWidget {
   const TranslatequizPage({super.key});
 
   @override
-  ConsumerState<TranslatequizPage> createState() =>
-      _TranslatequizPageState();
+  ConsumerState<TranslatequizPage> createState() => _TranslatequizPageState();
 }
 
 class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
@@ -22,6 +22,7 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
   String _explanation = "please_enter_an_english_sentence".tr();
   String _englishSentence = "";
   String _question = "loading_question".tr();
+  bool _isLoading = false;
   bool _isCheck = false;
   bool _disable = true;
 
@@ -34,6 +35,9 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
   }
 
   void _fetchQuestion() async {
+    setState(() {
+      _isLoading = true;
+    });
     final response = await ref
         .read(translateQuizProviderStatesProvider.notifier)
         .getQuestion();
@@ -47,6 +51,9 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
         _disable = true;
       });
     }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _sendMessage() async {
@@ -55,7 +62,7 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
     String userMessage = _textController.text.trim();
 
     setState(() {
-      _showTextField = false; // Hide text field after sending
+      _showTextField = false;
       _isCheck = true;
       _disable = false;
     });
@@ -89,17 +96,7 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title:
-            Text("translate_quiz".tr(), style: CustomTextStyle.askGrammarTitle),
-        centerTitle: true,
-      ),
+      appBar: GameAppBar(title: 'translate_quiz'.tr()),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -132,14 +129,20 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
                       const SizedBox(height: 8),
                       if (_showTextField)
                         SizedBox(
-                          height: 100,
-                          child: SingleChildScrollView(
-                            child: Text(
-                              _question,
-                              style: CustomTextStyle.askGrammarBody,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
+                          child: _isLoading
+                              ? Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        HexColor(mariner700)), // biru hex
+                                  ),
+                                )
+                              : SingleChildScrollView(
+                                  child: Text(
+                                    _question,
+                                    style: CustomTextStyle.askGrammarBody,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
                         )
                       else
                         Text(
@@ -203,12 +206,28 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: BlueButton(
-          isDisabled: _disable,
-          title: 'restart'.tr(),
-          onTap: _fetchQuestion,
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: BlueButton(
+            isDisabled: _disable || _isLoading,
+            title: _isLoading ? '' : 'restart'.tr(),
+            onTap: _fetchQuestion,
+            size: MediaQuery.of(context).size.width * 0.15,
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: _isLoading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(HexColor(mariner700)),
+                      ),
+                    ),
+                  )
+                : null,
+          ),
         ),
       ),
     );

@@ -31,7 +31,7 @@ class ProfileApi {
           currentScore: 0,
           targetScore: 0,
           nameUser: "",
-          emailUser: "",
+          // emailUser: "",
           rank: -1,
           profileImage: "",
           isFriend: false);
@@ -54,7 +54,7 @@ class ProfileApi {
           currentScore: 0,
           targetScore: 0,
           nameUser: "",
-          emailUser: "",
+          // emailUser: "",
           rank: 0,
           profileImage: "",
           isFriend: false);

@@ -39,7 +39,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Profile profile = Profile(
       id: '',
       nameUser: '',
-      emailUser: '',
       rank: 0,
       currentScore: 0,
       targetScore: 0,

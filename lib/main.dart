@@ -15,26 +15,16 @@ import 'package:toefl/utils/hex_color.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:toefl/utils/locale.dart';
-
-// void main() => runApp(MyApp());
-
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//         debugShowCheckedModeBanner: false,
-//         title: 'Flutter Demo',
-//         theme: ThemeData(
-//           primarySwatch: Colors.blue,
-//         ),
-//         home: const ClozeGamePage());
-//   }
-// }
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   requestNotificationPermission();
   await EasyLocalization.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   final selectedLocale = await LocalizationSharedPreference().getSelectedLang();
 
@@ -71,7 +61,7 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: Locale(Platform.localeName),
-      title: 'Pentol',
+      title: 'MYPENS',
       theme: ThemeData(
         primaryColor: HexColor(mariner700),
         secondaryHeaderColor: HexColor(mariner100),

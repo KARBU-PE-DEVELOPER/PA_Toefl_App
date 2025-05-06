@@ -46,18 +46,18 @@ class ProfileNameSection extends StatelessWidget {
                       fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
-              Skeleton.leaf(
-                child: Text(
-                  profile.emailUser.isNotEmpty
-                      ? profile.emailUser
-                      : 'myemail@prodi.student.pens.ac.id',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontSize: 12,
-                      color: Color(0xFFB0B0B0)),
-                ),
-              ),
+              // Skeleton.leaf(
+              //   child: Text(
+              //     profile.emailUser.isNotEmpty
+              //         ? profile.emailUser
+              //         : 'myemail@prodi.student.pens.ac.id',
+              //     overflow: TextOverflow.ellipsis,
+              //     style: const TextStyle(
+              //         fontWeight: FontWeight.normal,
+              //         fontSize: 12,
+              //         color: Color(0xFFB0B0B0)),
+              //   ),
+              // ),
             ],
           ),
         )

@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
-import 'package:toefl/pages/games/practice/hangman_game.dart';
 import 'package:toefl/widgets/home_page/featured_card.dart';
 import 'package:toefl/routes/route_key.dart';
 
@@ -15,7 +14,7 @@ class FeatureTest extends StatelessWidget {
           height: MediaQuery.of(context).size.height / 7,
           width: constraint.maxWidth / 1,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: 20),
             child: ListView(
               scrollDirection: Axis.horizontal,
               // mainAxisAlignment: MainAxisAlignment.spaceBetween,

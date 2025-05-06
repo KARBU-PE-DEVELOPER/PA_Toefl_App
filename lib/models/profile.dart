@@ -14,8 +14,6 @@ class Profile {
   int targetScore;
   @JsonKey(name: 'name_user', defaultValue: '')
   final String nameUser;
-  @JsonKey(name: 'email_user', defaultValue: '')
-  final String emailUser;
   @JsonKey(defaultValue: 0)
   int rank;
   @JsonKey(name: 'profile_image', defaultValue: '')
@@ -29,7 +27,6 @@ class Profile {
     required this.currentScore,
     required this.targetScore,
     required this.nameUser,
-    required this.emailUser,
     required this.rank,
     required this.profileImage,
     required this.isFriend,
@@ -54,7 +51,6 @@ class Profile {
       currentScore: currentScore,
       targetScore: targetScore,
       nameUser: nameUser,
-      emailUser: emailUser,
       rank: rank,
       profileImage: profileImage,
       isFriend: isFriend ?? this.isFriend,
