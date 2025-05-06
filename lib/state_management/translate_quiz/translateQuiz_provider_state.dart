@@ -19,8 +19,7 @@ class TranslateQuizProviderState with _$TranslateQuizProviderState {
 class TranslateQuizProviderStates extends _$TranslateQuizProviderStates {
   @override
   FutureOr<TranslateQuizProviderState> build() async {
-    final TranslateQuizList = await TranslateQuizAPI().getAllTranslateQuiz();
-    return TranslateQuizProviderState(translateQuiz: TranslateQuizList);
+    return TranslateQuizProviderState(); // Tidak perlu ambil data history
   }
 
   Future<TranslateQuiz?> storeMessage(Map<String, dynamic> ask) async {

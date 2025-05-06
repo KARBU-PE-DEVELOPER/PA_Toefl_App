@@ -105,4 +105,8 @@ class CustomTextStyle {
     color: HexColor(neutral70),
   );
 
+  static TextStyle buttonBaloo = GoogleFonts.balooBhaijaan2(
+    fontSize: 17,
+    fontWeight: FontWeight.bold,
+  );
 }
