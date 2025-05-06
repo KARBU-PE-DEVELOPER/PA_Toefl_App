@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lock_task/flutter_lock_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:slide_countdown/slide_countdown.dart';
+import 'package:toefl/pages/full_test/cheating_detection.dart';
 import 'package:toefl/pages/full_test/form_section.dart';
 import 'package:toefl/pages/full_test/submit_dialog.dart';
 import 'package:toefl/routes/route_key.dart';
@@ -31,7 +34,21 @@ class FullTestPage extends ConsumerStatefulWidget {
   ConsumerState<FullTestPage> createState() => _FullTestPageState();
 }
 
+Timer? _lockTaskChecker;
+bool isAskedToReLock = false;
+bool isTestFinished = false;
+
 class _FullTestPageState extends ConsumerState<FullTestPage> {
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   if (widget.packetType == "test") {
+  //     FlutterLockTask().startLockTask().then((value) {
+  //       debugPrint("startLockTask: $value");
+  //     });
+  //   }
+  // }
+
   @override
   void initState() {
     super.initState();
@@ -39,11 +56,51 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
       FlutterLockTask().startLockTask().then((value) {
         debugPrint("startLockTask: $value");
       });
+
+      // // Jalankan deteksi kecurangan otomatis saat mulai
+      // WidgetsBinding.instance.addPostFrameCallback((_) {
+      //   showDialog(
+      //     context: context,
+      //     barrierDismissible: false,
+      //     builder: (_) => AlertDialog(
+      //       content: const FaceDetectionPage(),
+      //       actions: [
+      //         TextButton(
+      //           onPressed: () {
+      //             Navigator.pop(context);
+      //           },
+      //           child: const Text('Tutup'),
+      //         ),
+      //       ],
+      //     ),
+      //   );
+      // });
+
+      // Loop check setiap 2 detik
+      _lockTaskChecker =
+          Timer.periodic(const Duration(seconds: 2), (timer) async {
+        final isActive = await FlutterLockTask().isInLockTaskMode();
+        if (!isActive && mounted) {
+          // Lock task keluar secara paksa
+          checkLockStatusPeriodically();
+        }
+      });
     }
   }
 
+  // @override
+  // void dispose() {
+  //   if (widget.packetType == "test") {
+  //     FlutterLockTask().stopLockTask().then((value) {
+  //       debugPrint("stopLockTask: $value");
+  //     });
+  //   }
+  //   super.dispose();
+  // }
+
   @override
   void dispose() {
+    _lockTaskChecker?.cancel(); // stop checker
     if (widget.packetType == "test") {
       FlutterLockTask().stopLockTask().then((value) {
         debugPrint("stopLockTask: $value");
@@ -116,15 +173,6 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                         ),
                         Row(
                           children: [
-                            // Text(
-
-                            //   "${ref.watch(fullTestProvider).questionsFilledStatus.where((element) => element == true).length}/140",
-                            //   style: CustomTextStyle.bold16.copyWith(
-                            //     color: HexColor(mariner700),
-                            //     fontSize: 14,
-                            //   ),
-                            // ),
-
                             Consumer(
                               builder: (context, ref, child) {
                                 final state = ref.watch(fullTestProvider);
@@ -144,20 +192,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                                 );
                               },
                             ),
-
                             const Spacer(),
-                            // SizedBox(
-                            //   width: screenWidth * 0.5,
-                            //   child: LinearProgressIndicator(
-                            //
-
-                            //         140,
-                            //     backgroundColor: HexColor(neutral40),
-                            //     color: HexColor(mariner700),
-                            //     minHeight: 7,
-                            //     borderRadius: BorderRadius.circular(9),
-                            //   ),
-                            // ),
                             Consumer(
                               builder: (context, ref, child) {
                                 final state = ref.watch(fullTestProvider);
@@ -182,7 +217,6 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                                 );
                               },
                             ),
-
                             const Spacer(),
                             Icon(
                               Icons.timer,
@@ -308,48 +342,38 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                             Icons.chevron_left,
                             size: 30,
                           )),
-
-                      // IconButton(
-                      //   onPressed: () {
-                      //     if ((state.selectedQuestions.firstOrNull?.number ??
-                      //             1) <=
-                      //         1) {
-                      //       return;
-                      //     } else {
-                      //       ref
-                      //           .read(fullTestProvider.notifier)
-                      //           .getQuestionByNumber((state.selectedQuestions
-                      //                       .firstOrNull?.number ??
-                      //                   1) -
-                      //               1);
-                      //     }
-                      //   },
-                      //   icon: const Icon(
-                      //     Icons.chevron_left,
-                      //     size: 30,
-                      //   ),
-                      // ),
                       const Spacer(),
-                      Consumer(
-                        builder: (context, ref, child) {
-                          final state = ref.watch(fullTestProvider);
-                          if (state.selectedQuestions.firstOrNull?.bookmarked ==
-                              null) {
-                            return IconButton(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.bookmark_border,
-                                  size: 28,
-                                ));
-                          } else {
-                            return BookmarkButton(
-                              initalValue: state.selectedQuestions.firstOrNull
-                                      ?.bookmarked ??
-                                  1,
-                              questions: state.selectedQuestions,
-                            );
-                          }
+                      IconButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Center(
+                                  child: Text(
+                                    'Face Detection',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
+                                  ),
+                                ),
+                                content: const FaceDetectionPage(),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('Tutup'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         },
+                        icon: const Icon(
+                          Icons.security, // Icon bisa disesuaikan
+                          size: 28,
+                        ),
                       ),
                       const Spacer(),
                       IconButton(
@@ -419,6 +443,39 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
     );
   }
 
+  checkLockStatusPeriodically() async {
+    if (isTestFinished) return;
+    final isActive = await FlutterLockTask().isInLockTaskMode();
+
+    if (!isActive && !isAskedToReLock) {
+      isAskedToReLock = true;
+
+      // Tampilkan dialog hanya sekali
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Text('Mode Terkunci Dinonaktifkan'),
+            content: const Text(
+                'Silakan klik "Kunci Ulang" untuk melanjutkan ujian.'),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await FlutterLockTask().startLockTask();
+                  isAskedToReLock =
+                      false; // Reset agar bisa muncul lagi jika keluar lagi
+                },
+                child: const Text('Kunci Ulang'),
+              )
+            ],
+          ),
+        );
+      }
+    }
+  }
+
   Future<dynamic> _showFinishedDialog(BuildContext context, WidgetRef ref) {
     return showDialog(
       barrierDismissible: false,
@@ -454,6 +511,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                   }
                 }
                 if (submitResult) {
+                  isTestFinished = true;
+                  _lockTaskChecker?.cancel();
                   bool resetResult =
                       await ref.read(fullTestProvider.notifier).resetAll();
                   if (resetResult && context.mounted) {
