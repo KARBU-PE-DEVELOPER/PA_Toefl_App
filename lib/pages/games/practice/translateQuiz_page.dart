@@ -113,7 +113,7 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: HexColor(softBlue),
+                    color: const Color(0xFFD8E9FF),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.all(16),
@@ -158,6 +158,8 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
               Visibility(
                 visible: _showTextField,
                 child: TextField(
+                  minLines: 4,
+                  maxLines: null,
                   controller: _textController,
                   decoration: InputDecoration(
                     hintText: "write_something".tr(),
@@ -175,7 +177,7 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
               const SizedBox(height: 16),
               if (_englishSentence.isNotEmpty)
                 Card(
-                  color: HexColor(softBlue),
+                  color: const Color(0xFFD8E9FF),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -213,8 +215,8 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
             isDisabled: _disable || _isLoading,
             title: _isLoading ? '' : 'restart'.tr(),
             onTap: _fetchQuestion,
-            size: MediaQuery.of(context).size.width * 0.15,
-            height: MediaQuery.of(context).size.height * 0.7,
+            size: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.075,
             child: _isLoading
                 ? SizedBox(
                     width: 20,

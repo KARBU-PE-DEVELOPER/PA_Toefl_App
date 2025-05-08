@@ -6,6 +6,7 @@ class RouteKey {
   static const speakingGame = '/speaking-game';
   static const hangmanGame = '/hangman-game';
   static const clozeGame = '/cloze-game';
+  static const scrambleGame = '/scramble-game';
   static const pairingGame = '/pairing-game';
   static const translateQuiz = '/translate-quiz';
   static const writingPractice = '/writing-practice';

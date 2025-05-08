@@ -21,18 +21,6 @@ class UserApi {
 
   AuthSharedPreference authSharedPreference = AuthSharedPreference();
 
-  Future<User> getProfile() async {
-    try {
-      final Response rawResponse =
-          await (dio ?? DioToefl.instance).get('${Env.userUrl}/users/profile');
-      debugPrint("Data user profile ${rawResponse}");
-      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      return User.fromJson(response.payload);
-    } catch (e) {
-      throw ApiException(e.toString());
-    }
-  }
-
   Future<AuthStatus> postLogin(Login request) async {
     try {
       final Response rawResponse = await (dio ?? DioToefl.instance).post(
@@ -49,10 +37,71 @@ class UserApi {
       await authSharedPreference.saveBearerToken(token);
       await authSharedPreference.saveVerifiedAccount(authStatus.isVerified);
       return authStatus.copyWith(isSuccess: true);
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.statusCode == 422) {
+        final data = e.response!.data;
+        String message;
+
+        // Jika response berbentuk JSON string
+        if (data is String) {
+          final jsonData = json.decode(data);
+          message = jsonData['message'] ?? "Validation error";
+        }
+        // Jika response sudah berupa map
+        else if (data is Map<String, dynamic>) {
+          message = data['message'] ?? "Validation error";
+        } else {
+          message = "Validation error";
+        }
+
+        throw ApiException(message);
+      } else if(e.response != null && e.response!.statusCode == 404) {
+        final data = e.response!.data;
+        String message;
+
+        // Jika response berbentuk JSON string
+        if (data is String) {
+          final jsonData = json.decode(data);
+          message = jsonData['message'] ?? "User not found";
+        }
+        // Jika response sudah berupa map
+        else if (data is Map<String, dynamic>) {
+          message = data['message'] ?? "User not found";
+        } else {
+          message = "User not found";
+        }
+
+        throw ApiException(message);
+      } else if (e.response != null && e.response!.statusCode == 401) {
+        throw ApiException("User not found");
+      }
+
+      throw ApiException("Login failed");
     } catch (e) {
-      return AuthStatus(isVerified: false, isSuccess: false);
+      throw ApiException("Unexpected error");
     }
   }
+
+  // Future<AuthStatus> postLogin(Login request) async {
+  //   try {
+  //     final Response rawResponse = await (dio ?? DioToefl.instance).post(
+  //       '${Env.userUrl}/login',
+  //       data: request.toJson(),
+  //     );
+  //     final isSuccess = json.decode(rawResponse.data)['success'];
+  //     if (!isSuccess) {
+  //       return AuthStatus(isVerified: false, isSuccess: false);
+  //     }
+  //     final token = json.decode(rawResponse.data)['token'];
+  //     final response = BaseResponse.fromJson(json.decode(rawResponse.data));
+  //     final AuthStatus authStatus = AuthStatus.fromJson(response.payload);
+  //     await authSharedPreference.saveBearerToken(token);
+  //     await authSharedPreference.saveVerifiedAccount(authStatus.isVerified);
+  //     return authStatus.copyWith(isSuccess: true);
+  //   } catch (e) {
+  //     return AuthStatus(isVerified: false, isSuccess: false);
+  //   }
+  // }
 
   Future<AuthStatus> postRegist(Regist request) async {
     try {
@@ -82,6 +131,29 @@ class UserApi {
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       return UserTarget.fromJson(response.payload);
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.statusCode == 422) {
+        final data = e.response!.data;
+        String message;
+
+        // Jika response berbentuk JSON string
+        if (data is String) {
+          final jsonData = json.decode(data);
+          message = jsonData['message'] ?? "Validation error";
+        }
+        // Jika response sudah berupa map
+        else if (data is Map<String, dynamic>) {
+          message = data['message'] ?? "Validation error";
+        } else {
+          message = "Validation error";
+        }
+
+        throw ApiException(message);
+      } else if (e.response != null && e.response!.statusCode == 401) {
+        throw ApiException("User not found");
+      }
+
+      throw ApiException("Get user target failed");
     } catch (e) {
       debugPrint("Error in getUserTarget: $e");
       return UserTarget(
@@ -91,7 +163,7 @@ class UserApi {
   }
 
   Future<bool> updateBookmark(int id) async {
-    try {
+    try { 
       await DioToefl.instance
           .patch('${Env.userUrl}/add-and-patch-target', data: {
         'target_id': id,

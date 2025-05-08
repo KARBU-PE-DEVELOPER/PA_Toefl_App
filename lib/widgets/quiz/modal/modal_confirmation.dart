@@ -31,10 +31,15 @@ class _ModalConfirmationState extends State<ModalConfirmation> {
   Widget build(BuildContext context) {
     return AlertDialog(
       surfaceTintColor: Colors.white,
-      backgroundColor: Colors.white,
+      backgroundColor: HexColor(mariner100),
+      
       contentPadding: EdgeInsets.symmetric(vertical: 30, horizontal: 15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),
+        side: BorderSide(
+          color: HexColor(mariner700),
+          width: 5,
+        ),
       ),
       content: Container(
         width: MediaQuery.of(context).size.width,

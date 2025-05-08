@@ -148,6 +148,8 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
               const SizedBox(height: 8),
               TextField(
                 controller: _textController,
+                minLines: 4,
+                maxLines: null,
                 decoration: InputDecoration(
                   hintText: "write_something".tr(),
                   hintStyle: CustomTextStyle.askGrammarBody,
@@ -163,7 +165,7 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
               const SizedBox(height: 16),
               if (_correctResponse.isNotEmpty)
                 Card(
-                  color: HexColor(softBlue),
+                  color: Color(0xFFD8E9FF),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -178,7 +180,7 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
                 ),
               const SizedBox(height: 16),
               Card(
-                color: HexColor(softBlue),
+                color: Color(0xFFD8E9FF),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
