@@ -5,8 +5,8 @@ import '../utils/colors.dart';
 import '../utils/custom_text_style.dart';
 import '../utils/hex_color.dart';
 
-class BlueButton extends StatelessWidget {
-  const BlueButton({
+class WhiteButton extends StatelessWidget {
+  const WhiteButton({
     super.key,
     this.size = -1,
     this.height = -1,
@@ -28,7 +28,7 @@ class BlueButton extends StatelessWidget {
     double buttonWidth =
         size >= 0 ? size : MediaQuery.of(context).size.width * 0.9;
     double buttonHeight =
-        height >= 0 ? height : MediaQuery.of(context).size.height * 0.075;
+        height >= 0 ? height : MediaQuery.of(context).size.height * 0.1;
 
     return GestureDetector(
       onTap: isDisabled ? () {} : onTap,
@@ -36,8 +36,16 @@ class BlueButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: isDisabled
               ? HexColor("#939393").withOpacity(0.27)
-              : HexColor(mariner700),
+              : HexColor(neutral10),
           borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1), // Shadow color
+              spreadRadius: 2, // Spread radius
+              // blurRadius: 5, // Blur radius
+              offset: Offset(0, 3), // Offset in x and y direction
+            ),
+          ],
         ),
         width: buttonWidth,
         height: buttonHeight,
@@ -50,7 +58,7 @@ class BlueButton extends StatelessWidget {
                   style: GoogleFonts.nunito(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
-                    color: isDisabled ? HexColor(neutral60) : Colors.white,
+                    color: isDisabled ? HexColor(neutral60) : Colors.black,
                   ),
                 ),
           ),

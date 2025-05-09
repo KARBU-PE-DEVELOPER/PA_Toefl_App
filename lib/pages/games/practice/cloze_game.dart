@@ -33,6 +33,9 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
   }
 
   Future<void> loadQuestions() async {
+    setState(() {
+      isLoading = true;
+    });
     final response = await api.fetchClozeQuestions();
     setState(() {
       questions = response;

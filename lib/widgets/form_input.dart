@@ -37,10 +37,14 @@ class _InputTextState extends State<InputText> {
       children: [
         Text(
           widget.title!,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          style: TextStyle(fontSize: 16, 
+          fontWeight: FontWeight.w600,
+          color: HexColor(neutral10)
+          ),
         ),
         const SizedBox(height: 6.0),
         TextFormField(
+          cursorColor: HexColor(neutral90),
           validator: (value) {
             if (value == null || value.isEmpty || value.trim().isEmpty) {
               return 'warning_messages'.tr(args: ['${widget.hintText}']);
@@ -64,10 +68,13 @@ class _InputTextState extends State<InputText> {
               ? _obscureText
               : false,
           decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.0),
               borderSide: const BorderSide(
-                color: Colors.grey,
+                color: Colors.black,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -76,7 +83,7 @@ class _InputTextState extends State<InputText> {
             ),
             hintText: widget.hintText,
             hintStyle: TextStyle(
-              color: HexColor(neutral40),
+              color: HexColor(neutral90),
               fontSize: 15,
               fontWeight: FontWeight.w300,
             ),

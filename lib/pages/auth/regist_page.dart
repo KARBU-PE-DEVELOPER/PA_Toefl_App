@@ -5,10 +5,12 @@ import 'package:toefl/models/auth_status.dart';
 import 'package:toefl/models/regist.dart';
 import 'package:toefl/remote/local/shared_pref/onboarding_shared_preferences.dart';
 import 'package:toefl/routes/route_key.dart';
+import 'package:toefl/exceptions/exceptions.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/blue_button.dart';
 import 'package:toefl/widgets/form_input.dart';
+import 'package:toefl/widgets/white_button.dart';
 
 import '../../remote/api/user_api.dart';
 
@@ -29,16 +31,86 @@ class _RegistPageState extends State<RegistPage> {
   final userApi = UserApi();
   bool isLoading = false;
 
+  Future<void> handleRegister() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final AuthStatus val = await userApi.postRegist(
+        Regist(
+          name: nameController.text,
+          email: emailController.text,
+          password: passwordController.text,
+          passwordConfirmation: confirmPasswordController.text,
+        ),
+      );
+
+      if (val.isSuccess) {
+        Navigator.pushNamed(
+          context,
+          RouteKey.otpVerification,
+          arguments: {
+            'isForgotOTP': false,
+            'email': emailController.text,
+          },
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Email has already been registered"),
+            backgroundColor: HexColor(colorError),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: HexColor(colorError),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("An unexpected error occurred"),
+          backgroundColor: HexColor(colorError),
+        ),
+      );
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: HexColor(mariner700),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SvgPicture.asset(
-                'assets/images/register.svg',
-                width: MediaQuery.of(context).size.width,
+              Card(
+                color: HexColor(neutral20),
+                shadowColor: Colors.black,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(60),
+                    bottomRight: Radius.circular(60),
+                  ),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.height *
+                      0.25, // 40% tinggi layar
+                  child: Image.asset(
+                    'assets/images/smile_robot.png',
+                  ),
+                ),
               ),
               Padding(
                 padding:
@@ -52,7 +124,7 @@ class _RegistPageState extends State<RegistPage> {
                       style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
-                        color: HexColor(mariner700),
+                        color: HexColor(neutral10),
                       ),
                     ).tr(),
                     Text(
@@ -60,7 +132,7 @@ class _RegistPageState extends State<RegistPage> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: HexColor(neutral50),
+                        color: HexColor(neutral10),
                       ),
                     ).tr(),
                     const SizedBox(height: 15.0),
@@ -74,20 +146,20 @@ class _RegistPageState extends State<RegistPage> {
                             title: 'label_name'.tr(),
                             hintText: "Name",
                           ),
-                          const SizedBox(height: 15.0),
+                          const SizedBox(height: 10.0),
                           InputText(
                             controller: emailController,
                             title: "Email",
                             hintText: "Email",
                           ),
-                          const SizedBox(height: 15.0),
+                          const SizedBox(height: 10.0),
                           InputText(
                             controller: passwordController,
                             title: "Password",
                             hintText: "Password",
                             suffixIcon: Icons.visibility_off,
                           ),
-                          const SizedBox(height: 15.0),
+                          const SizedBox(height: 10.0),
                           InputText(
                             controller: confirmPasswordController,
                             title: 'confirm_password'.tr(),
@@ -98,49 +170,22 @@ class _RegistPageState extends State<RegistPage> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 30.0),
-                    if (isLoading)
-                      const Center(
-                        child: CircularProgressIndicator(),
-                      )
-                    else
-                      BlueButton(
+                    const SizedBox(height: 20.0),
+                      WhiteButton(
                         title: 'btn_register'.tr(),
-                        onTap: () async {
-                          setState(() {
-                            isLoading = true;
-                          });
-                          final AuthStatus val;
-                          if (_formKey.currentState!.validate()) {
-                            val = await userApi.postRegist(
-                              Regist(
-                                name: nameController.text,
-                                email: emailController.text,
-                                password: passwordController.text,
-                                passwordConfirmation:
-                                    confirmPasswordController.text,
-                              ),
-                            );
-                            if (val.isSuccess) {
-                              Navigator.pushNamed(
-                                  context, RouteKey.otpVerification,
-                                  arguments: {
-                                    'isForgotOTP': false,
-                                    'email': emailController.text
-                                  });
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text("email has registered"),
-                                  backgroundColor: HexColor(colorError),
+                        size: MediaQuery.of(context).size.width * 0.9,
+                        height: MediaQuery.of(context).size.width * 0.125,
+                        onTap: handleRegister,
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.0,
                                 ),
-                              );
-                            }
-                          }
-                          setState(() {
-                            isLoading = false;
-                          });
-                        },
+                              )
+                            : null,
                       ),
                     const SizedBox(height: 15.0),
                     Row(
@@ -149,7 +194,7 @@ class _RegistPageState extends State<RegistPage> {
                         Text(
                           'have_account'.tr(),
                           style: TextStyle(
-                            color: HexColor(neutral50),
+                            color: HexColor(neutral10),
                             fontSize: 14,
                           ),
                         ),
@@ -158,13 +203,16 @@ class _RegistPageState extends State<RegistPage> {
                             Navigator.popAndPushNamed(context, RouteKey.login);
                           },
                           child: Text(
-                            'login_link'.tr(),
-                            style: const TextStyle(
+                            'register_link',
+                            style: TextStyle(
+                              color: HexColor(neutral20),
                               fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               decoration: TextDecoration.underline,
+                              decorationColor: Colors.white,
+                              decorationThickness: 2.0,
                             ),
-                          ),
+                          ).tr(),
                         ),
                       ],
                     )

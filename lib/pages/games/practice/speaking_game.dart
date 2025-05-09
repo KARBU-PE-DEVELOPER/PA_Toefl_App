@@ -71,12 +71,16 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     });
 
     await _speechToText.listen(onResult: _onSpeechResult);
-    setState(() {});
+    setState(() {
+      _disable = true;
+    });
   }
 
   void _stopListening() async {
     await _speechToText.stop();
-    setState(() {});
+    setState(() {
+            
+    });
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
@@ -85,10 +89,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     setState(() {
       _userAnswer = recognizedWords;
       _disable = recognizedWords.isEmpty;
-
       final hasCorrectWord = _hasAnyCorrectWord(recognizedWords, _answerKey);
 
-      // Disable mic button if at least one word is correct
+
       _isMicButtonDisabled = hasCorrectWord;
     });
   }
@@ -208,6 +211,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     _isCheck = false;
     _isCorrect = false;
     _disable = true;
+    _isLoading = false;
     _isMicButtonDisabled = false;
   }
 

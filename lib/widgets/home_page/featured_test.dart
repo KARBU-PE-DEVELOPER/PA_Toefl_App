@@ -52,9 +52,23 @@ class FeatureTest extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () =>
-                        Navigator.of(context).pushNamed(RouteKey.clozeGame),
+                        Navigator.of(context).pushNamed(RouteKey.scrambleGame),
                     child: FeaturedCard(
                       isBgLight: true,
+                      icon: "assets/images/word_scramble.svg",
+                      title: "scramble_game".tr(),
+                      subtitle: "hangman_game_subtitle".tr(),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: 24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.clozeGame),
+                    child: FeaturedCard(
+                      isBgLight: false,
                       icon: "assets/images/word_scramble.svg",
                       title: "cloze_game".tr(),
                       subtitle: "cloze_game_subtitle".tr(),
@@ -68,7 +82,7 @@ class FeatureTest extends StatelessWidget {
                     onTap: () =>
                         Navigator.of(context).pushNamed(RouteKey.pairingGame),
                     child: FeaturedCard(
-                      isBgLight: false,
+                      isBgLight: true,
                       icon: "assets/images/synonim_pairing.svg",
                       title: "synonym_pair".tr(),
                       subtitle: "synonim_pair_subtitle".tr(),
@@ -83,7 +97,7 @@ class FeatureTest extends StatelessWidget {
                       builder: (context) => SentenceScramblePage(),
                     )),
                     child: FeaturedCard(
-                      isBgLight: true,
+                      isBgLight: false,
                       icon: "assets/images/vector_game_listening.svg",
                       title: "listening_game".tr(),
                       subtitle: "listening_game_subtitle".tr(),
@@ -97,7 +111,7 @@ class FeatureTest extends StatelessWidget {
                     onTap: () =>
                         Navigator.of(context).pushNamed(RouteKey.translateQuiz),
                     child: FeaturedCard(
-                      isBgLight: false,
+                      isBgLight: true,
                       icon: "assets/images/Group39369.svg",
                       title: "translate_quiz".tr(),
                       subtitle: "translate_quiz_subtitle".tr(),
@@ -111,7 +125,7 @@ class FeatureTest extends StatelessWidget {
                     onTap: () => Navigator.of(context)
                         .pushNamed(RouteKey.writingPractice),
                     child: FeaturedCard(
-                      isBgLight: true,
+                      isBgLight: false,
                       icon: "assets/images/Group39370.svg",
                       title: "comment_practice".tr(),
                       subtitle: "comment_practice_subtitle".tr(),
