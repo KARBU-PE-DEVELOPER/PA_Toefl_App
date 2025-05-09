@@ -171,19 +171,21 @@ class _RegistPageState extends State<RegistPage> {
                       ),
                     ),
                     const SizedBox(height: 20.0),
-                    if (isLoading)
-                      Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              HexColor(mariner700)),
-                        ),
-                      )
-                    else
                       WhiteButton(
                         title: 'btn_register'.tr(),
                         size: MediaQuery.of(context).size.width * 0.9,
                         height: MediaQuery.of(context).size.width * 0.125,
                         onTap: handleRegister,
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.0,
+                                ),
+                              )
+                            : null,
                       ),
                     const SizedBox(height: 15.0),
                     Row(

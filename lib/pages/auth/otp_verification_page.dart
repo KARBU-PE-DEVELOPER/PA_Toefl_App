@@ -6,6 +6,7 @@ import 'package:toefl/remote/local/shared_pref/onboarding_shared_preferences.dar
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
+import 'package:flutter/services.dart'; // tambahkan import ini
 import 'package:toefl/widgets/blue_button.dart';
 
 import '../../remote/api/user_api.dart';
@@ -108,8 +109,8 @@ class _OtpVerificationState extends State<OtpVerification> {
                     const SizedBox(
                       height: 60,
                     ),
-                    // Add OTP widget here
                     OtpTextField(
+                      cursorColor: HexColor(neutral90),
                       numberOfFields: 4,
                       contentPadding: const EdgeInsets.symmetric(vertical: 30),
                       margin: const EdgeInsets.symmetric(horizontal: 10),
@@ -122,6 +123,22 @@ class _OtpVerificationState extends State<OtpVerification> {
                       focusedBorderColor: HexColor(mariner700),
                       handleControllers: (controllers) {
                         controls = controllers;
+                        for (var ctrl in controls) {
+                          ctrl?.addListener(() {
+                            final text = ctrl?.text ?? '';
+                            final filtered =
+                                text.replaceAll(RegExp(r'[^0-9]'), '');
+                            if (filtered.length > 1) {
+                              ctrl?.text = filtered[0]; // ambil hanya 1 digit
+                              ctrl?.selection =
+                                  TextSelection.collapsed(offset: 1);
+                            } else if (text != filtered) {
+                              ctrl?.text = filtered;
+                              ctrl?.selection = TextSelection.collapsed(
+                                  offset: filtered.length);
+                            }
+                          });
+                        }
                       },
                       onCodeChanged: (String value) {
                         otp = '';

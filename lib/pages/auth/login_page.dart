@@ -190,20 +190,25 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 25),
-                    isLoading
-                        ? Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                        HexColor(mariner700)), // biru hex
-                            ),
-                          )
-                        : WhiteButton(
-                            title: 'btn_login'.tr(),
-                            size: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.width * 0.125,
-                            onTap: handleLogin,
-                          ),
+                    SizedBox(height: 25),
+                    WhiteButton(
+                      title: 'btn_login'.tr(),
+                      size: MediaQuery.of(context).size.width * 0.9,
+                      height: MediaQuery.of(context).size.height * 0.06,
+                      onTap: handleLogin,
+                      child: isLoading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      HexColor(mariner700)),
+                                ),
+                              ),
+                            )
+                          : null,
+                    ),
                     const SizedBox(height: 15.0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

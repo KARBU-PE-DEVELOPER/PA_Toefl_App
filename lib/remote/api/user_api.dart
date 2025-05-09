@@ -55,7 +55,7 @@ class UserApi {
         }
 
         throw ApiException(message);
-      } else if(e.response != null && e.response!.statusCode == 404) {
+      } else if (e.response != null && e.response!.statusCode == 404) {
         final data = e.response!.data;
         String message;
 
@@ -119,6 +119,32 @@ class UserApi {
       await authSharedPreference.saveBearerToken(token);
       await authSharedPreference.saveVerifiedAccount(false);
       return authStatus.copyWith(isSuccess: true);
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.statusCode == 422) {
+        final data = e.response!.data;
+        String message;
+
+        // Jika response berbentuk JSON string
+        if (data is String) {
+          final jsonData = json.decode(data);
+          message = jsonData['message'] ?? "Validation error";
+        }
+        // Jika response sudah berupa map
+        else if (data is Map<String, dynamic>) {
+          message = data['message'] ?? "Validation error";
+        } else {
+          message = "Validation error";
+        }
+
+        throw ApiException(message);
+      } else if (e.response != null &&
+          e.response!.statusCode == 409) {
+        throw ApiException("Email already registered");
+      } else if (e.response != null && e.response!.statusCode == 400) {
+        throw ApiException("Validation error");
+      }
+
+      throw ApiException("Register failed");
     } catch (e) {
       return AuthStatus(isVerified: false, isSuccess: false);
     }
@@ -163,7 +189,7 @@ class UserApi {
   }
 
   Future<bool> updateBookmark(int id) async {
-    try { 
+    try {
       await DioToefl.instance
           .patch('${Env.userUrl}/add-and-patch-target', data: {
         'target_id': id,
