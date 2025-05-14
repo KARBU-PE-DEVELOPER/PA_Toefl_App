@@ -158,13 +158,30 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
       try {
         final question = await _fullTestTable.getQuestionByNumber(number);
         if (question.nestedQuestionId.isNotEmpty) {
-          final nestedQuestion = await _fullTestTable
+          final nestedQuestions = await _fullTestTable
               .getQuestionsByGroupId(question.nestedQuestionId);
-          state = state.copyWith(selectedQuestions: nestedQuestion);
+
+          final currentChild =
+              nestedQuestions.firstWhereOrNull((q) => q.number == number);
+
+          if (currentChild != null) {
+            state = state.copyWith(selectedQuestions: [currentChild]);
+          } else {
+            debugPrint("No matching nested question for number $number");
+            state = state.copyWith(selectedQuestions: []);
+          }
         } else {
-          state = state.copyWith(
-              selectedQuestions: List.generate(1, (index) => question));
+          state = state.copyWith(selectedQuestions: [question]);
         }
+
+        // if (question.nestedQuestionId.isNotEmpty) {
+        //   final nestedQuestion = await _fullTestTable
+        //       .getQuestionsByGroupId(question.nestedQuestionId);
+        //   state = state.copyWith(selectedQuestions: nestedQuestion);
+        // } else {
+        //   state = state.copyWith(
+        //       selectedQuestions: List.generate(1, (index) => question));
+        // }
       } catch (e) {
         debugPrint("error : $e");
       } finally {

@@ -2,14 +2,19 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:toefl/models/estimated_score.dart' as model;
+import 'package:toefl/models/game_data.dart';
+import 'package:toefl/pages/rank_page.dart';
 import 'package:toefl/remote/api/estimated_score.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
+import 'package:toefl/widgets/home_page/topic_interest.dart';
+import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
 import 'package:toefl/widgets/toefl_progress_indicator.dart';
 
 import 'user_rank_card.dart';
@@ -60,9 +65,9 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
       setState(() {
         estimatedScore = temp;
         score = {
-          'listening_score'.tr(): temp.scoreListening,
-          'structure_score'.tr(): temp.scoreStructure,
-          'reading_score'.tr(): temp.scoreReading,
+          'Listening Score': temp.scoreListening,
+          'Structure Score': temp.scoreStructure,
+          'Reading Score': temp.scoreReading,
         };
       });
     }
@@ -71,6 +76,7 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           height: MediaQuery.of(context).size.height / 4.5,
@@ -85,8 +91,12 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                     return Container(
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          color: HexColor(mariner800)),
-                      margin: EdgeInsets.symmetric(horizontal: 24),
+                          border: Border.all(
+                            color: const Color(0xFFC4D7FF), // Border color
+                            width: 2, // Border width
+                          ),
+                          color: HexColor(mariner400)),
+                      margin: EdgeInsets.symmetric(horizontal: 14),
                       child: Row(
                         children: [
                           Expanded(
@@ -106,14 +116,14 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                                             fontSize: constraint.maxHeight / 7,
                                             fontWeight: FontWeight.w800,
                                             height: 0.9,
-                                            color: HexColor(mariner300)),
+                                            color: Color(0xFF00394C)),
                                       ),
                                       Text(
                                         "/${estimatedScore?.targetUser}",
                                         style: TextStyle(
                                             fontSize: constraint.maxHeight / 10,
                                             fontWeight: FontWeight.w800,
-                                            color: HexColor(neutral20)),
+                                            color: Color(0xFF585A66)),
                                       ),
                                     ],
                                   ),
@@ -125,8 +135,8 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                                     scale: constraint.maxHeight / 150,
                                     strokeWidth: constraint.maxHeight / 10,
                                     strokeScaler: constraint.maxHeight / 180,
-                                    activeHexColor: mariner100,
-                                    nonActiveHexColor: mariner300,
+                                    activeHexColor: mariner700,
+                                    nonActiveHexColor: mariner200,
                                   ),
                                 ),
                               ],
@@ -140,57 +150,51 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                               children: [
                                 Text(
                                   // "Estimated score",
-                                  'estimated_score'.tr(),
+                                  'My Target'.tr(),
                                   style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      color: HexColor(mariner200),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF00394C),
                                       height: 2),
                                 ),
                                 ...score.entries.map(
                                   (entry) => Text(
                                     '${entry.key}: ${entry.value}',
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      fontFamily:
-                                          GoogleFonts.nunito().fontFamily,
-                                      color: Colors.white,
-                                    ),
+                                        fontSize: 14,
+                                        fontFamily:
+                                            GoogleFonts.nunito().fontFamily,
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w400),
                                   ),
                                 ),
-                                Text('take_full'.tr(),
-                                    style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w300,
-                                        color: HexColor(neutral10),
-                                        height: 2)),
+                                SizedBox(
+                                  height: 16,
+                                ),
                                 ElevatedButton(
                                   onPressed: () => Navigator.pushNamed(
                                       context, RouteKey.setTargetPage),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    minimumSize: Size(100, 24),
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: MediaQuery.of(context)
-                                                .size
-                                                .aspectRatio *
-                                            15),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          MediaQuery.of(context)
-                                                  .size
-                                                  .aspectRatio *
-                                              125),
+                                    backgroundColor: const Color(0xFF47AFFF),
+                                    minimumSize: const Size(140,
+                                        38), // Fixed width (140px) and height (38px)
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 9,
+                                        horizontal: 34), // Padding (9px, 34px)
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(12)),
                                     ),
                                   ),
                                   child: Text(
-                                    'set_now'.tr(),
+                                    'Set Now'.tr(),
                                     style: TextStyle(
-                                        fontSize: 12,
-                                        fontFamily:
-                                            GoogleFonts.nunito().fontFamily,
-                                        fontWeight: FontWeight.w900,
-                                        color: HexColor(mariner900)),
+                                      fontSize: 12,
+                                      fontFamily:
+                                          GoogleFonts.nunito().fontFamily,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white, // White text color
+                                    ),
                                   ),
                                 ),
                               ],
@@ -202,22 +206,23 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                   }),
                 ),
               ),
-              UserRankCard(),
             ],
           ),
         ),
-        SizedBox(
-          height: 12,
+        const SizedBox(
+          height: 30,
         ),
-        SmoothPageIndicator(
-          controller: _controller,
-          count: 2,
-          effect: ExpandingDotsEffect(
-              activeDotColor: HexColor(mariner800),
-              dotColor: HexColor(neutral40),
-              dotHeight: 8,
-              dotWidth: 9),
-        )
+        // const Padding(
+        //   padding: EdgeInsets.symmetric(horizontal: 14),
+        //   child: Text(
+        //     "Today’s Learning",
+        //     style: TextStyle(
+        //         color: Color(0xFF00394C),
+        //         fontSize: 24,
+        //         fontWeight: FontWeight.w700),
+        //   ),
+        // ),
+        // const KeeplearningProgress(),
       ],
     );
   }

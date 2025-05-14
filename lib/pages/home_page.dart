@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:toefl/pages/full_test/history_score.dart';
+import 'package:toefl/remote/api/profile_api.dart';
 import 'package:toefl/remote/local/shared_pref/test_shared_preferences.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
@@ -22,11 +23,24 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TestSharedPreference _testSharedPref = TestSharedPreference();
-
+  String? userName;
+  final profileApi = ProfileApi();
   @override
   void initState() {
     super.initState();
+    _loadUserProfile();
     _init();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final profile = await profileApi.getProfile();
+      setState(() {
+        userName = profile.nameUser; // Set the userName from profile
+      });
+    } catch (e) {
+      print("Error loading user profile: $e");
+    }
   }
 
   void _init() async {
@@ -58,46 +72,40 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 24, vertical: 15),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'appbar_home'.tr(),
-                            style: TextStyle(
-                                fontSize: 21, fontWeight: FontWeight.w800),
-                          ),
-                          Container(
-                            width: 40,
-                            height: 40,
-                            child: Ink(
-                                decoration: BoxDecoration(
-                                  color: HexColor('D4EFFF'),
-                                  borderRadius: BorderRadius.circular(6.0),
-                                ),
-                                child: IconButton(
-                                    highlightColor: Colors.transparent,
-                                    icon: Icon(
-                                      Icons.bookmarks,
-                                      color: HexColor(mariner900),
-                                      size: 18,
-                                    ),
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pushNamed(RouteKey.bookmarkedpage);
-                                    })),
-                          )
-                        ],
-                      ),
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 32),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userName != null ? "Hi, $userName!" : "Hi!",
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF00394C),
+                              ),
+                            ),
+                            const Text(
+                              "Welcome Back!",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    EstimatedScoreWidget(),
-                  ],
-                ),
+                  ),
+                  EstimatedScoreWidget(),
+                ],
               ),
               SizedBox(
                 height: 15,
