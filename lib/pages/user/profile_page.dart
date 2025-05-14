@@ -6,6 +6,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:toefl/models/games/game_history.dart';
 import 'package:toefl/models/games/user_leaderboard.dart';
 import 'package:toefl/models/profile.dart';
+import 'package:toefl/pages/full_test/history_score.dart';
 import 'package:toefl/remote/api/leader_board_api.dart';
 import 'package:toefl/remote/api/mini_game_api.dart';
 import 'package:toefl/remote/api/profile_api.dart';
@@ -172,6 +173,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 const Spacer(),
                               ],
                             ),
+
                             // ElevatedButton.icon(
                             //   onPressed: () {
                             //     LocalNotification.showSimpleNotification(
@@ -200,6 +202,29 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'history_score'.tr(),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: HexColor(neutral90)),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 15,
+              ),
+              HistoryScore(),
+              SizedBox(
+                height: 30,
+              ),
+             
             ],
           )),
     );

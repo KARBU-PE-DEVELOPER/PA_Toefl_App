@@ -6,12 +6,15 @@ class HistoryScore extends StatefulWidget {
   const HistoryScore({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _HistoryScoreState createState() => _HistoryScoreState();
 }
 
 class _HistoryScoreState extends State<HistoryScore> {
   String selectedType = "Test";
+  final ScrollController _scrollController = ScrollController();
+  bool canScrollLeft = false;
+  bool canScrollRight = false;
+
   final List<Map<String, dynamic>> historyData = [
     {
       "id": 1,
@@ -46,6 +49,31 @@ class _HistoryScoreState extends State<HistoryScore> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_updateScrollIndicators);
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _updateScrollIndicators());
+  }
+
+  void _updateScrollIndicators() {
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+
+    setState(() {
+      canScrollLeft = currentScroll > 0;
+      canScrollRight = currentScroll < maxScroll;
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_updateScrollIndicators);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final filteredData =
         historyData.where((item) => item["type"] == selectedType).toList();
@@ -57,6 +85,7 @@ class _HistoryScoreState extends State<HistoryScore> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Toggle Button
             Row(
               children: [
                 ClipRRect(
@@ -131,35 +160,49 @@ class _HistoryScoreState extends State<HistoryScore> {
                 ),
               ],
             ),
+
             const SizedBox(height: 16),
+
+            // Scrollable Table
             Scrollbar(
+              controller: _scrollController,
               thumbVisibility: true,
               child: SingleChildScrollView(
+                controller: _scrollController,
                 scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text("No")),
-                    DataColumn(label: Text("Total")),
-                    DataColumn(label: Text("Date & Time")),
-                    DataColumn(label: Text("Listening")),
-                    DataColumn(label: Text("Structure")),
-                    DataColumn(label: Text("Reading")),
-                  ],
-                  rows: List.generate(filteredData.length, (index) {
-                    final data = filteredData[index];
-                    final dateTime = "${data["date"]} ${data["time"]}";
-                    return DataRow(cells: [
-                      DataCell(Text("${index + 1}")),
-                      DataCell(Text("${data["total"]}")),
-                      DataCell(Text(dateTime)),
-                      DataCell(Text("${data["listening"]}")),
-                      DataCell(Text("${data["structure"]}")),
-                      DataCell(Text("${data["reading"]}")),
-                    ]);
-                  }),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 800),
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text("No")),
+                      DataColumn(label: Text("Total")),
+                      DataColumn(label: Text("Date & Time")),
+                      DataColumn(label: Text("Listening")),
+                      DataColumn(label: Text("Structure")),
+                      DataColumn(label: Text("Reading")),
+                    ],
+                    rows: List.generate(filteredData.length, (index) {
+                      final data = filteredData[index];
+                      final dateTime = "${data["date"]} ${data["time"]}";
+                      return DataRow(cells: [
+                        DataCell(Text("${index + 1}")),
+                        DataCell(Text("${data["total"]}")),
+                        DataCell(Text(dateTime)),
+                        DataCell(Text("${data["listening"]}")),
+                        DataCell(Text("${data["structure"]}")),
+                        DataCell(Text("${data["reading"]}")),
+                      ]);
+                    }),
+                  ),
                 ),
               ),
             ),
+
+            const SizedBox(height: 8),
+
+            // Scroll indicator line
+
+            const SizedBox(height: 30),
           ],
         ),
       ),

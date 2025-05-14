@@ -37,6 +37,7 @@ class FullTestPage extends ConsumerStatefulWidget {
 Timer? _lockTaskChecker;
 bool isAskedToReLock = false;
 bool isTestFinished = false;
+late final bool isSubmittingFinal; // true saat submit akhir
 
 class _FullTestPageState extends ConsumerState<FullTestPage> {
   // @override
@@ -411,20 +412,21 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                           )),
                       const Spacer(),
                       IconButton(
-                        onPressed: () {
-                          int totalQuestions = state
-                              .totalQuestions; // Ambil jumlah soal dari state
-                          if ((state.selectedQuestions.lastOrNull?.number ??
-                                  totalQuestions) >=
-                              totalQuestions) {
-                            return;
-                          } else {
+                        onPressed: () async {
+                          int currentNumber =
+                              state.selectedQuestions.lastOrNull?.number ?? 1;
+                          int totalQuestions = state.totalQuestions;
+
+                          if (currentNumber >= totalQuestions) return;
+
+                          // Simpan jawaban sebelum pindah soal
+                          bool success = await ref
+                              .read(fullTestProvider.notifier)
+                              .saveAnswerForCurrentQuestion();
+                          if (success) {
                             ref
                                 .read(fullTestProvider.notifier)
-                                .getQuestionByNumber((state.selectedQuestions
-                                            .lastOrNull?.number ??
-                                        totalQuestions) +
-                                    1);
+                                .getQuestionByNumber(currentNumber + 1);
                           }
                         },
                         icon: const Icon(
@@ -492,24 +494,17 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
               onYes: () async {
                 Navigator.pop(submitContext);
                 bool submitResult = false;
-                if (widget.isRetake) {
-                  submitResult = await ref
-                      .read(fullTestProvider.notifier)
-                      .resubmitAnswer();
-                  if (widget.packetType == "test") {
-                    FlutterLockTask().stopLockTask().then((value) {
-                      debugPrint("stopLockTask: $value");
-                    });
-                  }
-                } else {
-                  submitResult =
-                      await ref.read(fullTestProvider.notifier).submitAnswer();
-                  if (widget.packetType == "test") {
-                    FlutterLockTask().stopLockTask().then((value) {
-                      debugPrint("stopLockTask: $value");
-                    });
-                  }
+
+                // Directly call submitAnswer
+                submitResult =
+                    await ref.read(fullTestProvider.notifier).submitAnswer();
+
+                if (widget.packetType == "test") {
+                  FlutterLockTask().stopLockTask().then((value) {
+                    debugPrint("stopLockTask: $value");
+                  });
                 }
+
                 if (submitResult) {
                   isTestFinished = true;
                   _lockTaskChecker?.cancel();

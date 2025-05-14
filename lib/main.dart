@@ -26,7 +26,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
+ 
   final selectedLocale = await LocalizationSharedPreference().getSelectedLang();
 
   runApp(

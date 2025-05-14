@@ -196,6 +196,8 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
   Future<void> updateAnswer(int number, String answer) async {
     try {
       await _fullTestTable.updateAnswer(number, answer);
+      // Perbarui pertanyaan yang dipilih di state
+      await getQuestionByNumber(number);
       final filledStatus = await getQuestionsFilledStatus();
       state = state.copyWith(questionsFilledStatus: filledStatus);
     } catch (e) {
@@ -268,33 +270,46 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
     }
   }
 
-  Future<bool> resubmitAnswer() async {
-    state = state.copyWith(isSubmitLoading: true);
+  Future<bool> saveAnswerForCurrentQuestion() async {
+    state = state.copyWith(isSubmitLoading: false);
     try {
-      final questions = await _fullTestTable.getAllAnswer();
+      // Dapatkan nomor soal saat ini
+      int currentNumber = state.selectedQuestions.firstOrNull?.number ?? 0;
+      if (currentNumber == 0) {
+        debugPrint("No current question number found.");
+        return false;
+      }
 
-      final request = questions
-          .map((e) => {
-                "question_id": e?.id ?? "",
-                "bookmark": (e?.bookmarked ?? 0) > 0,
-                "answer_user":
-                    ((e?.answer)?.isNotEmpty ?? false) ? e!.answer : "-"
-              })
-          .toList();
+      // Ambil data terbaru dari database
+      final currentQuestion =
+          await _fullTestTable.getQuestionByNumber(currentNumber);
+      if (currentQuestion == null) {
+        debugPrint("No question found for number $currentNumber");
+        return false;
+      }
+
+      final request = [
+        {
+          "question_id": currentQuestion.id,
+          "bookmark": (currentQuestion.bookmarked ?? 0) > 0,
+          "answer_user":
+              currentQuestion.answer.isNotEmpty ? currentQuestion.answer : "-"
+        }
+      ];
+
       final response =
-          await _fullTestApi.resubmitAnswer(request, state.testStatus.id);
+          await _fullTestApi.saveAsnwerNextPage(request, state.testStatus.id);
+
       if (response) {
-        debugPrint("success submit answer");
+        debugPrint("Success submit current answer");
         return true;
       } else {
-        debugPrint("failed submit answer");
+        debugPrint("Failed submit current answer");
         return false;
       }
     } catch (e) {
-      debugPrint("error: $e");
+      debugPrint("Error: $e");
       return false;
-    } finally {
-      // state = state.copyWith(isSubmitLoading: false);
     }
   }
 
