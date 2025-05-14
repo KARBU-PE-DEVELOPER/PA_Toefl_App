@@ -137,8 +137,7 @@ class UserApi {
         }
 
         throw ApiException(message);
-      } else if (e.response != null &&
-          e.response!.statusCode == 409) {
+      } else if (e.response != null && e.response!.statusCode == 409) {
         throw ApiException("Email already registered");
       } else if (e.response != null && e.response!.statusCode == 400) {
         throw ApiException("Validation error");
@@ -150,7 +149,7 @@ class UserApi {
     }
   }
 
-  Future<UserTarget> getUserTarget() async {
+  Future<UserTarget> getScoreToefl() async {
     try {
       final Response rawResponse =
           await DioToefl.instance.get('${Env.userUrl}/get-score-toefl');
@@ -184,6 +183,21 @@ class UserApi {
       debugPrint("Error in getUserTarget: $e");
       return UserTarget(
           selectedTarget: TestTarget(id: 0, name: "", score: 0),
+          allTargets: []);
+    }
+  }
+
+  Future<UserTarget> getUserTarget() async {
+    try {
+      final Response rawResponse =
+          await DioToefl.instance.get('${Env.apiUrl}/get-all/targets');
+
+      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
+      return UserTarget.fromJson(response.payload);
+    } catch (e) {
+      debugPrint("Error in getUserTarget: $e");
+      return UserTarget(
+          selectedTarget: TestTarget(id: "", name: "", score: 0),
           allTargets: []);
     }
   }
