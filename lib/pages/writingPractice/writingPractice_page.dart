@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/utils/custom_text_style.dart';
-// import 'package:toefl/state_management/grammar-translator/grammarTranslator_provider_state.dart';
+import 'package:toefl/exceptions/exceptions.dart';
 import 'package:toefl/state_management/writing_practice/grammarCommentator_provider_state.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -32,19 +32,31 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
   }
 
   void _fetchQuestion() async {
-    setState(() {
-      _isLoading = true;
-    });
-    final response = await ref
-        .read(grammarCommentatorProviderStatesProvider.notifier)
-        .getQuestion();
-    if (response != null) {
+    try {
       setState(() {
-        _grammarPercentage = "0";
-        _explanation = "please_enter_an_english_sentence".tr();
-        _correctResponse = "";
+        _isLoading = true;
+      });
+      final response = await ref
+          .read(grammarCommentatorProviderStatesProvider.notifier)
+          .getQuestion();
+      if (response != null) {
+        setState(() {
+          _grammarPercentage = "0";
+          _explanation = "please_enter_an_english_sentence".tr();
+          _correctResponse = "";
+          _isLoading = false;
+          _question = response.question ?? "";
+        });
+      }
+    } on ApiException catch (e) {
+      setState(() {
         _isLoading = false;
-        _question = response.question ?? "";
+        _question = e.message;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _question = "error_fetching_question".tr();
       });
     }
   }

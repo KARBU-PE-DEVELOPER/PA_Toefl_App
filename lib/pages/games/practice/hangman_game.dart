@@ -192,7 +192,11 @@ class _HangmanGameState extends State<HangmanGame> {
     return Scaffold(
       appBar: GameAppBar(title: 'hangman_game'.tr()),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(HexColor(mariner700)),
+              ),
+            )
           : Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

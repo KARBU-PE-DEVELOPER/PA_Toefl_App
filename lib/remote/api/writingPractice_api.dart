@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:toefl/models/grammar-commentator/grammarCommentator_detail.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:toefl/models/grammar-commentator/question-grammarCommentator_detail.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
+import 'package:toefl/exceptions/exceptions.dart';
 
 import '../base_response.dart';
 
@@ -22,14 +22,28 @@ class GrammarCommentatorAPI {
 
       final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
 
-      if (response.payload == null ||
-          response.payload is! Map<String, dynamic>) {
-        throw Exception("API returned an invalid payload");
-      }
-
       final Map<String, dynamic> dataMessage = response.payload;
 
       return GrammarCommentator.fromJson(dataMessage);
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.statusCode == 500) {
+        final data = e.response!.data;
+        String message;
+
+        // Jika response berbentuk JSON string
+        if (data is String) {
+          final jsonData = json.decode(data);
+          message = jsonData['message'] ?? "Validation error";
+        }
+        // Jika response sudah berupa map
+        else if (data is Map<String, dynamic>) {
+          message = data['message'] ?? "Validation error";
+        } else {
+          message = "Validation error";
+        }
+
+        throw ApiException(message);
+      }
     } catch (e) {
       print("Error in storeMessage API: $e");
       return null;
@@ -46,6 +60,25 @@ class GrammarCommentatorAPI {
       final Map<String, dynamic> dataMessage = response.payload;
 
       return QuestionGrammarCommentator.fromJson(dataMessage);
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.statusCode == 500) {
+        final data = e.response!.data;
+        String message;
+
+        // Jika response berbentuk JSON string
+        if (data is String) {
+          final jsonData = json.decode(data);
+          message = jsonData['message'] ?? "Validation error";
+        }
+        // Jika response sudah berupa map
+        else if (data is Map<String, dynamic>) {
+          message = data['message'] ?? "Validation error";
+        } else {
+          message = "Validation error";
+        }
+
+        throw ApiException(message);
+      }
     } catch (e) {
       print("Error in storeMessage API: $e");
       return null;

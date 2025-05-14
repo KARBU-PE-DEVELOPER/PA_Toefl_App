@@ -8,9 +8,10 @@ import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/exceptions/exceptions.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
-import 'package:toefl/widgets/blue_button.dart';
 import 'package:toefl/widgets/form_input.dart';
 import 'package:toefl/widgets/white_button.dart';
+import 'package:toefl/utils/colors.dart';
+import 'package:toefl/utils/hex_color.dart';
 
 import '../../remote/api/user_api.dart';
 
@@ -171,22 +172,24 @@ class _RegistPageState extends State<RegistPage> {
                       ),
                     ),
                     const SizedBox(height: 20.0),
-                      WhiteButton(
-                        title: 'btn_register'.tr(),
-                        size: MediaQuery.of(context).size.width * 0.9,
-                        height: MediaQuery.of(context).size.width * 0.125,
-                        onTap: handleRegister,
-                        child: isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
+                    WhiteButton(
+                      title: 'btn_register'.tr(),
+                      size: MediaQuery.of(context).size.width * 0.9,
+                      height: MediaQuery.of(context).size.width * 0.125,
+                      onTap: handleRegister,
+                      child: isLoading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Center(
                                 child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.0,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      HexColor(mariner700)),
                                 ),
-                              )
-                            : null,
-                      ),
+                              ),
+                            )
+                          : null,
+                    ),
                     const SizedBox(height: 15.0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -203,7 +206,7 @@ class _RegistPageState extends State<RegistPage> {
                             Navigator.popAndPushNamed(context, RouteKey.login);
                           },
                           child: Text(
-                            'register_link',
+                            'login_link',
                             style: TextStyle(
                               color: HexColor(neutral20),
                               fontSize: 14,
