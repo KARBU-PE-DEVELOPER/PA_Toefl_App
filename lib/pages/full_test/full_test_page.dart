@@ -412,21 +412,18 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                           )),
                       const Spacer(),
                       IconButton(
-                        onPressed: () async {
-                          int currentNumber =
-                              state.selectedQuestions.lastOrNull?.number ?? 1;
-                          int totalQuestions = state.totalQuestions;
-
-                          if (currentNumber >= totalQuestions) return;
-
-                          // Simpan jawaban sebelum pindah soal
-                          bool success = await ref
-                              .read(fullTestProvider.notifier)
-                              .saveAnswerForCurrentQuestion();
-                          if (success) {
+                        onPressed: () {
+                          if ((state.selectedQuestions.lastOrNull?.number ??
+                                  140) >=
+                              140) {
+                            return;
+                          } else {
                             ref
                                 .read(fullTestProvider.notifier)
-                                .getQuestionByNumber(currentNumber + 1);
+                                .getQuestionByNumber((state.selectedQuestions
+                                            .lastOrNull?.number ??
+                                        140) +
+                                    1);
                           }
                         },
                         icon: const Icon(
