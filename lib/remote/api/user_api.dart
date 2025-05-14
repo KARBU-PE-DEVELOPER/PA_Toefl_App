@@ -140,7 +140,7 @@ class UserApi {
       } else if (e.response != null && e.response!.statusCode == 409) {
         throw ApiException("Email already registered");
       } else if (e.response != null && e.response!.statusCode == 400) {
-        throw ApiException("Validation error");
+        throw ApiException(e.response?.data['message'] ?? "Bad request");
       }
 
       throw ApiException("Register failed");
