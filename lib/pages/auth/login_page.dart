@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: MediaQuery.of(context).size.height *
                       0.4, // 40% tinggi layar
                   child: Image.asset(
-                    'assets/images/smile_robot.png',
+                    'assets/images/login_page.png',
                   ),
                 ),
               ),
