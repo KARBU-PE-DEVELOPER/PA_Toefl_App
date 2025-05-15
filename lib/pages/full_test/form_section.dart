@@ -39,16 +39,30 @@ class _FormSectionState extends ConsumerState<FormSection> {
       packetClaim: '',
     )
   ];
+  bool _hasPlayedAudio = false;
+  String? _audioUrl;
+  static final Set<String> _playedAudioSet = {};
 
   @override
   void initState() {
+    super.initState();
+
     if (widget.questions.isNotEmpty) {
       questions = widget.questions;
-    } else {
-      print("No questions available.");
-    }
 
-    super.initState();
+      if (questions.first.typeQuestion == "Listening" &&
+          questions.first.bigQuestion.contains("mp3")) {
+        _audioUrl = '${Env.storageUrl}/storage/${questions.first.bigQuestion}';
+
+        // Cek apakah audio ini sudah pernah diputar
+        if (!_playedAudioSet.contains(questions.first.bigQuestion)) {
+          _hasPlayedAudio = true;
+          _playedAudioSet.add(questions.first.bigQuestion);
+        } else {
+          _hasPlayedAudio = false;
+        }
+      }
+    }
   }
 
   // @override
@@ -123,12 +137,13 @@ class _FormSectionState extends ConsumerState<FormSection> {
                       )
                     : const SizedBox(),
                 questions.first.typeQuestion == "Listening" &&
-                        (questions.first.bigQuestion).contains("mp3")
+                        _hasPlayedAudio &&
+                        _audioUrl != null
                     ? Skeleton.leaf(
                         child: ToeflAudioPlayer(
-                        url:
-                            '${Env.storageUrl}/storage/${questions.first.bigQuestion}',
-                      ))
+                          url: _audioUrl!,
+                        ),
+                      )
                     : const SizedBox(),
                 const SizedBox(
                   height: 20,
