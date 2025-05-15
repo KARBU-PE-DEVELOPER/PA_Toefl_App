@@ -8,9 +8,14 @@ import '../../utils/hex_color.dart';
 import '../../widgets/blue_container.dart';
 
 class ToeflAudioPlayer extends StatefulWidget {
-  const ToeflAudioPlayer({super.key, required this.url});
+  const ToeflAudioPlayer({
+    super.key,
+    required this.url,
+    this.enabled = false,
+  });
 
   final String url;
+  final bool enabled;
 
   @override
   State<ToeflAudioPlayer> createState() => _ToeflAudioPlayerState();
@@ -21,76 +26,82 @@ class _ToeflAudioPlayerState extends State<ToeflAudioPlayer> {
 
   Duration position = Duration.zero;
   Duration duration = Duration.zero;
+  bool _hasPlayed = false;
+  bool _isCompleted = false;
 
-  void handlePlayPause() {
-    if (player.playing) {
-      player.pause();
-    } else {
-      player.play();
+  void handlePlay() async {
+    if (_hasPlayed || _isCompleted) return;
+
+    try {
+      await player.setUrl(widget.url);
+      await player.play();
+
+      setState(() {
+        _hasPlayed = true;
+      });
+
+      player.positionStream.listen((event) {
+        setState(() {
+          position = event;
+        });
+      });
+
+      player.durationStream.listen((event) {
+        if (event != null) {
+          setState(() {
+            duration = event;
+          });
+        }
+      });
+
+      player.playerStateStream.listen((event) {
+        if (event.processingState == ProcessingState.completed) {
+          setState(() {
+            _isCompleted = true;
+          });
+        }
+      });
+    } catch (e) {
+      debugPrint("Error playing audio: $e");
     }
-  }
-
-  void handleSeek(double val) {
-    player.seek(Duration(seconds: val.toInt()));
-  }
-
-  void initPlayer() async {
-    debugPrint("url: ${widget.url}");
-    await player.setUrl(widget.url);
-
-    player.positionStream.listen((event) {
-      setState(() {
-        position = event;
-      });
-    });
-
-    player.durationStream.listen((event) {
-      setState(() {
-        duration = event!;
-      });
-    });
-
-    player.playerStateStream.listen((event) {
-      if (event.processingState == ProcessingState.completed) {
-        player.pause();
-      }
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initPlayer();
   }
 
   @override
   void dispose() {
-    super.dispose();
     player.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Tentukan ukuran berdasarkan lebar layar yang tersedia
         final screenWidth = constraints.maxWidth;
-        final iconSize = screenWidth * 0.08; // Sesuaikan ukuran ikon
-        final fontSize = screenWidth * 0.04; // Ukuran font
+        final iconSize = screenWidth * 0.08;
+        final fontSize = screenWidth * 0.04;
+
+        IconData icon;
+        if (_isCompleted) {
+          icon = Icons.check_rounded;
+        } else if (_hasPlayed) {
+          icon = Icons.pause_rounded;
+        } else {
+          icon = Icons.play_arrow_rounded;
+        }
 
         return BlueContainer(
           innerShadow: true,
           color: mariner200,
           padding: 8.0,
-          width: screenWidth * 1,
+          width: screenWidth,
           child: Row(
             children: [
               GestureDetector(
-                onTap: handlePlayPause,
+                onTap: handlePlay,
                 child: Icon(
-                  player.playing ? Icons.pause : Icons.play_arrow_rounded,
+                  icon,
                   color: HexColor(mariner900),
-                  size: iconSize, // Sesuaikan ukuran ikon
+                  size: iconSize,
                 ),
               ),
               const SizedBox(width: 10),
@@ -100,16 +111,17 @@ class _ToeflAudioPlayerState extends State<ToeflAudioPlayer> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                // Menggunakan Expanded agar Slider mengambil ruang yang tersedia
-                child: Slider(
-                  value: position.inSeconds.toDouble(),
-                  min: 0.0,
-                  max: duration.inSeconds.toDouble() > 0
-                      ? duration.inSeconds.toDouble()
-                      : 1.0,
-                  onChanged: (val) => handleSeek(val),
-                  activeColor: HexColor(mariner900),
-                  inactiveColor: Colors.white,
+                child: IgnorePointer(
+                  child: Slider(
+                    value: position.inSeconds.toDouble(),
+                    min: 0.0,
+                    max: duration.inSeconds.toDouble() > 0
+                        ? duration.inSeconds.toDouble()
+                        : 1.0,
+                    onChanged: (_) {},
+                    activeColor: HexColor(mariner900),
+                    inactiveColor: Colors.white,
+                  ),
                 ),
               ),
             ],
