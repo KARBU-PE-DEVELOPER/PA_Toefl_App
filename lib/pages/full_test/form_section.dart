@@ -25,76 +25,34 @@ class FormSection extends ConsumerStatefulWidget {
 }
 
 class _FormSectionState extends ConsumerState<FormSection> {
-  List<Question> questions = [
-    Question(
-      id: "",
-      question: "",
-      typeQuestion: "",
-      nestedQuestionId: "",
-      choices: [],
-      bigQuestion: "",
-      answer: "",
-      bookmarked: 0,
-      number: 0,
-      packetClaim: '',
-    )
-  ];
-  bool _hasPlayedAudio = false;
+  late final List<Question> questions;
   String? _audioUrl;
-  static final Set<String> _playedAudioSet = {};
 
   @override
   void initState() {
     super.initState();
+    questions = widget.questions;
 
-    if (widget.questions.isNotEmpty) {
-      questions = widget.questions;
-
-      if (questions.first.typeQuestion == "Listening" &&
-          questions.first.bigQuestion.contains("mp3")) {
-        _audioUrl = '${Env.storageUrl}/storage/${questions.first.bigQuestion}';
-
-        // Cek apakah audio ini sudah pernah diputar
-        if (!_playedAudioSet.contains(questions.first.bigQuestion)) {
-          _hasPlayedAudio = true;
-          _playedAudioSet.add(questions.first.bigQuestion);
-        } else {
-          _hasPlayedAudio = false;
-        }
-      }
+    if (questions.isNotEmpty &&
+        questions.first.typeQuestion == "Listening" &&
+        questions.first.bigQuestion.contains("mp3")) {
+      _audioUrl = '${Env.storageUrl}/storage/${questions.first.bigQuestion}';
     }
   }
 
-  // @override
-  // void initState() {
-  //   print("Original questions:");
-  //   for (var q in widget.questions) {
-  //     print("nestedId: ${q.nestedQuestionId}, number: ${q.number}");
-  //   }
-  //   if (widget.questions.isNotEmpty) {
-  //     // Salin dan urutkan berdasarkan nestedQuestionId dan number
-  //     questions = List<Question>.from(widget.questions)
-  //       ..sort((a, b) {
-  //         final groupCompare = a.nestedQuestionId.compareTo(b.nestedQuestionId);
-  //         if (groupCompare != 0) return groupCompare;
-  //         return a.number.compareTo(b.number);
-  //       });
-  //   } else {
-  //     print("No questions available.");
-  //   }
-
-  //   super.initState();
-  // }
-
   @override
   Widget build(BuildContext context) {
+    if (questions.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
     final paragraphs = questions.first.bigQuestion
         .split('\n')
         .where((e) => e.trim().isNotEmpty)
         .toList();
-
     final formattedHtml = List.generate(paragraphs.length, (index) {
       final content = paragraphs[index];
       final indent = index == 0 ? 'text-indent: 16px;' : '';
@@ -109,67 +67,61 @@ class _FormSectionState extends ConsumerState<FormSection> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const SizedBox(
-                  height: 10,
-                ),
-                questions.first.typeQuestion == "Reading"
-                    ? Skeleton.leaf(
-                        child: BlueContainer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              HtmlWidget(
-                                formattedHtml,
-                                customStylesBuilder: (element) {
-                                  if (element.localName == 'p') {
-                                    return {
-                                      'text-align': 'justify',
-                                      'margin-top': '6px',
-                                      'margin-bottom': '6px',
-                                    };
-                                  }
-                                  return null;
-                                },
-                              )
-                            ],
-                          ),
-                        ),
-                      )
-                    : const SizedBox(),
-                questions.first.typeQuestion == "Listening" &&
-                        _hasPlayedAudio &&
-                        _audioUrl != null
-                    ? Skeleton.leaf(
-                        child: ToeflAudioPlayer(
-                          url: _audioUrl!,
-                        ),
-                      )
-                    : const SizedBox(),
-                const SizedBox(
-                  height: 20,
-                ),
-                ...List.generate(questions.length, (index) {
+                const SizedBox(height: 10),
+
+                // Reading passage
+                if (questions.first.typeQuestion == "Reading")
+                  Skeleton.leaf(
+                    child: BlueContainer(
+                      child: HtmlWidget(
+                        formattedHtml,
+                        customStylesBuilder: (el) {
+                          if (el.localName == 'p') {
+                            return {
+                              'text-align': 'justify',
+                              'margin-top': '6px',
+                              'margin-bottom': '6px',
+                            };
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ),
+
+                // Audio player for Listening
+                if (questions.first.typeQuestion == "Listening" &&
+                    _audioUrl != null)
+                  Skeleton.leaf(
+                    child: ToeflAudioPlayer(url: _audioUrl!),
+                  ),
+
+                const SizedBox(height: 20),
+
+                // Multiple choice questions
+                ...questions.map((q) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _buildQuestion(questions[index]),
+                      children: _buildQuestion(q),
                     ),
                   );
-                }),
-                const SizedBox(
-                  height: 80,
-                )
+                }).toList(),
+
+                const SizedBox(height: 80),
               ],
             ),
           ),
         ),
-        Positioned(
+
+        // Floating button for reading transcript
+        if (questions.first.typeQuestion == "Reading")
+          Positioned(
             bottom: screenHeight * 0.1,
             right: 0,
-            child: (questions.first.typeQuestion) == "Reading"
-                ? _buildFloatingButton(context)
-                : const SizedBox())
+            child: _buildFloatingButton(context),
+          ),
       ],
     );
   }
@@ -180,39 +132,36 @@ class _FormSectionState extends ConsumerState<FormSection> {
         padding: EdgeInsets.only(bottom: question.question.isEmpty ? 8.0 : 0),
         child: Text(
           "Question ${question.number}",
-          // "Question ${questions.indexOf(question) + 1}",
           style: CustomTextStyle.bold16.copyWith(fontSize: 14),
         ),
       ),
-      question.question.isNotEmpty
-          ? Padding(
-              padding: const EdgeInsets.only(top: 2, bottom: 12),
-              child: Text(
-                question.question,
-                style: CustomTextStyle.medium14,
-              ),
-            )
-          : const SizedBox(),
-      Consumer(builder: (context, ref, child) {
+      if (question.question.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 2, bottom: 12),
+          child: Text(question.question, style: CustomTextStyle.medium14),
+        ),
+      Consumer(builder: (context, ref, _) {
         final state = ref.watch(fullTestProvider);
         if (state.selectedQuestions.isEmpty) {
+          // Placeholder saat belum ada state
           return Column(
-            children: List.generate(4, (index) {
+            children: List.generate(4, (i) {
               return Padding(
-                  padding: const EdgeInsets.only(bottom: 15),
-                  child: Skeleton.replace(
-                    width: MediaQuery.of(context).size.width,
-                    height: 50,
-                    child: AnswerButton(
-                        onTap: () {},
-                        title: "(${String.fromCharCode(65 + index)}) $index",
-                        isActive: false),
-                  ));
+                padding: const EdgeInsets.only(bottom: 15),
+                child: Skeleton.replace(
+                  width: MediaQuery.of(context).size.width,
+                  height: 50,
+                  child: AnswerButton(
+                    onTap: () {},
+                    title: "(${String.fromCharCode(65 + i)}) $i",
+                    isActive: false,
+                  ),
+                ),
+              );
             }),
           );
-        } else {
-          return MultipleChoices(question: question);
         }
+        return MultipleChoices(question: question);
       }),
     ];
   }
@@ -227,44 +176,38 @@ class _FormSectionState extends ConsumerState<FormSection> {
               .join();
 
           showModalBottomSheet(
-              context: context,
-              builder: (context) {
-                return BottomSheetTranscript(
-                  htmlText: formattedHtml,
-                );
-              });
+            context: context,
+            builder: (_) => BottomSheetTranscript(htmlText: formattedHtml),
+          );
         },
         child: Container(
           width: 70,
           height: 70,
           decoration: BoxDecoration(
-              color: HexColor(mariner500),
-              borderRadius: BorderRadius.circular(40),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 3,
-                  blurRadius: 5,
-                  offset: const Offset(1, 3),
-                ),
-              ]),
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 6,
+            color: HexColor(mariner500),
+            borderRadius: BorderRadius.circular(40),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 3,
+                blurRadius: 5,
+                offset: const Offset(1, 3),
               ),
+            ],
+          ),
+          child: Column(
+            children: const [
+              SizedBox(height: 6),
               Text(
                 "See\nTranscript",
                 textAlign: TextAlign.center,
-                style: CustomTextStyle.bold16.copyWith(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 10,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const Icon(
-                Icons.menu_book_outlined,
-                color: Colors.white,
-              ),
+              Icon(Icons.menu_book_outlined, color: Colors.white),
             ],
           ),
         ),
