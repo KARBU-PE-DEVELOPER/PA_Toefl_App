@@ -98,13 +98,11 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
         int diffInSecs = DateTime.now().difference(startTime).inSeconds;
         if (diffInSecs >= 7200) {
           bool submitResult = false;
-          if (runningPacket.wasFilled) {
-            submitResult =
-                await ref.read(fullTestProvider.notifier).resubmitAnswer();
-          } else {
-            submitResult =
-                await ref.read(fullTestProvider.notifier).submitAnswer();
-          }
+
+          // Langsung pakai submitAnswer tanpa cek wasFilled
+          submitResult =
+              await ref.read(fullTestProvider.notifier).submitAnswer();
+
           if (submitResult) {
             await ref.read(fullTestProvider.notifier).resetAll();
           }
@@ -173,188 +171,6 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                               questionCount: packet.questionCount,
                               accuracy: packet.accuracy,
                               isDisabled: (packet.questionCount == 0),
-                              // onTap: () async {
-                              //   final packet = packets[index];
-                              //   debugPrint("1 $packet");
-
-                              //   if (!packet.wasFilled) {
-                              //     // Tampilkan modal konfirmasi sebelum klaim paket
-                              //     showDialog(
-                              //       context: context,
-                              //       builder: (BuildContext claimContext) {
-                              //         return AlertDialog(
-                              //           title: Text("Confirmation"),
-                              //           content: Text(
-                              //               "Are you sure to do the test on this package?"),
-                              //           actions: [
-                              //             TextButton(
-                              //               onPressed: () {
-                              //                 Navigator.of(claimContext)
-                              //                     .pop(); // Tutup modal
-                              //               },
-                              //               child: Text("No"),
-                              //             ),
-                              //             TextButton(
-                              //               onPressed: () async {
-                              //                 Navigator.of(claimContext)
-                              //                     .pop(); // Tutup modal pertama
-                              //                 debugPrint(
-                              //                     "Claiming paket for packet id: ${packet.id}");
-
-                              //                 try {
-                              //                   final response =
-                              //                       await DioToefl.instance
-                              //                           .post(
-                              //                     '${Env.simulationUrl}/submit-paket/${packet.id}',
-                              //                     options: Options(
-                              //                       validateStatus:
-                              //                           (status) =>
-                              //                               status != null &&
-                              //                               status < 500,
-                              //                     ),
-                              //                   );
-
-                              //                   if (response.statusCode ==
-                              //                       200) {
-                              //                     debugPrint(
-                              //                         "Paket claimed successfully.");
-
-                              //                     // Tampilkan modal attention setelah klaim berhasil
-                              //                     showDialog(
-                              //                       context: context,
-                              //                       barrierDismissible:
-                              //                           false, // Mencegah modal ditutup dengan klik di luar
-                              //                       builder: (BuildContext
-                              //                           attentionContext) {
-                              //                         return AlertDialog(
-                              //                           title:
-                              //                               Text("Attention"),
-                              //                           content: Text(
-                              //                               "Enable Camera: Make sure the camera is on to detect facial movements and prevent cheating.\n\n"
-                              //                               "Enable Lock Task Mode: Lock the application so that it cannot switch to other applications during the exam.\n\n"
-                              //                               "Prepare Yourself: Sit comfortably and make sure the room is free from distractions, use headphones to listen to the questions."),
-                              //                           actions: [
-                              //                             TextButton(
-                              //                               onPressed: () {
-                              //                                 Navigator.of(
-                              //                                         attentionContext)
-                              //                                     .pop(); // Tutup modal kedua
-                              //                                 Navigator.of(
-                              //                                         context)
-                              //                                     .pushNamed(
-                              //                                   RouteKey
-                              //                                       .openingLoadingTest,
-                              //                                   arguments: {
-                              //                                     "id": packet
-                              //                                         .id
-                              //                                         .toString(),
-                              //                                     "packetName":
-                              //                                         packet
-                              //                                             .name,
-                              //                                     "isRetake":
-                              //                                         packet
-                              //                                             .wasFilled
-                              //                                   },
-                              //                                 ).then((value) {
-                              //                                   _onInit();
-                              //                                   _pushReviewPage(
-                              //                                       packet);
-                              //                                 });
-                              //                               },
-                              //                               child:
-                              //                                   Text("Start"),
-                              //                             ),
-                              //                           ],
-                              //                         );
-                              //                       },
-                              //                     );
-                              //                   } else if (response
-                              //                           .statusCode ==
-                              //                       400) {
-                              //                     final responseData =
-                              //                         response.data;
-                              //                     if (responseData is Map<
-                              //                             String, dynamic> &&
-                              //                         responseData[
-                              //                                 "message"] ==
-                              //                             "Anda sudah mengklaim packet") {
-                              //                       debugPrint(
-                              //                           "Paket sudah diklaim sebelumnya.");
-                              //                       _showAlertDialog(
-                              //                           "Pemberitahuan",
-                              //                           "Anda sudah mengklaim paket ini sebelumnya.");
-                              //                     } else {
-                              //                       debugPrint(
-                              //                           "Paket sudah selesai dikerjakan.");
-                              //                       _showAlertDialog(
-                              //                           "Pemberitahuan",
-                              //                           "Anda sudah menyelesaikan paket ini.");
-                              //                     }
-                              //                   } else {
-                              //                     debugPrint(
-                              //                         "Failed to claim paket: ${response.statusCode}");
-                              //                   }
-                              //                 } catch (e) {
-                              //                   debugPrint(
-                              //                       "Error claiming paket: $e");
-                              //                   _showAlertDialog("Error",
-                              //                       "Terjadi kesalahan saat mengklaim paket.");
-                              //                 }
-                              //               },
-                              //               child: Text("Yes"),
-                              //             ),
-                              //           ],
-                              //         );
-                              //       },
-                              //     );
-                              //     return; // Hentikan eksekusi setelah menampilkan modal
-                              //   }
-
-                              //   // Jika test sudah selesai, tampilkan modal konfirmasi
-                              //   debugPrint("4");
-                              //   showDialog(
-                              //     context: context,
-                              //     builder: (BuildContext submitContext) {
-                              //       return ModalConfirmation(
-                              //         message:
-                              //             "you_ve_finished_your_test".tr(),
-                              //         leftTitle: 'review'.tr(),
-                              //         rightTitle: 'retake'.tr(),
-                              //         rightFunction: () async {
-                              //           Navigator.of(submitContext).pop();
-                              //           Navigator.of(context).pushNamed(
-                              //             RouteKey.openingLoadingTest,
-                              //             arguments: {
-                              //               "id": packet.id.toString(),
-                              //               "packetName": packet.name,
-                              //               "isRetake": packet.wasFilled
-                              //             },
-                              //           ).then((value) {
-                              //             _onInit();
-                              //             _pushReviewPage(packet);
-                              //           });
-                              //         },
-                              //         leftFunction: () {
-                              //           Navigator.of(submitContext).pop();
-                              //           Navigator.pushNamed(
-                              //             context,
-                              //             RouteKey.testresult,
-                              //             arguments: {
-                              //               "packetId": packet.id.toString(),
-                              //               "isMiniTest": false,
-                              //               "packetName": packet.name
-                              //             },
-                              //           ).then((afterRetake) {
-                              //             if (afterRetake == true) {
-                              //               _onInit();
-                              //               _pushReviewPage(packet);
-                              //             }
-                              //           });
-                              //         },
-                              //       );
-                              //     },
-                              //   );
-                              // }
                               onTap: () async {
                                 final packet = packets[index];
 
@@ -381,7 +197,6 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                   .pop(); // Tutup dialog konfirmasi
                                               debugPrint(
                                                   "Claiming paket for packet id: ${packet.id}");
-
                                               try {
                                                 final response = await DioToefl
                                                     .instance
@@ -402,56 +217,6 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                   // Jika tipe test, tampilkan modal attention
                                                   if (selectedType !=
                                                       "simulation") {
-                                                    // showDialog(
-                                                    //   context: context,
-                                                    //   barrierDismissible:
-                                                    //       false, // Modal tidak bisa ditutup dengan klik di luar
-                                                    //   builder: (BuildContext
-                                                    //       attentionContext) {
-                                                    //     return AlertDialog(
-                                                    //       title: Text(
-                                                    //           "attention".tr()),
-                                                    //       content: Text(
-                                                    //           "isiContent"
-                                                    //               .tr()),
-                                                    //       actions: [
-                                                    //         TextButton(
-                                                    //           onPressed: () {
-                                                    //             Navigator.of(
-                                                    //                     attentionContext)
-                                                    //                 .pop();
-                                                    //             Navigator.of(
-                                                    //                     context)
-                                                    //                 .pushNamed(
-                                                    //               RouteKey
-                                                    //                   .openingLoadingTest,
-                                                    //               arguments: {
-                                                    //                 "id": packet
-                                                    //                     .id
-                                                    //                     .toString(),
-                                                    //                 "packetName":
-                                                    //                     packet
-                                                    //                         .name,
-                                                    //                 "isRetake":
-                                                    //                     packet
-                                                    //                         .wasFilled,
-                                                    //                 "packetType":
-                                                    //                     selectedType,
-                                                    //               },
-                                                    //             ).then((value) {
-                                                    //               _onInit();
-                                                    //               _pushReviewPage(
-                                                    //                   packet);
-                                                    //             });
-                                                    //           },
-                                                    //           child:
-                                                    //               Text("Start"),
-                                                    //         ),
-                                                    //       ],
-                                                    //     );
-                                                    //   },
-                                                    // );
-
                                                     showDialog(
                                                       context: context,
                                                       barrierDismissible:
@@ -686,25 +451,25 @@ class PacketCard extends StatelessWidget {
                           style: CustomTextStyle.normal12,
                         ),
                         const SizedBox(width: 10),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.3,
-                            height: MediaQuery.of(context).size.height / 64,
-                            child: LinearProgressIndicator(
-                              backgroundColor: HexColor(neutral40),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  HexColor(mariner700)),
-                              value: accuracy / 100,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          "$accuracy%",
-                          style: CustomTextStyle.bold16
-                              .copyWith(color: HexColor(mariner700)),
-                        ),
+                        // ClipRRect(
+                        //   borderRadius: BorderRadius.circular(10),
+                        //   child: SizedBox(
+                        //     width: MediaQuery.of(context).size.width * 0.3,
+                        //     height: MediaQuery.of(context).size.height / 64,
+                        //     child: LinearProgressIndicator(
+                        //       backgroundColor: HexColor(neutral40),
+                        //       valueColor: AlwaysStoppedAnimation<Color>(
+                        //           HexColor(mariner700)),
+                        //       value: accuracy / 100,
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(width: 10),
+                        // Text(
+                        //   "$accuracy%",
+                        //   style: CustomTextStyle.bold16
+                        //       .copyWith(color: HexColor(mariner700)),
+                        // ),
                       ],
                     ),
                   ],
