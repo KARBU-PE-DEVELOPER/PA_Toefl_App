@@ -9,7 +9,7 @@ import 'package:toefl/remote/api/user_api.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 import 'package:toefl/widgets/form_input.dart';
 import 'package:flutter/widgets.dart';
 import 'package:toefl/widgets/white_button.dart';
@@ -133,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     Text(
                       'welcome_heading',
-                      style: TextStyle(
+                      style: GoogleFonts.balooBhaijaan2(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: HexColor(neutral10),
@@ -141,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
                     ).tr(),
                     Text(
                       'welcome_paragraph',
-                      style: TextStyle(
+                      style: GoogleFonts.balooBhaijaan2(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: HexColor(neutral10),
@@ -179,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
                               },
                               child: Text(
                                 'forgot_password',
-                                style: TextStyle(
+                                style: GoogleFonts.balooBhaijaan2(
                                   color: HexColor(neutral10),
                                   fontSize: 14,
                                   decoration: TextDecoration.underline,
@@ -215,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Text(
                           'new_account',
-                          style: TextStyle(
+                          style: GoogleFonts.balooBhaijaan2(
                             color: HexColor(neutral10),
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -227,7 +227,7 @@ class _LoginPageState extends State<LoginPage> {
                           },
                           child: Text(
                             'register_link',
-                            style: TextStyle(
+                            style: GoogleFonts.balooBhaijaan2(
                               color: HexColor(neutral20),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,

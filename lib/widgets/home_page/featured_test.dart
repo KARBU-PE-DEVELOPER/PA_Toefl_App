@@ -1,6 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:toefl/pages/games/practice/scrambled_sentence.dart';
+import 'package:toefl/pages/games/practice/listening_game.dart';
 import 'package:toefl/widgets/home_page/featured_card.dart';
 import 'package:toefl/routes/route_key.dart';
 
@@ -93,9 +93,8 @@ class FeatureTest extends StatelessWidget {
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => SentenceScramblePage(),
-                    )),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.listeningGame),
                     child: FeaturedCard(
                       isBgLight: false,
                       icon: "assets/images/vector_game_listening.svg",

@@ -90,19 +90,19 @@ class CustomTextStyle {
   static TextStyle askGrammarTitle = GoogleFonts.balooBhaijaan2(
     fontSize: 22,
     fontWeight: FontWeight.bold,
-    color: HexColor(neutral90),
+    color: HexColor(mariner700),
   );
 
   static TextStyle askGrammarSubtitle = GoogleFonts.balooBhaijaan2(
     fontSize: 18,
-    fontWeight: FontWeight.w600,
-    color: HexColor(mariner700),
+    fontWeight: FontWeight.w900,
+    color: HexColor(mariner500),
   );
 
   static TextStyle askGrammarBody = GoogleFonts.balooBhaijaan2(
     fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: HexColor(neutral70),
+    fontWeight: FontWeight.w800,
+    color: HexColor(neutral50),
   );
 
   static TextStyle buttonBaloo = GoogleFonts.balooBhaijaan2(
