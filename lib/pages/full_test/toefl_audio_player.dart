@@ -11,123 +11,135 @@ class ToeflAudioPlayer extends StatefulWidget {
   const ToeflAudioPlayer({
     super.key,
     required this.url,
-    this.enabled = false,
   });
 
   final String url;
-  final bool enabled;
 
   @override
   State<ToeflAudioPlayer> createState() => _ToeflAudioPlayerState();
 }
 
 class _ToeflAudioPlayerState extends State<ToeflAudioPlayer> {
-  final player = AudioPlayer();
+  final AudioPlayer _player = AudioPlayer();
 
-  Duration position = Duration.zero;
-  Duration duration = Duration.zero;
+  // Persistence across rebuilds: URLs that have completed
+  static final Set<String> _completedUrls = {};
+
   bool _hasPlayed = false;
   bool _isCompleted = false;
 
-  void handlePlay() async {
+  Duration position = Duration.zero;
+  Duration duration = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // If this URL has completed before, mark flags
+    if (_completedUrls.contains(widget.url)) {
+      _hasPlayed = true;
+      _isCompleted = true;
+    }
+
+    // Listen to position updates
+    _player.positionStream.listen((pos) {
+      setState(() => position = pos);
+    });
+
+    // Listen to duration updates
+    _player.durationStream.listen((dur) {
+      if (dur != null) setState(() => duration = dur);
+    });
+
+    // Listen to completion
+    _player.playerStateStream.listen((state) {
+      if (state.processingState == ProcessingState.completed) {
+        setState(() {
+          _isCompleted = true;
+          _completedUrls.add(widget.url);
+        });
+      }
+    });
+  }
+
+  Future<void> handlePlay() async {
+    // Ignore if already played or completed
     if (_hasPlayed || _isCompleted) return;
 
+    // Immediately mark as played so icon updates
+    setState(() {
+      _hasPlayed = true;
+    });
+
     try {
-      await player.setUrl(widget.url);
-      await player.play();
-
-      setState(() {
-        _hasPlayed = true;
-      });
-
-      player.positionStream.listen((event) {
-        setState(() {
-          position = event;
-        });
-      });
-
-      player.durationStream.listen((event) {
-        if (event != null) {
-          setState(() {
-            duration = event;
-          });
-        }
-      });
-
-      player.playerStateStream.listen((event) {
-        if (event.processingState == ProcessingState.completed) {
-          setState(() {
-            _isCompleted = true;
-          });
-        }
-      });
+      await _player.setUrl(widget.url);
+      await _player.play();
     } catch (e) {
-      debugPrint("Error playing audio: $e");
+      debugPrint("Error playing audio: \$e");
     }
   }
 
   @override
   void dispose() {
-    player.dispose();
+    _player.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final screenWidth = constraints.maxWidth;
-        final iconSize = screenWidth * 0.08;
-        final fontSize = screenWidth * 0.04;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final iconSize = screenWidth * 0.08;
+    final fontSize = screenWidth * 0.04;
 
-        IconData icon;
-        if (_isCompleted) {
-          icon = Icons.check_rounded;
-        } else if (_hasPlayed) {
-          icon = Icons.pause_rounded;
-        } else {
-          icon = Icons.play_arrow_rounded;
-        }
+    IconData icon;
+    if (_isCompleted) {
+      icon = Icons.check_rounded;
+    } else if (_hasPlayed) {
+      icon = Icons.pause_rounded;
+    } else {
+      icon = Icons.play_arrow_rounded;
+    }
 
-        return BlueContainer(
-          innerShadow: true,
-          color: mariner200,
-          padding: 8.0,
-          width: screenWidth,
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: handlePlay,
-                child: Icon(
-                  icon,
-                  color: HexColor(mariner900),
-                  size: iconSize,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                Utils.formatDuration(position),
-                style: CustomTextStyle.normal12.copyWith(fontSize: fontSize),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: IgnorePointer(
-                  child: Slider(
-                    value: position.inSeconds.toDouble(),
-                    min: 0.0,
-                    max: duration.inSeconds.toDouble() > 0
-                        ? duration.inSeconds.toDouble()
-                        : 1.0,
-                    onChanged: (_) {},
-                    activeColor: HexColor(mariner900),
-                    inactiveColor: Colors.white,
-                  ),
-                ),
-              ),
-            ],
+    return BlueContainer(
+      innerShadow: true,
+      color: mariner200,
+      padding: 8.0,
+      width: screenWidth,
+      child: Row(
+        children: [
+          GestureDetector(
+            // Disable tap after first play or completion
+            onTap: (_hasPlayed || _isCompleted) ? null : handlePlay,
+            child: Icon(
+              icon,
+              color: HexColor(mariner900),
+              size: iconSize,
+            ),
           ),
-        );
-      },
+          const SizedBox(width: 10),
+          Text(
+            Utils.formatDuration(position),
+            style: CustomTextStyle.normal12.copyWith(fontSize: fontSize),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Slider(
+              value: position.inSeconds
+                  .toDouble()
+                  .clamp(0.0, duration.inSeconds > 0
+                      ? duration.inSeconds.toDouble()
+                      : 1.0),
+              min: 0.0,
+              max: duration.inSeconds > 0
+                  ? duration.inSeconds.toDouble()
+                  : 1.0,
+              onChanged: (_) {},
+              activeColor: HexColor(mariner900),
+              inactiveColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
