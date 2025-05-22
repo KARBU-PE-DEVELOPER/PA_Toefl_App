@@ -47,16 +47,11 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
 
   Future<void> onInit() async {
     try {
-      var newPacketDetail = PacketDetail(
-          id: state.packetDetail.id,
-          name: state.packetDetail.name,
-          questions: state.packetDetail.questions);
-      state = state.copyWith(
-          isLoading: true,
-          packetDetail: newPacketDetail,
-          totalQuestions: newPacketDetail.questions.length);
+      state = state.copyWith(isLoading: true);
+
       final testStat = await _testSharedPref.getStatus();
       debugPrint("total pertanyaan ${state.totalQuestions}");
+
       if (testStat != null) {
         if (testStat.resetTable) {
           await _testSharedPref.saveStatus(
@@ -68,13 +63,18 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
               isRetake: testStat.isRetake,
             ),
           );
-          await initPacketDetail(testStat.id).then((val) {
-            getQuestionByNumber(1);
-          });
-        } else {
-          getQuestionByNumber(1);
+          await resetPacketTable();
         }
-        state = state.copyWith(testStatus: testStat);
+
+        // Ambil dari API meskipun resetTable == false
+        await _getPacketDetailFromApi(testStat.id);
+        await _insertQuestionsToLocal();
+        await getQuestionByNumber(1);
+
+        state = state.copyWith(
+          testStatus: testStat,
+          totalQuestions: state.packetDetail.questions.length,
+        );
       }
     } catch (e) {
       debugPrint("error: $e");

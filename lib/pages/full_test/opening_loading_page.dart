@@ -40,7 +40,7 @@ class _OpeningLoadingPageState extends ConsumerState<OpeningLoadingPage> {
       startDate = DateTime.parse(status.startTime);
     } else {
       await sharedPref.saveStatus(TestStatus(
-          id: widget.packetId,
+          id: widget.packetId.toString(),
           startTime: DateTime.now().toIso8601String(),
           name: widget.packetName,
           resetTable: true,
