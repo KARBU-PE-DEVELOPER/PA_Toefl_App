@@ -45,7 +45,7 @@ class _InputTextState extends State<InputText> {
         ),
         const SizedBox(height: 6.0),
         TextFormField(
-          cursorColor: HexColor(neutral90),
+          cursorColor: HexColor(mariner700),
           validator: (value) {
             if (value == null || value.isEmpty || value.trim().isEmpty) {
               return 'warning_messages'.tr(args: ['${widget.hintText}']);
@@ -61,6 +61,7 @@ class _InputTextState extends State<InputText> {
             }
             return null;
           },
+          
           controller: widget.controller,
           focusNode: widget.focusNode,
           obscureText: widget.title == 'Password' ||

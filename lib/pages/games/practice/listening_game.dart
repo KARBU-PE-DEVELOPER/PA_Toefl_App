@@ -2,20 +2,19 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 import 'package:string_similarity/string_similarity.dart';
-import 'package:toefl/remote/api/games/speakgame_api.dart';
+import 'package:toefl/remote/api/games/listeninggame_api.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/answer_validation_container.dart';
 import 'package:toefl/widgets/blue_button.dart';
+import 'package:toefl/widgets/games/listening/sentence_audio_button.dart';
 import '../../../widgets/games/game_app_bar.dart';
 import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:toefl/utils/custom_text_style.dart';
-import 'package:toefl/state_management/game/speak_game_provider_state.dart';
+import 'package:toefl/state_management/game/listening_game_provider_state.dart';
 
 class ListeningGamePage extends ConsumerStatefulWidget {
   const ListeningGamePage({super.key});
@@ -25,10 +24,9 @@ class ListeningGamePage extends ConsumerStatefulWidget {
 }
 
 class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
-  final SpeechToText _speechToText = SpeechToText();
   final FlutterTts _flutterTts = FlutterTts();
+  final TextEditingController _textController = TextEditingController();
   List<double> _scores = [];
-  bool _speechEnabled = false;
   String _userAnswer = '';
   String _answerKey = "";
   bool _isCheck = false;
@@ -37,7 +35,6 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
   double accuracy = 0;
   bool _isLoadingFirst = true;
   bool _isLoading = false;
-  bool _isMicButtonDisabled = false;
 
   List<String> _sentences = [];
   int _currentSentenceIndex = 0;
@@ -46,7 +43,6 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
   void initState() {
     super.initState();
     _loadSentences();
-    _initSpeech();
     _initTTS();
   }
 
@@ -58,40 +54,6 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
 
   Future<void> _speakSentenceByWord(String sentence) async {
     await _flutterTts.speak(sentence);
-  }
-
-  void _initSpeech() async {
-    _speechEnabled = await _speechToText.initialize();
-    setState(() {});
-  }
-
-  void _startListening() async {
-    if (_isMicButtonDisabled) return;
-    setState(() {
-      _isMicButtonDisabled = true;
-    });
-
-    await _speechToText.listen(onResult: _onSpeechResult);
-    setState(() {
-      _disable = true;
-    });
-  }
-
-  void _stopListening() async {
-    await _speechToText.stop();
-    setState(() {});
-  }
-
-  void _onSpeechResult(SpeechRecognitionResult result) {
-    final recognizedWords = result.recognizedWords;
-
-    setState(() {
-      _userAnswer = recognizedWords;
-      _disable = recognizedWords.isEmpty;
-      final hasCorrectWord = _hasAnyCorrectWord(recognizedWords, _answerKey);
-
-      _isMicButtonDisabled = hasCorrectWord;
-    });
   }
 
   bool _hasAnyCorrectWord(String userAnswer, String answerKey) {
@@ -110,9 +72,9 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
 
   Future<void> _loadSentences() async {
     try {
-      final speakGameProvider =
-          ref.read(speakGameProviderStatesProvider.notifier);
-      final game = await speakGameProvider.getSentence();
+      final listeningGameProvider =
+          ref.read(listeningGameProviderStatesProvider.notifier);
+      final game = await listeningGameProvider.getSentence();
 
       if (game != null && game.sentence.isNotEmpty) {
         await _flutterTts.speak(game.sentence.first);
@@ -134,22 +96,54 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
     setState(() {
       _isLoading = true;
     });
-    final cleanedAnswer =
-        _answerKey.replaceAll(RegExp(r'[.,]'), '').toLowerCase();
-    final cleanedUserAnswer =
-        _userAnswer.replaceAll(RegExp(r'[.,]'), '').toLowerCase();
 
-    final similarity = cleanedAnswer.similarityTo(cleanedUserAnswer);
+    final answerWords = _answerKey
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .toLowerCase()
+        .split(RegExp(r'\s+'));
 
+    final userWords = _userAnswer
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .toLowerCase()
+        .split(RegExp(r'\s+'));
+
+    int correctCount = 0;
+    final matchedIndexes = <int>{};
+
+    for (var userWord in userWords) {
+      double bestScore = 0.0;
+      int bestIndex = -1;
+
+      for (int i = 0; i < answerWords.length; i++) {
+        if (matchedIndexes.contains(i)) continue;
+
+        double similarity =
+            StringSimilarity.compareTwoStrings(userWord, answerWords[i]);
+        if (similarity > bestScore) {
+          bestScore = similarity;
+          bestIndex = i;
+        }
+      }
+
+      // Anggap benar jika similarity di atas threshold, misal 0.75
+      if (bestScore >= 0.75) {
+        correctCount++;
+        matchedIndexes.add(bestIndex);
+      }
+    }
+
+    final totalWords = answerWords.length;
+    double wordAccuracy = totalWords == 0 ? 0 : correctCount / totalWords;
     setState(() {
-      accuracy = similarity;
-      _isCorrect = similarity > 0.7; // Threshold tetap 70%
+      accuracy = wordAccuracy;
+      _isCorrect = wordAccuracy > 0.7;
       _isCheck = true;
 
-      // Skor skala 100
       if (_scores.length == _currentSentenceIndex) {
-        _scores.add(similarity * 100);
+        _scores.add(wordAccuracy * 100);
       }
+
+      _isLoading = false;
     });
   }
 
@@ -162,7 +156,7 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
     double averageScore = totalScore / _sentences.length; // karena 3 soal
 
     try {
-      await SpeakGameApi().store(averageScore); // Kirim nilai rata-rata
+      await ListeningGameApi().store(averageScore); // Kirim nilai rata-rata
     } catch (e) {
       print("Error storing score: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -181,10 +175,10 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
   void _nextSentence() async {
     // Stop TTS jika sedang bicara
     await _flutterTts.stop();
+    _textController.clear();
 
-    // Aktifkan kembali tombol mic
     setState(() {
-      _isMicButtonDisabled = false;
+      _isLoading = true;
     });
     if (_isCheck && _currentSentenceIndex < _sentences.length - 1) {
       setState(() {
@@ -192,7 +186,9 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
         _answerKey = _sentences[_currentSentenceIndex];
         _resetState();
         _isLoading = false;
+        _userAnswer = '';
       });
+      await _flutterTts.speak(_answerKey);
     } else if (_isCheck) {
       final averageScore = await _storeScore();
       _showCompletionDialog(averageScore); // Show dialog pakai skor rata-rata
@@ -211,7 +207,6 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
     _isCorrect = false;
     _disable = true;
     _isLoading = false;
-    _isMicButtonDisabled = false;
   }
 
   void restartGame() async {
@@ -219,7 +214,6 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
     await _flutterTts.stop();
 
     setState(() {
-      _isMicButtonDisabled = false;
       _isLoading = true;
       _scores.clear();
       _userAnswer = '';
@@ -253,43 +247,11 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
     );
   }
 
-  Widget _buildSentenceAudioButton() {
-    String maskedAnswer = _answerKey.split('').map((char) {
-      return char == ' ' ? ' ' : '_';
-    }).join();
-
-    return GestureDetector(
-      onTap: () => _speakSentenceByWord(_answerKey),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.volume_up, size: 28, color: HexColor(mariner700)),
-              const SizedBox(width: 8),
-              Text(
-                'play_sound'.tr(),
-                style: GoogleFonts.balooBhaijaan2(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: HexColor(mariner700),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            maskedAnswer,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.balooBhaijaan2(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _flutterTts.stop(); 
+    _textController.dispose();
+    super.dispose();
   }
 
   @override
@@ -332,12 +294,20 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
                                     HexColor(mariner700)),
                               ),
                             )
-                          : _buildSentenceAudioButton(),
+                          : SentenceAudioButton(
+                              isCheck: _isCheck,
+                              answerKey: _answerKey,
+                              userAnswer: _userAnswer,
+                              onPlayAudio: () =>
+                                  _speakSentenceByWord(_answerKey),
+                            ),
                     ),
                     const SizedBox(height: 18),
 
                     // TextField untuk jawaban
                     TextField(
+                      controller: _textController, // Controller untuk TextField
+                      maxLength: 100,
                       onChanged: (val) {
                         setState(() {
                           _userAnswer = val;
@@ -363,14 +333,14 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.red, // Optional
                             width: 2,
                           ),
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.red, // Optional
                             width: 3,
                           ),
@@ -378,11 +348,13 @@ class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
                         filled: true,
                         fillColor: Colors.white,
                       ),
+                      cursorColor: HexColor(mariner700),
                       minLines: 3,
                       maxLines: 6,
+                      
                       style: GoogleFonts.balooBhaijaan2(fontSize: 16),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     if (_isCheck)
                       AnswerValidationContainer(
                         isCorrect: _isCorrect,

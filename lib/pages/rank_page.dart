@@ -24,31 +24,31 @@ class _RankPageState extends State<RankPage> {
 
   // Fetch leaderboard data when the page is opened
   Future<void> refreshData() async {
-  if (mounted) setState(() => isLoading = true);
-  List<LeaderBoard> data = await LeaderBoardApi().getLeaderBoardEntries();
+    if (mounted) setState(() => isLoading = true);
+    List<LeaderBoard> data = await LeaderBoardApi().getLeaderBoardEntries();
 
-  // Urutkan data berdasarkan skor tertinggi (descending)
-  data.sort((a, b) => 
-    (double.tryParse(b.highestScore) ?? 0).compareTo(double.tryParse(a.highestScore) ?? 0)
-  );
+    // Urutkan data berdasarkan skor tertinggi (descending)
+    data.sort((a, b) => (double.tryParse(b.highestScore) ?? 0)
+        .compareTo(double.tryParse(a.highestScore) ?? 0));
 
-  if (mounted) setState(() {
-    listRank = data;
-    isLoading = false;
-  });
-}
-
+    if (mounted)
+      setState(() {
+        listRank = data;
+        isLoading = false;
+      });
+  }
 
   @override
   void initState() {
     super.initState();
-    refreshData();  // Fetch leaderboard data when the page is opened
+    refreshData(); // Fetch leaderboard data when the page is opened
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonAppBar(
+        withBack: false,
         title: 'Leaderboard',
         backgroundColor: HexColor(mariner100),
       ),
@@ -61,30 +61,33 @@ class _RankPageState extends State<RankPage> {
               alignment: Alignment.bottomCenter,
               children: [
                 Container(
-                  height: MediaQuery.of(context).size.height / 2,
+                  height: MediaQuery.of(context).size.height * 0.4,
                   alignment: Alignment.bottomCenter,
                   child: listRank.isNotEmpty
                       ? ListView.builder(
-                          itemCount: math.max(0, listRank.length),  // Don't add extra 3
+                          itemCount: math.max(0, listRank.length - 3),
                           itemBuilder: (context, index) {
+                            final actualIndex =
+                                index + 3; // Mulai dari peringkat ke-4
                             return Padding(
                               padding: EdgeInsets.only(
                                 top: index == 0 ? 90 : 8,
-                                bottom: index == listRank.length - 1 ? 20 : 8,
+                                bottom:
+                                    actualIndex == listRank.length - 1 ? 20 : 8,
                                 left: 24,
                                 right: 24,
                               ),
                               child: ListRank(
-                                index: index + 1, // Adjust the rank for display
-                                name: listRank[index].userName,
-                                score: (double.tryParse(
-                                            listRank[index].highestScore) ?? 
+                                index:
+                                    actualIndex + 1, // Rank ke-4 dan seterusnya
+                                name: listRank[actualIndex].userName,
+                                score: (double.tryParse(listRank[actualIndex]
+                                            .highestScore) ??
                                         0)
                                     .toInt(),
                               ),
                             );
-                          },
-                        )
+                          })
                       : const Padding(
                           padding: EdgeInsets.all(24),
                           child: Text('Take a game to participate'),
@@ -126,7 +129,7 @@ class _RankPageState extends State<RankPage> {
                                     : "?",
                                 score: listRank.length > 1
                                     ? (double.tryParse(
-                                                listRank[1].highestScore) ?? 
+                                                listRank[1].highestScore) ??
                                             0)
                                         .toInt()
                                     : 0,
@@ -143,7 +146,7 @@ class _RankPageState extends State<RankPage> {
                                   : "?",
                               score: listRank.isNotEmpty
                                   ? (double.tryParse(
-                                              listRank[0].highestScore) ?? 
+                                              listRank[0].highestScore) ??
                                           0)
                                       .toInt()
                                   : 0,
@@ -160,7 +163,7 @@ class _RankPageState extends State<RankPage> {
                                     : "?",
                                 score: listRank.length > 2
                                     ? (double.tryParse(
-                                                listRank[2].highestScore) ?? 
+                                                listRank[2].highestScore) ??
                                             0)
                                         .toInt()
                                     : 0,

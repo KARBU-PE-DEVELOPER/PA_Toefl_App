@@ -22,6 +22,7 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
   String _correctResponse = "";
   String _question = "loading_question".tr();
   bool _isLoading = false;
+  List<Map<String, dynamic>> _highlightedWords = [];
 
   @override
   void initState() {
@@ -93,8 +94,7 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
           icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("comment_practice".tr(),
-            style: CustomTextStyle.askGrammarTitle),
+        title: Text("comment_practice".tr()),
         centerTitle: true,
         actions: [
           IconButton(

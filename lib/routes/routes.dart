@@ -20,6 +20,7 @@ import 'package:toefl/pages/user/profile_page.dart';
 import 'package:toefl/pages/games/practice/speaking_game.dart';
 import 'package:toefl/pages/games/practice/cloze_game.dart';
 import 'package:toefl/pages/games/practice/hangman_game.dart';
+import 'package:toefl/pages/games/practice/wordsearch_game.dart';
 import 'package:toefl/pages/games/practice/scramble_game.dart';
 import 'package:toefl/pages/games/practice/translateQuiz_page.dart';
 import 'package:toefl/pages/writingPractice/writingPractice_page.dart';
@@ -116,6 +117,7 @@ final routes = <String, Widget Function(BuildContext)>{
   RouteKey.clozeGame: (context) => const ClozeGamePage(),
   RouteKey.translateQuiz: (context) => const TranslatequizPage(),
   RouteKey.hangmanGame: (context) => const HangmanGame(),
+  RouteKey.wordsearchGame: (context) => const WordSearchGame(),
   RouteKey.scrambleGame: (context) => const ScrambleGame(),
   RouteKey.pairingGame: (context) => const PairingGame(),
   RouteKey.writingPractice: (context) => const WritingpracticePage(),

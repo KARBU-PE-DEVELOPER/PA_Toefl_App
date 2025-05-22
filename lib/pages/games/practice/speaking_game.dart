@@ -78,9 +78,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
   void _stopListening() async {
     await _speechToText.stop();
-    setState(() {
-            
-    });
+    setState(() {});
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
@@ -90,7 +88,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
       _userAnswer = recognizedWords;
       _disable = recognizedWords.isEmpty;
       final hasCorrectWord = _hasAnyCorrectWord(recognizedWords, _answerKey);
-
 
       _isMicButtonDisabled = hasCorrectWord;
     });
@@ -287,6 +284,12 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   }
 
   @override
+  void dispose() {
+    _flutterTts.stop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: GameAppBar(title: 'speaking_game'.tr()),
@@ -382,7 +385,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                         ),
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     if (_isCheck)
                       AnswerValidationContainer(
                         isCorrect: _isCorrect,
