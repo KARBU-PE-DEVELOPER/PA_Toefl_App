@@ -110,3 +110,62 @@ class Choice {
 
   String toStringJson() => jsonEncode(toJson());
 }
+
+@JsonSerializable()
+class UserAnswer {
+  final int id;
+
+  @JsonKey(name: 'packet_claim_id')
+  final int packetClaimId;
+
+  @JsonKey(name: 'question_id')
+  final int questionId;
+
+  @JsonKey(name: 'answer_user')
+  final String answerUser;
+
+  final bool correct;
+
+  @JsonKey(name: 'created_at')
+  final String createdAt;
+
+  @JsonKey(name: 'updated_at')
+  final String updatedAt;
+
+  UserAnswer({
+    required this.id,
+    required this.packetClaimId,
+    required this.questionId,
+    required this.answerUser,
+    required this.correct,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory UserAnswer.fromJson(Map<String, dynamic> json) =>
+      _$UserAnswerFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserAnswerToJson(this);
+}
+
+@JsonSerializable()
+class PacketClaim {
+  final bool completed;
+
+  @JsonKey(name: 'time_start')
+  final String? timeStart;
+
+  @JsonKey(name: 'remaining_time')
+  final int remainingTime;
+
+  PacketClaim({
+    required this.completed,
+    required this.timeStart,
+    required this.remainingTime,
+  });
+
+  factory PacketClaim.fromJson(Map<String, dynamic> json) =>
+      _$PacketClaimFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PacketClaimToJson(this);
+}
