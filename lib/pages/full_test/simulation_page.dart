@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,7 @@ import 'package:toefl/state_management/full_test_provider.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/utils/hex_color.dart';
+import 'package:toefl/utils/list_ext.dart';
 import 'package:toefl/widgets/blue_container.dart';
 import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
 
@@ -34,6 +37,8 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
   List<Packet> packets = [];
   TestStatus? testStatus;
   String selectedType = "test";
+  int? unfinishedPacketId;
+  Set<int> ongoingPacketIds = {};
 
   @override
   void didChangeDependencies() {
@@ -46,29 +51,74 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
   }
 
   void _onInit() async {
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
+
     try {
-      final allPacket = await _fullTestApi.getAllPacket();
-      // setState(() {
-      //   packets = allPacket;
-      // });
-      setState(() {
-        packets = allPacket
-            .where((packet) => packet.packetType == selectedType)
-            .toList();
-      });
-      _handleOnAutoSubmit();
-      testStatus = await _testSharedPref.getStatus();
+      // Step 1: Ambil semua packet dari backend
+      final allPackets = await _fullTestApi.getAllPacket();
+
+      // Step 2: Reset ongoing & completed sets
+      ongoingPacketIds.clear();
+      final Set<int> completedPacketIds = {};
+
+      // Step 3: Cek status tiap packet dari backend
+      for (final packet in allPackets) {
+        try {
+          final response = await DioToefl.instance.get(
+            '${Env.simulationUrl}/check-exam/${packet.id}',
+            options: Options(
+                validateStatus: (status) => status != null && status < 500),
+          );
+
+          final packetId = packet.id is int
+              ? packet.id as int
+              : int.tryParse(packet.id.toString());
+          if (packetId == null) continue;
+
+          if (response.statusCode == 200) {
+            final data = response.data is String
+                ? jsonDecode(response.data)
+                : response.data;
+            if (data['success'] == true && data['payload'] is Map) {
+              final payload = data['payload'] as Map<String, dynamic>;
+              final isCompleted = payload['completed'] ?? false;
+              if (isCompleted) {
+                completedPacketIds.add(packetId);
+              } else {
+                ongoingPacketIds.add(packetId);
+              }
+            } else {
+              completedPacketIds.add(packetId);
+            }
+          } else {
+            completedPacketIds.add(packetId);
+          }
+        } catch (e) {
+          final packetId = packet.id is int
+              ? packet.id as int
+              : int.tryParse(packet.id.toString());
+          if (packetId != null) completedPacketIds.add(packetId);
+        }
+      }
+
+      // Step 4: Jika ada ongoing packet, pastikan ambil ulang data langsung dari backend
+      final filteredPackets = allPackets
+          .where((packet) => packet.packetType == selectedType)
+          .toList();
 
       setState(() {
+        packets = filteredPackets;
         isLoading = false;
       });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+
+      // Step 5: Handle auto submit jika durasi sudah lebih dari 2 jam
+      await _handleOnAutoSubmit();
+
+      // Step 6: Simpan status terakhir
+      testStatus = await _testSharedPref.getStatus();
+    } catch (e, stack) {
+      debugPrint("❌ Error in _onInit: $e\n$stack");
+      setState(() => isLoading = false);
     }
   }
 
@@ -93,7 +143,9 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
       testStatus = await _testSharedPref.getStatus();
       if (testStatus != null) {
         final runningPacket =
-            packets.where((element) => element.id == testStatus!.id).first;
+            packets.firstWhereOrNull((element) => element.id == testStatus!.id);
+        if (runningPacket == null) return;
+
         DateTime startTime = DateTime.parse(testStatus!.startTime);
         int diffInSecs = DateTime.now().difference(startTime).inSeconds;
         if (diffInSecs >= 7200) {
@@ -170,10 +222,26 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                               title: packet.name.toUpperCase(),
                               questionCount: packet.questionCount,
                               accuracy: packet.accuracy,
-                              isDisabled: (packet.questionCount == 0),
+                              isDisabled: ongoingPacketIds.isNotEmpty &&
+                                  !ongoingPacketIds.contains(packet.id),
+                              hasOngoingTest: ongoingPacketIds.isNotEmpty,
+                              // isDisabled: !(packet.questionCount == 140),
                               onTap: () async {
-                                final packet = packets[index];
-
+                                if (ongoingPacketIds.contains(packet.id)) {
+                                  Navigator.of(context).pushNamed(
+                                    RouteKey.openingLoadingTest,
+                                    arguments: {
+                                      "id": packet.id.toString(),
+                                      "packetName": packet.name,
+                                      "isRetake": true,
+                                      "packetType": selectedType,
+                                    },
+                                  ).then((value) {
+                                    _onInit();
+                                    _pushReviewPage(packet);
+                                  });
+                                  return;
+                                }
                                 if (!packet.wasFilled) {
                                   // Tampilkan dialog konfirmasi sebelum klaim paket
                                   showDialog(
@@ -334,48 +402,7 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                 }
 
                                 // Jika paket sudah diselesaikan, tampilkan modal konfirmasi untuk review/retake
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext submitContext) {
-                                    return ModalConfirmation(
-                                      message: "you_ve_finished_your_test".tr(),
-                                      leftTitle: 'review'.tr(),
-                                      rightTitle: 'retake'.tr(),
-                                      rightFunction: () async {
-                                        Navigator.of(submitContext).pop();
-                                        Navigator.of(context).pushNamed(
-                                          RouteKey.openingLoadingTest,
-                                          arguments: {
-                                            "id": packet.id.toString(),
-                                            "packetName": packet.name,
-                                            "isRetake": packet.wasFilled,
-                                            "packetType": selectedType,
-                                          },
-                                        ).then((value) {
-                                          _onInit();
-                                          _pushReviewPage(packet);
-                                        });
-                                      },
-                                      leftFunction: () {
-                                        Navigator.of(submitContext).pop();
-                                        Navigator.pushNamed(
-                                          context,
-                                          RouteKey.testresult,
-                                          arguments: {
-                                            "packetId": packet.id.toString(),
-                                            "isMiniTest": false,
-                                            "packetName": packet.name,
-                                          },
-                                        ).then((afterRetake) {
-                                          if (afterRetake == true) {
-                                            _onInit();
-                                            _pushReviewPage(packet);
-                                          }
-                                        });
-                                      },
-                                    );
-                                  },
-                                );
+                                //
                               },
                             ),
                           );
@@ -397,11 +424,13 @@ class PacketCard extends StatelessWidget {
     required this.accuracy,
     required this.onTap,
     this.isDisabled = true,
+    this.hasOngoingTest = false,
   }) : super(key: key);
 
   final String title;
   final int questionCount;
   final int accuracy;
+  final bool hasOngoingTest;
   final Function() onTap;
   final bool isDisabled;
 
@@ -411,6 +440,20 @@ class PacketCard extends StatelessWidget {
       onTap: () {
         if (!isDisabled) {
           onTap();
+        } else if (hasOngoingTest) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Ongoing Test'),
+              content: const Text('Please finish your ongoing test first'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
         }
       },
       child: Stack(
@@ -451,25 +494,6 @@ class PacketCard extends StatelessWidget {
                           style: CustomTextStyle.normal12,
                         ),
                         const SizedBox(width: 10),
-                        // ClipRRect(
-                        //   borderRadius: BorderRadius.circular(10),
-                        //   child: SizedBox(
-                        //     width: MediaQuery.of(context).size.width * 0.3,
-                        //     height: MediaQuery.of(context).size.height / 64,
-                        //     child: LinearProgressIndicator(
-                        //       backgroundColor: HexColor(neutral40),
-                        //       valueColor: AlwaysStoppedAnimation<Color>(
-                        //           HexColor(mariner700)),
-                        //       value: accuracy / 100,
-                        //     ),
-                        //   ),
-                        // ),
-                        // const SizedBox(width: 10),
-                        // Text(
-                        //   "$accuracy%",
-                        //   style: CustomTextStyle.bold16
-                        //       .copyWith(color: HexColor(mariner700)),
-                        // ),
                       ],
                     ),
                   ],
