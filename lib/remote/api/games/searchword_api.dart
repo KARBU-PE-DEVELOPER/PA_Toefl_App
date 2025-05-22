@@ -1,20 +1,19 @@
 import 'package:dio/dio.dart';
-import 'package:toefl/models/games/speak_game.dart';
+import 'package:toefl/models/games/searchword_game.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
 import 'dart:convert';
 import '../../base_response.dart';
 
-
-class SpeakGameApi {
+class SearchWordApi {
   final Dio? dio;
 
-  SpeakGameApi({this.dio}); // Update constructor
+  SearchWordApi({this.dio});
 
-  Future<SpeakGame> getWord() async {
+  Future<SearchWord> getWord() async {
     try {
       final response = await DioToefl.instance.get(
-        "${Env.gameUrl}/minigames/speakingGames/get-speaking-word",
+        "${Env.gameUrl}/minigames/crossGames/get-cross-word",
       );
 
       final contentType = response.headers['content-type']?.toString();
@@ -46,9 +45,9 @@ class SpeakGameApi {
       }
 
       final payload = responseData['payload'] as Map<String, dynamic>;
-      final sentenceList = _parseSentenceList(payload);
+      final wordList = _parseWordList(payload);
 
-      return SpeakGame(sentence: sentenceList);
+      return SearchWord(words: wordList);
     } on DioException catch (e) {
       throw Exception("Error jaringan: ${e.message}");
     } catch (e) {
@@ -56,13 +55,12 @@ class SpeakGameApi {
     }
   }
 
-  List<String> _parseSentenceList(Map<String, dynamic> payload) {
-    if (!payload.containsKey('sentence') ||
-        !(payload['sentence'] is List<dynamic>)) {
+  List<String> _parseWordList(Map<String, dynamic> payload) {
+    if (!payload.containsKey('words') || !(payload['words'] is List<dynamic>)) {
       throw Exception("Format kalimat tidak valid");
     }
 
-    final rawList = payload['sentence'] as List<dynamic>;
+    final rawList = payload['words'] as List<dynamic>;
 
     // Konversi ke List<String> dengan validasi
     try {
@@ -75,7 +73,7 @@ class SpeakGameApi {
   Future<bool> store(double score) async {
     try {
       final Response rawResponse = await DioToefl.instance.post(
-        '${Env.gameUrl}/minigames/speakingGames/submit-answers',
+        '${Env.gameUrl}/minigames/crossGames/submit-answers',
         data: {
           'score': score,
         },

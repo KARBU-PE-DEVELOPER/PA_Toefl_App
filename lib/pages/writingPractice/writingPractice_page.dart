@@ -22,6 +22,7 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
   String _correctResponse = "";
   String _question = "loading_question".tr();
   bool _isLoading = false;
+  List<Map<String, dynamic>> _highlightedWords = [];
 
   @override
   void initState() {
@@ -93,8 +94,7 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
           icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("comment_practice".tr(),
-            style: CustomTextStyle.askGrammarTitle),
+        title: Text("comment_practice".tr()),
         centerTitle: true,
         actions: [
           IconButton(
@@ -131,8 +131,9 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
                         _grammarPercentage == "0"
                             ? "translate_quiz_sentence".tr()
                             : "grammar_percentage".tr(),
-                        style: CustomTextStyle.askGrammarSubtitle,
+                        style: CustomTextStyle.askGrammarTitle,
                       ),
+                      const SizedBox(height: 14),
                       SizedBox(
                         child: Center(
                           child: _isLoading
@@ -147,7 +148,7 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
                                     _grammarPercentage == "0"
                                         ? _question
                                         : _grammarPercentage,
-                                    style: CustomTextStyle.askGrammarBody,
+                                    style: CustomTextStyle.askGrammarSubtitle,
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -165,8 +166,33 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
                 decoration: InputDecoration(
                   hintText: "write_something".tr(),
                   hintStyle: CustomTextStyle.askGrammarBody,
-                  border: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: HexColor(mariner700),
+                      width: 2,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: HexColor(mariner800),
+                      width: 3,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: Colors.red, // Optional
+                      width: 2,
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: Colors.red, // Optional
+                      width: 3,
+                    ),
                   ),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.send, color: Colors.black),

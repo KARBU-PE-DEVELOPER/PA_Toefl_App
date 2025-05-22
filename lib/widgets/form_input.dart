@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class InputText extends StatefulWidget {
   const InputText({
@@ -37,14 +38,14 @@ class _InputTextState extends State<InputText> {
       children: [
         Text(
           widget.title!,
-          style: TextStyle(fontSize: 16, 
+          style: GoogleFonts.balooBhaijaan2(fontSize: 16, 
           fontWeight: FontWeight.w600,
           color: HexColor(neutral10)
           ),
         ),
         const SizedBox(height: 6.0),
         TextFormField(
-          cursorColor: HexColor(neutral90),
+          cursorColor: HexColor(mariner700),
           validator: (value) {
             if (value == null || value.isEmpty || value.trim().isEmpty) {
               return 'warning_messages'.tr(args: ['${widget.hintText}']);
@@ -60,6 +61,7 @@ class _InputTextState extends State<InputText> {
             }
             return null;
           },
+          
           controller: widget.controller,
           focusNode: widget.focusNode,
           obscureText: widget.title == 'Password' ||
@@ -82,7 +84,7 @@ class _InputTextState extends State<InputText> {
               borderRadius: BorderRadius.circular(10.0),
             ),
             hintText: widget.hintText,
-            hintStyle: TextStyle(
+            hintStyle: GoogleFonts.balooBhaijaan2(
               color: HexColor(neutral90),
               fontSize: 15,
               fontWeight: FontWeight.w300,

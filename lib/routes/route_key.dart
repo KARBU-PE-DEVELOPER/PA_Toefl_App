@@ -4,7 +4,9 @@ class RouteKey {
   static const root = '/';
   static const grammar = '/grammar';
   static const speakingGame = '/speaking-game';
+  static const listeningGame = '/listening-game';
   static const hangmanGame = '/hangman-game';
+  static const wordsearchGame = '/wordsearch-game';
   static const clozeGame = '/cloze-game';
   static const scrambleGame = '/scramble-game';
   static const pairingGame = '/pairing-game';
