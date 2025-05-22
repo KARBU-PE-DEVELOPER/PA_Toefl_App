@@ -2,32 +2,31 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 import 'package:string_similarity/string_similarity.dart';
-import 'package:toefl/remote/api/games/speakgame_api.dart';
+import 'package:toefl/remote/api/games/listeninggame_api.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/answer_validation_container.dart';
 import 'package:toefl/widgets/blue_button.dart';
+import 'package:toefl/widgets/games/listening/sentence_audio_button.dart';
 import '../../../widgets/games/game_app_bar.dart';
 import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:toefl/state_management/game/speak_game_provider_state.dart';
+import 'package:toefl/utils/custom_text_style.dart';
+import 'package:toefl/state_management/game/listening_game_provider_state.dart';
 
-class SpeakingGame extends ConsumerStatefulWidget {
-  const SpeakingGame({super.key});
+class ListeningGamePage extends ConsumerStatefulWidget {
+  const ListeningGamePage({super.key});
 
   @override
-  ConsumerState<SpeakingGame> createState() => _SpeakingGameState();
+  ConsumerState<ListeningGamePage> createState() => _ListeningGamePageState();
 }
 
-class _SpeakingGameState extends ConsumerState<SpeakingGame> {
-  final SpeechToText _speechToText = SpeechToText();
+class _ListeningGamePageState extends ConsumerState<ListeningGamePage> {
   final FlutterTts _flutterTts = FlutterTts();
+  final TextEditingController _textController = TextEditingController();
   List<double> _scores = [];
-  bool _speechEnabled = false;
   String _userAnswer = '';
   String _answerKey = "";
   bool _isCheck = false;
@@ -36,7 +35,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   double accuracy = 0;
   bool _isLoadingFirst = true;
   bool _isLoading = false;
-  bool _isMicButtonDisabled = false;
 
   List<String> _sentences = [];
   int _currentSentenceIndex = 0;
@@ -45,7 +43,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   void initState() {
     super.initState();
     _loadSentences();
-    _initSpeech();
     _initTTS();
   }
 
@@ -57,40 +54,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
   Future<void> _speakSentenceByWord(String sentence) async {
     await _flutterTts.speak(sentence);
-  }
-
-  void _initSpeech() async {
-    _speechEnabled = await _speechToText.initialize();
-    setState(() {});
-  }
-
-  void _startListening() async {
-    if (_isMicButtonDisabled) return;
-    setState(() {
-      _isMicButtonDisabled = true;
-    });
-
-    await _speechToText.listen(onResult: _onSpeechResult);
-    setState(() {
-      _disable = true;
-    });
-  }
-
-  void _stopListening() async {
-    await _speechToText.stop();
-    setState(() {});
-  }
-
-  void _onSpeechResult(SpeechRecognitionResult result) {
-    final recognizedWords = result.recognizedWords;
-
-    setState(() {
-      _userAnswer = recognizedWords;
-      _disable = recognizedWords.isEmpty;
-      final hasCorrectWord = _hasAnyCorrectWord(recognizedWords, _answerKey);
-
-      _isMicButtonDisabled = hasCorrectWord;
-    });
   }
 
   bool _hasAnyCorrectWord(String userAnswer, String answerKey) {
@@ -109,11 +72,12 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
   Future<void> _loadSentences() async {
     try {
-      final speakGameProvider =
-          ref.read(speakGameProviderStatesProvider.notifier);
-      final game = await speakGameProvider.getSentence();
+      final listeningGameProvider =
+          ref.read(listeningGameProviderStatesProvider.notifier);
+      final game = await listeningGameProvider.getSentence();
 
       if (game != null && game.sentence.isNotEmpty) {
+        await _flutterTts.speak(game.sentence.first);
         setState(() {
           _sentences = game.sentence;
           _answerKey = _sentences.first;
@@ -132,22 +96,54 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     setState(() {
       _isLoading = true;
     });
-    final cleanedAnswer =
-        _answerKey.replaceAll(RegExp(r'[.,]'), '').toLowerCase();
-    final cleanedUserAnswer =
-        _userAnswer.replaceAll(RegExp(r'[.,]'), '').toLowerCase();
 
-    final similarity = cleanedAnswer.similarityTo(cleanedUserAnswer);
+    final answerWords = _answerKey
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .toLowerCase()
+        .split(RegExp(r'\s+'));
 
+    final userWords = _userAnswer
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .toLowerCase()
+        .split(RegExp(r'\s+'));
+
+    int correctCount = 0;
+    final matchedIndexes = <int>{};
+
+    for (var userWord in userWords) {
+      double bestScore = 0.0;
+      int bestIndex = -1;
+
+      for (int i = 0; i < answerWords.length; i++) {
+        if (matchedIndexes.contains(i)) continue;
+
+        double similarity =
+            StringSimilarity.compareTwoStrings(userWord, answerWords[i]);
+        if (similarity > bestScore) {
+          bestScore = similarity;
+          bestIndex = i;
+        }
+      }
+
+      // Anggap benar jika similarity di atas threshold, misal 0.75
+      if (bestScore >= 0.75) {
+        correctCount++;
+        matchedIndexes.add(bestIndex);
+      }
+    }
+
+    final totalWords = answerWords.length;
+    double wordAccuracy = totalWords == 0 ? 0 : correctCount / totalWords;
     setState(() {
-      accuracy = similarity;
-      _isCorrect = similarity > 0.7; // Threshold tetap 70%
+      accuracy = wordAccuracy;
+      _isCorrect = wordAccuracy > 0.7;
       _isCheck = true;
 
-      // Skor skala 100
       if (_scores.length == _currentSentenceIndex) {
-        _scores.add(similarity * 100);
+        _scores.add(wordAccuracy * 100);
       }
+
+      _isLoading = false;
     });
   }
 
@@ -160,7 +156,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     double averageScore = totalScore / _sentences.length; // karena 3 soal
 
     try {
-      await SpeakGameApi().store(averageScore); // Kirim nilai rata-rata
+      await ListeningGameApi().store(averageScore); // Kirim nilai rata-rata
     } catch (e) {
       print("Error storing score: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -179,10 +175,10 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   void _nextSentence() async {
     // Stop TTS jika sedang bicara
     await _flutterTts.stop();
+    _textController.clear();
 
-    // Aktifkan kembali tombol mic
     setState(() {
-      _isMicButtonDisabled = false;
+      _isLoading = true;
     });
     if (_isCheck && _currentSentenceIndex < _sentences.length - 1) {
       setState(() {
@@ -190,7 +186,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
         _answerKey = _sentences[_currentSentenceIndex];
         _resetState();
         _isLoading = false;
+        _userAnswer = '';
       });
+      await _flutterTts.speak(_answerKey);
     } else if (_isCheck) {
       final averageScore = await _storeScore();
       _showCompletionDialog(averageScore); // Show dialog pakai skor rata-rata
@@ -209,7 +207,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     _isCorrect = false;
     _disable = true;
     _isLoading = false;
-    _isMicButtonDisabled = false;
   }
 
   void restartGame() async {
@@ -217,7 +214,6 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     await _flutterTts.stop();
 
     setState(() {
-      _isMicButtonDisabled = false;
       _isLoading = true;
       _scores.clear();
       _userAnswer = '';
@@ -251,48 +247,17 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     );
   }
 
-  List<InlineSpan> _buildColoredAnswerKey() {
-    final answerWords = _answerKey.trim().split(RegExp(r'\s+'));
-    final userWords = _userAnswer.trim().split(RegExp(r'\s+'));
-
-    return List.generate(answerWords.length, (i) {
-      final realWord = answerWords[i];
-
-      final cleanedAnswerWord =
-          realWord.replaceAll(RegExp(r'[.,]'), '').toLowerCase();
-      final cleanedUserWord = (i < userWords.length)
-          ? userWords[i].replaceAll(RegExp(r'[.,]'), '').toLowerCase()
-          : '';
-
-      final isMatched = cleanedAnswerWord == cleanedUserWord;
-
-      if (isMatched) {
-        setState(() {
-          _isMicButtonDisabled = true; // Disable mic button if matched
-        });
-      }
-
-      return TextSpan(
-        text: '$realWord ',
-        style: GoogleFonts.balooBhaijaan2(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: isMatched ? HexColor(colorSuccess) : HexColor(neutral50),
-        ),
-      );
-    });
-  }
-
   @override
   void dispose() {
-    _flutterTts.stop();
+    _flutterTts.stop(); 
+    _textController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GameAppBar(title: 'speaking_game'.tr()),
+      appBar: GameAppBar(title: 'listening_game'.tr()),
       body: _isLoadingFirst
           ? Center(
               child: CircularProgressIndicator(
@@ -329,61 +294,65 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                                     HexColor(mariner700)),
                               ),
                             )
-                          : RichText(
-                              textAlign: TextAlign.center,
-                              text: TextSpan(
-                                children: _buildColoredAnswerKey(),
-                              ),
+                          : SentenceAudioButton(
+                              isCheck: _isCheck,
+                              answerKey: _answerKey,
+                              userAnswer: _userAnswer,
+                              onPlayAudio: () =>
+                                  _speakSentenceByWord(_answerKey),
                             ),
                     ),
                     const SizedBox(height: 18),
 
-                    // Mic Button
-                    Center(
-                      child: GestureDetector(
-                        onTap: _isMicButtonDisabled
-                            ? null
-                            : (_speechToText.isNotListening
-                                ? _startListening
-                                : _stopListening),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD8E9FF),
-                            borderRadius: BorderRadius.circular(7.5),
-                            boxShadow: [
-                              const BoxShadow(
-                                color: Color(0x3F000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _speechToText.isListening
-                                    ? Icons.mic_off
-                                    : Icons.mic,
-                                size: 28,
-                                color: const Color(0xFF387EFF),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _speechToText.isListening
-                                    ? 'mic_on'.tr()
-                                    : 'mic_off'.tr(),
-                                style: GoogleFonts.balooBhaijaan2(
-                                  color: Color(0xFF387EFF),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ],
+                    // TextField untuk jawaban
+                    TextField(
+                      controller: _textController, // Controller untuk TextField
+                      maxLength: 100,
+                      onChanged: (val) {
+                        setState(() {
+                          _userAnswer = val;
+                          _disable = val.trim().isEmpty;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'type_your_answer'.tr(),
+                        hintStyle: CustomTextStyle.askGrammarBody,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: HexColor(mariner700),
+                            width: 2,
                           ),
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: HexColor(mariner800),
+                            width: 3,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: Colors.red, // Optional
+                            width: 2,
+                          ),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: Colors.red, // Optional
+                            width: 3,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
+                      cursorColor: HexColor(mariner700),
+                      minLines: 3,
+                      maxLines: 6,
+                      
+                      style: GoogleFonts.balooBhaijaan2(fontSize: 16),
                     ),
                     const Spacer(),
                     if (_isCheck)
@@ -396,8 +365,8 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
                     const SizedBox(height: 10),
                     Text(
-                      "mic_off".tr(),
-                      style: GoogleFonts.balooBhaijaan2(
+                      "play_sound".tr(),
+                      style: GoogleFonts.balooPaaji2(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: HexColor(grey),

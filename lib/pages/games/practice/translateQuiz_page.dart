@@ -124,9 +124,9 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
                         _accuracyPercentage == "0"
                             ? "translate_quiz_sentence".tr()
                             : "accuracy_percentage".tr(),
-                        style: CustomTextStyle.askGrammarSubtitle,
+                        style: CustomTextStyle.askGrammarTitle,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 14),
                       if (_showTextField)
                         SizedBox(
                           child: _isLoading
@@ -139,7 +139,7 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
                               : SingleChildScrollView(
                                   child: Text(
                                     _question,
-                                    style: CustomTextStyle.askGrammarBody,
+                                    style: CustomTextStyle.askGrammarSubtitle,
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -159,14 +159,41 @@ class _TranslatequizPageState extends ConsumerState<TranslatequizPage> {
                 visible: _showTextField,
                 child: TextField(
                   minLines: 4,
-                  maxLines: null,
+                  maxLines: 6,
                   controller: _textController,
                   decoration: InputDecoration(
                     hintText: "write_something".tr(),
                     hintStyle: CustomTextStyle.askGrammarBody,
-                    border: OutlineInputBorder(
+                    enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: HexColor(mariner700),
+                        width: 2,
+                      ),
                     ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: HexColor(mariner800),
+                        width: 3,
+                      ),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: Colors.red, // Optional
+                        width: 2,
+                      ),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: Colors.red, // Optional
+                        width: 3,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.send, color: Colors.black),
                       onPressed: _sendMessage,

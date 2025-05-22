@@ -1,20 +1,21 @@
 import 'package:dio/dio.dart';
-import 'package:toefl/models/games/speak_game.dart';
+import 'package:toefl/models/games/listening_game.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
 import 'dart:convert';
 import '../../base_response.dart';
 
+import 'package:toefl/remote/local/shared_pref/auth_shared_preferences.dart';
 
-class SpeakGameApi {
+class ListeningGameApi {
   final Dio? dio;
 
-  SpeakGameApi({this.dio}); // Update constructor
+  ListeningGameApi({this.dio}); // Update constructor
 
-  Future<SpeakGame> getWord() async {
+  Future<ListeningGame> getWord() async {
     try {
       final response = await DioToefl.instance.get(
-        "${Env.gameUrl}/minigames/speakingGames/get-speaking-word",
+        "${Env.gameUrl}/minigames/listeningGames/get-listening-word",
       );
 
       final contentType = response.headers['content-type']?.toString();
@@ -48,7 +49,7 @@ class SpeakGameApi {
       final payload = responseData['payload'] as Map<String, dynamic>;
       final sentenceList = _parseSentenceList(payload);
 
-      return SpeakGame(sentence: sentenceList);
+      return ListeningGame(sentence: sentenceList);
     } on DioException catch (e) {
       throw Exception("Error jaringan: ${e.message}");
     } catch (e) {
@@ -75,7 +76,7 @@ class SpeakGameApi {
   Future<bool> store(double score) async {
     try {
       final Response rawResponse = await DioToefl.instance.post(
-        '${Env.gameUrl}/minigames/speakingGames/submit-answers',
+        '${Env.gameUrl}/minigames/listeningGames/submit-answers',
         data: {
           'score': score,
         },

@@ -55,6 +55,7 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
   }
 
   void restartGame() {
+    Navigator.pop(context); // Tutup modal sebelum restart
     loadQuestions();
     setState(() {
       currentQuestionIndex = 0;
@@ -74,6 +75,8 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
         isCorrectAnswer = null;
       });
     } else {
+      
+
       showDialog(
         context: context,
         builder: (context) => ModalConfirmation(

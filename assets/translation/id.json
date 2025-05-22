@@ -132,5 +132,7 @@
   "play_again": "Main Lagi",
   "exit": "Keluar",
   "final_score": "Skor Akhir",
-  "no_explanation_provided": "Tidak ada penjelasan yang diberikan"
+  "no_explanation_provided": "Tidak ada penjelasan yang diberikan",
+  "play_sound": "Putar Suara",
+  "type_your_answer": "Ketik jawaban Anda di sini"
 }

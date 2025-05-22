@@ -1,17 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:toefl/models/auth_status.dart';
 import 'package:toefl/models/regist.dart';
-import 'package:toefl/remote/local/shared_pref/onboarding_shared_preferences.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/exceptions/exceptions.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/form_input.dart';
 import 'package:toefl/widgets/white_button.dart';
-import 'package:toefl/utils/colors.dart';
-import 'package:toefl/utils/hex_color.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../remote/api/user_api.dart';
 
@@ -196,7 +193,7 @@ class _RegistPageState extends State<RegistPage> {
                       children: [
                         Text(
                           'have_account'.tr(),
-                          style: TextStyle(
+                          style: GoogleFonts.balooBhaijaan2(
                             color: HexColor(neutral10),
                             fontSize: 14,
                           ),
@@ -207,7 +204,7 @@ class _RegistPageState extends State<RegistPage> {
                           },
                           child: Text(
                             'login_link',
-                            style: TextStyle(
+                            style: GoogleFonts.balooBhaijaan2(
                               color: HexColor(neutral20),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
