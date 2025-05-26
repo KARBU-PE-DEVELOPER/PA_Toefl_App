@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:toefl/main.dart';
 import 'package:toefl/models/leader_board.dart';
 import 'package:toefl/remote/api/games/leaderboard_api.dart';
 import 'package:toefl/utils/colors.dart';
@@ -8,6 +9,7 @@ import 'package:toefl/widgets/common_app_bar.dart';
 import 'package:toefl/widgets/rank_page/list_rank.dart';
 import 'package:toefl/widgets/rank_page/profile_rank.dart';
 import 'dart:math' as math;
+import 'package:easy_localization/easy_localization.dart';
 
 class RankPage extends StatefulWidget {
   final List<LeaderBoard> dataRank;
@@ -49,8 +51,7 @@ class _RankPageState extends State<RankPage> {
     return Scaffold(
       appBar: CommonAppBar(
         withBack: false,
-        title: 'Leaderboard',
-        backgroundColor: HexColor(mariner100),
+        title: 'leaderboard'.tr(),
       ),
       body: RefreshIndicator(
         onRefresh: refreshData,
@@ -88,18 +89,20 @@ class _RankPageState extends State<RankPage> {
                               ),
                             );
                           })
-                      : const Padding(
+                      : Padding(
                           padding: EdgeInsets.all(24),
-                          child: Text('Take a game to participate'),
+                          child: Text(
+                            'leaderboard_subtitle'.tr(),
+                          ),
                         ),
                 ),
-                Positioned(
-                  top: -200,
-                  child: CustomPaint(
-                    size: const Size(650, 600),
-                    painter: BgRank(),
-                  ),
-                ),
+                // Positioned(
+                //   top: -200,
+                //   child: CustomPaint(
+                //     size: const Size(650, 600),
+                //     painter: BgRank(),
+                //   ),
+                // ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   alignment: Alignment.topCenter,
@@ -108,14 +111,14 @@ class _RankPageState extends State<RankPage> {
                     children: [
                       Center(
                         child: Text(
-                          "Take a game to participate",
+                          "leaderboard_subtitle".tr(),
                           style: TextStyle(
                             fontSize: 16,
                             color: HexColor(neutral60),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         verticalDirection: VerticalDirection.up,
@@ -172,6 +175,7 @@ class _RankPageState extends State<RankPage> {
                               ),
                             ),
                           ),
+                          SizedBox(height: 10)
                         ],
                       ),
                     ],
@@ -186,20 +190,20 @@ class _RankPageState extends State<RankPage> {
   }
 }
 
-class BgRank extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = HexColor(mariner100)
-      ..strokeWidth = 4
-      ..style = PaintingStyle.fill;
+// class BgRank extends CustomPainter {
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     final Paint paint = Paint()
+//       ..color = HexColor(mariner100)
+//       ..strokeWidth = 4
+//       ..style = PaintingStyle.fill;
 
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
+//     final center = Offset(size.width / 3, size.height / 3);
+//     final radius = size.width * 0.45;
 
-    canvas.drawCircle(center, radius, paint);
-  }
+//     canvas.drawCircle(center, radius, paint);
+//   }
 
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
+//   @override
+//   bool shouldRepaint(CustomPainter oldDelegate) => false;
+// }
