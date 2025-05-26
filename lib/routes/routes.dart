@@ -5,6 +5,7 @@ import 'package:toefl/models/quiz.dart';
 import 'package:toefl/models/quiz_type.dart';
 import 'package:toefl/pages/games/practice/listening_game.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
+import 'package:toefl/pages/games/practice/word_of_the_day_page.dart';
 import 'package:toefl/pages/games/quiz/finish_quiz_page.dart';
 import 'package:toefl/pages/games/quiz/init_quiz.dart';
 import 'package:toefl/pages/auth/forgot_password_page.dart';
@@ -112,6 +113,7 @@ final routes = <String, Widget Function(BuildContext)>{
   RouteKey.login: (context) => const LoginPage(),
   // RouteKey.setGoal: (context) => const SetGoal(),
   RouteKey.onBoarding: (context) => const OnBoarding(),
+  RouteKey.wordOfTheDay: (context) => const WordOfTheDayPage(),
   RouteKey.speakingGame: (context) => const SpeakingGame(),
   RouteKey.listeningGame: (context) => const ListeningGamePage(),
   RouteKey.clozeGame: (context) => const ClozeGamePage(),

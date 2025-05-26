@@ -1,6 +1,8 @@
 class RouteKey {
   RouteKey._();
 
+  
+  static const wordOfTheDay = '/word-of-the-day';
   static const root = '/';
   static const grammar = '/grammar';
   static const speakingGame = '/speaking-game';

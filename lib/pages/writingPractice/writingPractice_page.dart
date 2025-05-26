@@ -6,6 +6,7 @@ import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/exceptions/exceptions.dart';
 import 'package:toefl/state_management/writing_practice/grammarCommentator_provider_state.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../widgets/games/game_app_bar.dart';
 
 class WritingpracticePage extends ConsumerStatefulWidget {
   const WritingpracticePage({super.key});
@@ -87,22 +88,8 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text("comment_practice".tr()),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed:
-                _isLoading ? null : _fetchQuestion, // disable saat loading
-          ),
-        ],
+      appBar: GameAppBar(
+        title: "writing_practice".tr(),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
