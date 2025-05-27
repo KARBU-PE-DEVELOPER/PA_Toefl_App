@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:toefl/utils/colors.dart';
+import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/utils/hex_color.dart';
-import 'package:toefl/widgets/blue_button.dart';
-import 'package:toefl/widgets/border_button.dart';
-
-import '../../utils/colors.dart';
-import '../../utils/custom_text_style.dart';
 
 class ChangeLangDialog extends StatelessWidget {
   const ChangeLangDialog({
@@ -18,52 +16,78 @@ class ChangeLangDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return Container(
-      width: screenWidth,
-      height: screenHeight * 0.24,
-      decoration: BoxDecoration(
-        color: HexColor(neutral20),
-        borderRadius: const BorderRadius.all(
-          Radius.circular(15),
+    return AlertDialog(
+      surfaceTintColor: Colors.white,
+      backgroundColor: HexColor(mariner100),
+      contentPadding: const EdgeInsets.symmetric(vertical: 30, horizontal: 15),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        side: BorderSide(
+          color: HexColor(mariner700),
+          width: 5,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Do you want to change the language?",
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 40),
+            child: Text(
+              "change_language".tr(),
               textAlign: TextAlign.center,
-              style: CustomTextStyle.medium14.copyWith(fontSize: 15),
+              style: TextStyle(
+                color: HexColor(neutral90),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            const SizedBox(
-              height: 20,
-            ),
-            Row(
-              children: [
-                const Spacer(),
-                BorderButton(
-                    title: "No",
-                    onTap: () {
-                      onNo();
-                    },
-                    size: screenWidth * 0.3),
-                const Spacer(),
-                BlueButton(
-                    title: "Yes",
-                    onTap: () {
-                      onYes();
-                    },
-                    size: screenWidth * 0.3),
-                const Spacer(),
-              ],
-            )
-          ],
-        ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => onNo(),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 12),
+                    backgroundColor: HexColor(neutral10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: HexColor(mariner700)),
+                    ),
+                  ),
+                  child: Text(
+                    "no".tr(),
+                    style: CustomTextStyle.buttonBaloo.copyWith(
+                      color: HexColor(mariner700),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: TextButton(
+                  onPressed: () => onYes(),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 12),
+                    backgroundColor: HexColor(mariner700),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    "yes".tr(),
+                    style: CustomTextStyle.buttonBaloo.copyWith(
+                      color: HexColor(neutral10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

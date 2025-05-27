@@ -116,14 +116,14 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'for_you'.tr(),
+                      'learning'.tr(),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: HexColor(neutral90)),
                     ),
                     Text(
-                      'topic_interest'.tr(),
+                      'learning_subtitle'.tr(),
                       style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -145,14 +145,14 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "featured".tr(),
+                      "game".tr(),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: HexColor(neutral90)),
                     ),
                     Text(
-                      "challenge".tr(),
+                      "game_subtitle".tr(),
                       style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -181,7 +181,7 @@ class _HomePageState extends State<HomePage> {
                             color: HexColor(neutral90)),
                       ),
                       Text(
-                        "Try a similar TOEFL test here",
+                        "try_simulation_test".tr(),
                         style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,

@@ -96,8 +96,7 @@ class _ProfileRankState extends State<ProfileRank> {
           const SizedBox(height: 4),
           Container(
             alignment: Alignment.center,
-            width: 40,
-            height: 30,
+
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               shape: BoxShape.rectangle,

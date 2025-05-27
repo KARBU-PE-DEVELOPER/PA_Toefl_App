@@ -6,6 +6,7 @@ gradle.properties
 /gradlew.bat
 /local.properties
 /gradle.properties
+**/gradle.properties
 GeneratedPluginRegistrant.java
 
 # Remember to never publicly share your keystore.
