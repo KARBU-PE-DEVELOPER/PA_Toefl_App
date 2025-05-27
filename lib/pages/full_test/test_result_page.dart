@@ -105,7 +105,7 @@ class _TestResultPageState extends State<TestResultPage> {
                               ),
                             ],
                           ),
-                          // const SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Column(
                             children: [
                               Container(
