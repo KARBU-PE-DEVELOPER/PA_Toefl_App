@@ -19,24 +19,28 @@ class SimulationTestWidget extends StatelessWidget {
               children: [
                 InkWell(
                   borderRadius: BorderRadius.circular(10),
-                  onTap: () => Navigator.of(context).pushNamed(
-                    RouteKey.simulationpage,
-                    arguments: {
-                      "type": "test", // Mengirim tipe "test"
-                    },
-                  ),
-                  child: TryCard(
-                    isBgLight: false,
-                    title: "Test",
-                    icon: "assets/images/medali.svg",
-                    subtitle: "A test that contains\n140 questions",
-                    child: Positioned(
-                        bottom: -(constraint.maxWidth / 4.5),
-                        child: SvgPicture.asset(
-                          fit: BoxFit.contain,
-                          "assets/images/avatar_featured2.svg",
-                          width: constraint.maxWidth / 2.8,
-                        )),
+                  onTap: null,
+                  // () => Navigator.of(context).pushNamed(
+                  //   RouteKey.simulationpage,
+                  //   arguments: {
+                  //     "type": "test", // Mengirim tipe "test"
+                  //   },
+                  // ),
+                  child: Opacity(
+                    opacity: 0.5, // Add opacity to show it's disabled
+                    child: TryCard(
+                      isBgLight: false,
+                      title: "Under Develop",
+                      icon: "assets/images/medali.svg",
+                      subtitle: "A test that contains\n140 questions",
+                      child: Positioned(
+                          bottom: -(constraint.maxWidth / 4.5),
+                          child: SvgPicture.asset(
+                            fit: BoxFit.contain,
+                            "assets/images/avatar_featured2.svg",
+                            width: constraint.maxWidth / 2.8,
+                          )),
+                    ),
                   ),
                 ),
                 InkWell(
