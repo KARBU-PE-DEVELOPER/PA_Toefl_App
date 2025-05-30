@@ -322,118 +322,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                 height: MediaQuery.of(context).size.height * 0.075,
                 child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child:
-                        // Row(
-                        //   children: [
-                        //     IconButton(
-                        //         onPressed: () {
-                        //           if ((state.selectedQuestions.firstOrNull?.number ??
-                        //                   1) <=
-                        //               1) {
-                        //             return;
-                        //           } else {
-                        //             ref
-                        //                 .read(fullTestProvider.notifier)
-                        //                 .getQuestionByNumber((state.selectedQuestions
-                        //                             .firstOrNull?.number ??
-                        //                         1) -
-                        //                     1);
-                        //           }
-                        //         },
-                        //         icon: const Icon(
-                        //           Icons.chevron_left,
-                        //           size: 30,
-                        //         )),
-                        //     const Spacer(),
-                        //     IconButton(
-                        //       onPressed: () {
-                        //         showDialog(
-                        //           context: context,
-                        //           builder: (context) {
-                        //             return AlertDialog(
-                        //               title: const Center(
-                        //                 child: Text(
-                        //                   'Face Detection',
-                        //                   style: TextStyle(
-                        //                       fontWeight: FontWeight.bold,
-                        //                       fontSize: 18),
-                        //                 ),
-                        //               ),
-                        //               content: const FaceDetectionPage(),
-                        //               actions: [
-                        //                 TextButton(
-                        //                   onPressed: () {
-                        //                     Navigator.pop(context);
-                        //                   },
-                        //                   child: const Text('Tutup'),
-                        //                 ),
-                        //               ],
-                        //             );
-                        //           },
-                        //         );
-                        //       },
-                        //       icon: const Icon(
-                        //         Icons.security, // Icon bisa disesuaikan
-                        //         size: 28,
-                        //       ),
-                        //     ),
-                        //     const Spacer(),
-                        //     IconButton(
-                        //         onPressed: () {
-                        //           ref
-                        //               .read(fullTestProvider.notifier)
-                        //               .getQuestionsFilledStatus()
-                        //               .then((value) {
-                        //             ref
-                        //                 .read(fullTestProvider.notifier)
-                        //                 .getQuestionsFilledStatus()
-                        //                 .then((value) {
-                        //               if (value != null) {
-                        //                 showModalBottomSheet(
-                        //                     context: context,
-                        //                     builder: (context) {
-                        //                       return BottomSheetFullTest(
-                        //                         filledStatus: value,
-                        //                         onTap: (number) {},
-                        //                       );
-                        //                     }).then((selectedNumber) {
-                        //                   if (selectedNumber != null) {
-                        //                     ref
-                        //                         .read(fullTestProvider.notifier)
-                        //                         .getQuestionByNumber(selectedNumber);
-                        //                   }
-                        //                 });
-                        //               }
-                        //             });
-                        //           });
-                        //         },
-                        //         icon: const Icon(
-                        //           Icons.list,
-                        //           size: 30,
-                        //         )),
-                        //     const Spacer(),
-                        //     IconButton(
-                        //       onPressed: () {
-                        //         final lastQuestionNumber =
-                        //             state.selectedQuestions.lastOrNull?.number ?? 1;
-                        //         final totalQuestions = state.totalQuestions;
-
-                        //         if (lastQuestionNumber >= totalQuestions) {
-                        //           return; // sudah soal terakhir, tidak lanjut
-                        //         } else {
-                        //           ref
-                        //               .read(fullTestProvider.notifier)
-                        //               .getQuestionByNumber(lastQuestionNumber + 1);
-                        //         }
-                        //       },
-                        //       icon: const Icon(
-                        //         Icons.chevron_right,
-                        //         size: 30,
-                        //       ),
-                        //     ),
-                        //   ],
-                        // ),
-                        Row(
+                    child: Row(
                       children: [
                         // Previous Button: tampil kalau soal sekarang > 1
                         if ((state.selectedQuestions.firstOrNull?.number ?? 1) >
@@ -459,41 +348,72 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                               width:
                                   48), // buat ruang supaya layout gak berubah
 
-                        const Spacer(),
+                        // const Spacer(),
 
-                        // Tombol lain tetap di tengah seperti security dan list
-                        IconButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Center(
-                                    child: Text(
-                                      'Face Detection',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18),
-                                    ),
-                                  ),
-                                  content: const FaceDetectionPage(),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Tutup'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.security,
-                            size: 28,
-                          ),
-                        ),
+                        // // Tombol lain tetap di tengah seperti security dan list
+                        // // Tampilkan ikon sesuai tipe paket
+                        // if (widget.packetType == "test")
+                        //   IconButton(
+                        //     onPressed: () {
+                        //       showDialog(
+                        //         context: context,
+                        //         builder: (context) {
+                        //           return AlertDialog(
+                        //             title: const Center(
+                        //               child: Text(
+                        //                 'Face Detection',
+                        //                 style: TextStyle(
+                        //                     fontWeight: FontWeight.bold,
+                        //                     fontSize: 18),
+                        //               ),
+                        //             ),
+                        //             content: const FaceDetectionPage(),
+                        //             actions: [
+                        //               TextButton(
+                        //                 onPressed: () {
+                        //                   Navigator.pop(context);
+                        //                 },
+                        //                 child: const Text('Tutup'),
+                        //               ),
+                        //             ],
+                        //           );
+                        //         },
+                        //       );
+                        //     },
+                        //     icon: const Icon(
+                        //       Icons.security,
+                        //       size: 28,
+                        //     ),
+                        //   )
+                        // else
+                        //   Consumer(
+                        //     builder: (context, ref, child) {
+                        //       final state = ref.watch(fullTestProvider);
+
+                        //       // Ambil soal pertama jika ada
+                        //       final firstQuestion =
+                        //           state.selectedQuestions.isNotEmpty
+                        //               ? state.selectedQuestions.first
+                        //               : null;
+
+                        //       if (firstQuestion == null) {
+                        //         // Jika tidak ada soal, tampilkan ikon bookmark kosong tapi disable
+                        //         return IconButton(
+                        //           onPressed: null,
+                        //           icon: const Icon(
+                        //             Icons.bookmark_border,
+                        //             size: 28,
+                        //             color: Colors.grey, // disabled color
+                        //           ),
+                        //         );
+                        //       } else {
+                        //         return BookmarkButton(
+                        //           initalValue: firstQuestion.bookmarked,
+                        //           questions: state.selectedQuestions,
+                        //         );
+                        //       }
+                        //     },
+                        //   ),
 
                         const Spacer(),
 
@@ -553,8 +473,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                           const SizedBox(
                               width: 48), // ruang supaya gak bergeser
                       ],
-                    )
-                    ),
+                    )),
               ),
             ),
           ],
