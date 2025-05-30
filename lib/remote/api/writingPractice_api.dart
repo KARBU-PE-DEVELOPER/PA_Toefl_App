@@ -16,7 +16,7 @@ class GrammarCommentatorAPI {
   Future<GrammarCommentator?> storeMessage(Map<String, dynamic> request) async {
     try {
       final Response rawResponse = await DioToefl.instance.post(
-        '${Env.apiUrl}/grammar-commentator/ask-ai',
+        '${Env.gameUrl}/writing-practice/ask-ai',
         data: request,
       );
 
@@ -53,7 +53,7 @@ class GrammarCommentatorAPI {
   Future<QuestionGrammarCommentator?> getQuestion() async {
     try {
       final Response rawResponse = await DioToefl.instance
-          .get('${Env.apiUrl}/grammar-commentator/get-statement');
+          .get('${Env.gameUrl}/writing-practice/get-statement');
 
       final BaseResponse response = BaseResponse.fromRawJson(rawResponse.data);
 
@@ -88,7 +88,7 @@ class GrammarCommentatorAPI {
   Future<List<GrammarCommentator>> getAllGrammarCommentator() async {
     try {
       final Response rawResponse = await DioToefl.instance
-          .get('${Env.apiUrl}/grammar-commentator/get-history');
+          .get('${Env.gameUrl}/writing-practice/get-history');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       return (response.payload as List)

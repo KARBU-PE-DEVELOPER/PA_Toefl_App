@@ -6,30 +6,35 @@ part 'profile.g.dart';
 
 @JsonSerializable()
 class Profile {
-  final dynamic id;
-  final String level;
-  @JsonKey(name: 'current_score', defaultValue: 0)
+  final int id;
+  
+  @JsonKey(name: 'level', defaultValue: "")
+  String level;
+  @JsonKey(name: 'current_score', defaultValue: "")
   int currentScore;
   @JsonKey(name: 'target_score', defaultValue: 0)
   int targetScore;
-  @JsonKey(name: 'name_user', defaultValue: '')
-  final String nameUser;
-  @JsonKey(defaultValue: 0)
-  int rank;
+  // @JsonKey(defaultValue: 0)
+  // int rank;
   @JsonKey(name: 'profile_image', defaultValue: '')
   final String profileImage;
-  @JsonKey(name: 'is_friend', defaultValue: false)
-  final bool isFriend;
+  @JsonKey(name: 'name_user', defaultValue: '')
+  final String nameUser;
+  @JsonKey(name: 'email_user', defaultValue: '')
+  final String emailUser;
+  // @JsonKey(name: 'is_friend', defaultValue: false)
+  // final bool isFriend;
 
   Profile({
     required this.id,
     required this.level,
     required this.currentScore,
     required this.targetScore,
-    required this.nameUser,
-    required this.rank,
+    // required this.rank,
     required this.profileImage,
-    required this.isFriend,
+    required this.nameUser,
+    required this.emailUser,
+    // required this.isFriend,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
@@ -50,10 +55,10 @@ class Profile {
       level: level,
       currentScore: currentScore,
       targetScore: targetScore,
-      nameUser: nameUser,
-      rank: rank,
       profileImage: profileImage,
-      isFriend: isFriend ?? this.isFriend,
+      nameUser: nameUser,
+      emailUser: emailUser,
+      // isFriend: isFriend ?? this.isFriend,
     );
   }
 }

@@ -38,14 +38,14 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   late List<GameHistory> gameHistory = [];
   Profile profile = Profile(
-      id: '',
-      nameUser: '',
-      rank: 0,
-      currentScore: 0,
-      targetScore: 0,
-      level: '',
-      profileImage: '',
-      isFriend: false);
+    id: 0,
+    level: "",
+    currentScore: 0,
+    targetScore: 0,
+    profileImage: "",
+    nameUser: "",
+    emailUser: "",
+  );
   final profileApi = ProfileApi();
   final miniGameApi = MiniGameApi();
   bool isLoading = false;
@@ -65,7 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
       UserLeaderBoard rank = await LeaderBoardApi().getUserRank();
       final history = await miniGameApi.getHistoryGame();
       await profileApi.getProfile().then((value) async {
-        value.rank = rank.rank!;
+        // value.rank = rank.rank!;
         setState(() {
           gameHistory = history;
           profile = value;
@@ -78,7 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
       final history = await miniGameApi.getHistoryGame(id: widget.userId);
 
       await profileApi.getUserProfile(widget.userId).then((value) {
-        value.rank = rank.rank!;
+        // value.rank = rank.rank!;
         setState(() {
           gameHistory = history;
           profile = value;
@@ -224,7 +224,6 @@ class _ProfilePageState extends State<ProfilePage> {
               SizedBox(
                 height: 30,
               ),
-             
             ],
           )),
     );
@@ -309,7 +308,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   width: MediaQuery.of(context).size.width * 0.3 - 25,
                   title: "Level",
                   icon: Icons.star,
-                  value: "Special Advance",
+                  value: profile.level,
                   bannerText: "take_a_test".tr(),
                   hideBanner: !widget.isMe,
                 ),
@@ -326,118 +325,118 @@ class _ProfilePageState extends State<ProfilePage> {
                   value:
                       "${profile.currentScore}${profile.targetScore != 0 ? '/${profile.targetScore}' : ''}",
                 ),
-                ProfileStatusCard(
-                    width: MediaQuery.of(context).size.width * 0.3 - 25,
-                    title: "Rank",
-                    hideBanner: true,
-                    icon: Icons.emoji_events,
-                    value: profile.rank <= 0
-                        ? "Unranked"
-                        : profile.rank.toString()),
+                // ProfileStatusCard(
+                //     width: MediaQuery.of(context).size.width * 0.3 - 25,
+                //     title: "Rank",
+                //     hideBanner: true,
+                //     icon: Icons.emoji_events,
+                //     value: profile.rank <= 0
+                //         ? "Unranked"
+                //         : profile.rank.toString()),
               ],
             ),
             const SizedBox(
               height: 20,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    if (widget.isMe) {
-                      Navigator.pushNamed(context, RouteKey.searchUser);
-                    } else {
-                      setState(() {
-                        isLoading = true;
-                      });
-                      await profileApi
-                          .changeFriendStatus(widget.userId)
-                          .then((value) {
-                        setState(() {
-                          this.profile =
-                              profile.copyWith(isFriend: !profile.isFriend);
-                          isLoading = false;
-                        });
-                      });
-                    }
-                  },
-                  child: !profile.isFriend
-                      ? BlueContainer(
-                          width: MediaQuery.of(context).size.width *
-                                  (widget.isMe ? 0.55 : 0.7) -
-                              25,
-                          color: mariner700,
-                          padding: 14,
-                          child: Center(
-                            child: Text(
-                              widget.isMe
-                                  ? "find_a_friend".tr()
-                                  : profile.isFriend
-                                      ? "remove_friend".tr()
-                                      : "add_friend".tr(),
-                              style: CustomTextStyle.bold16.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                        )
-                      : BorderButton(
-                          size: MediaQuery.of(context).size.width * 0.7 - 25,
-                          title: 'Remove Friend',
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          onTap: () async {
-                            setState(() {
-                              isLoading = true;
-                            });
-                            await profileApi
-                                .changeFriendStatus(widget.userId)
-                                .then((value) {
-                              setState(() {
-                                this.profile = profile.copyWith(
-                                    isFriend: !profile.isFriend);
-                                isLoading = false;
-                              });
-                            });
-                          },
-                        ),
-                ),
-                widget.isMe
-                    ? GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, RouteKey.searchUser,
-                              arguments: {
-                                "searchFriend": true,
-                              });
-                        },
-                        child: BlueContainer(
-                          padding: 12,
-                          width: MediaQuery.of(context).size.width * 0.2 - 25,
-                          color: mariner700,
-                          child: const Icon(
-                            Icons.group,
-                            color: Colors.white,
-                          ),
-                        ),
-                      )
-                    : const SizedBox(),
-                GestureDetector(
-                  onTap: () async {
-                    await Share.share(
-                        'check out my website https://example.com');
-                  },
-                  child: BlueContainer(
-                    padding: 12,
-                    width: MediaQuery.of(context).size.width * 0.2 - 25,
-                    color: mariner700,
-                    child: const Icon(
-                      Icons.share,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //   children: [
+            //     GestureDetector(
+            //       onTap: () async {
+            //         if (widget.isMe) {
+            //           Navigator.pushNamed(context, RouteKey.searchUser);
+            //         } else {
+            //           setState(() {
+            //             isLoading = true;
+            //           });
+            //           await profileApi
+            //               .changeFriendStatus(widget.userId)
+            //               .then((value) {
+            //             setState(() {
+            //               this.profile =
+            //                   profile.copyWith(isFriend: !profile.isFriend);
+            //               isLoading = false;
+            //             });
+            //           });
+            //         }
+            //       },
+            //       child: !profile.isFriend
+            //           ? BlueContainer(
+            //               width: MediaQuery.of(context).size.width *
+            //                       (widget.isMe ? 0.55 : 0.7) -
+            //                   25,
+            //               color: mariner700,
+            //               padding: 14,
+            //               child: Center(
+            //                 child: Text(
+            //                   widget.isMe
+            //                       ? "find_a_friend".tr()
+            //                       : profile.isFriend
+            //                           ? "remove_friend".tr()
+            //                           : "add_friend".tr(),
+            //                   style: CustomTextStyle.bold16.copyWith(
+            //                     color: Colors.white,
+            //                     fontWeight: FontWeight.w900,
+            //                   ),
+            //                 ),
+            //               ),
+            //             )
+            //           : BorderButton(
+            //               size: MediaQuery.of(context).size.width * 0.7 - 25,
+            //               title: 'Remove Friend',
+            //               padding: EdgeInsets.symmetric(vertical: 12),
+            //               onTap: () async {
+            //                 setState(() {
+            //                   isLoading = true;
+            //                 });
+            //                 await profileApi
+            //                     .changeFriendStatus(widget.userId)
+            //                     .then((value) {
+            //                   setState(() {
+            //                     this.profile = profile.copyWith(
+            //                         isFriend: !profile.isFriend);
+            //                     isLoading = false;
+            //                   });
+            //                 });
+            //               },
+            //             ),
+            //     ),
+            //     widget.isMe
+            //         ? GestureDetector(
+            //             onTap: () {
+            //               Navigator.pushNamed(context, RouteKey.searchUser,
+            //                   arguments: {
+            //                     "searchFriend": true,
+            //                   });
+            //             },
+            //             child: BlueContainer(
+            //               padding: 12,
+            //               width: MediaQuery.of(context).size.width * 0.2 - 25,
+            //               color: mariner700,
+            //               child: const Icon(
+            //                 Icons.group,
+            //                 color: Colors.white,
+            //               ),
+            //             ),
+            //           )
+            //         : const SizedBox(),
+            //     GestureDetector(
+            //       onTap: () async {
+            //         await Share.share(
+            //             'check out my website https://example.com');
+            //       },
+            //       child: BlueContainer(
+            //         padding: 12,
+            //         width: MediaQuery.of(context).size.width * 0.2 - 25,
+            //         color: mariner700,
+            //         child: const Icon(
+            //           Icons.share,
+            //           color: Colors.white,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),
