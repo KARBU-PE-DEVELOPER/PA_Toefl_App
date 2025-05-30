@@ -76,7 +76,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
         timer.cancel();
         if (!_blinkDetectedInCurrentWindow) {
           _showCheatingDialog(
-            "Tidak ada kedipan dalam 10 detik. Liveness gagal.",
+            "No blinking in 10 seconds. Liveness failed.",
           );
         } else {
           setState(() {
@@ -157,7 +157,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
           _startFrameTimer();
           _isFaceInFrame = false;
           setState(() {
-            _statusText = "Wajah Tidak Terdeteksi";
+            _statusText = "Face Not Detected";
           });
         }
       } else {
@@ -174,7 +174,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
             _isLookingForward = false;
           }
           setState(() {
-            _statusText = "Menoleh";
+            _statusText = "Look away";
           });
         } else {
           if (!_isLookingForward) {
@@ -212,7 +212,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
 
               _blinkCount++;
               setState(() {
-                _blinkStatus = "Kedip Terdeteksi";
+                _blinkStatus = "Blink Detected";
               });
             }
           } else {
@@ -244,7 +244,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
         });
       } else {
         timer.cancel();
-        _showCheatingDialog('Wajah tidak terdeteksi selama 5 menit.');
+        _showCheatingDialog('Face not detected for 5 minutes.');
       }
     });
   }
@@ -266,7 +266,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
   void _handleStartLookingAway() {
     _shortLookAwayCount++;
     if (_shortLookAwayCount >= 5) {
-      _showCheatingDialog('Terdeteksi menoleh lebih dari 5 kali.');
+      _showCheatingDialog('Detected turning more than 5 times.');
     }
 
     _notLookingSeconds = 0;
@@ -292,7 +292,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('🚨 Curang Terdeteksi!'),
+        title: const Text('🚨 Cheating Detected!'),
         content: Text(reason),
         actions: [
           TextButton(
@@ -375,14 +375,14 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                 color: Colors.green.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
-                'Kedip: $_blinkStatus\nKedipan: $_blinkCount kali',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // child: Text(
+              //   'Kedip: $_blinkStatus\nKedipan: $_blinkCount kali',
+              //   style: const TextStyle(
+              //     color: Colors.white,
+              //     fontSize: 18,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
             ),
           ),
           if (_shortLookAwayCount > 0 || _notLookingSeconds > 0)
@@ -397,26 +397,26 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_shortLookAwayCount > 0)
-                      Text(
-                        'Menoleh: $_shortLookAwayCount kali',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    if (_notLookingSeconds > 0)
-                      Text(
-                        'Waktu menoleh: ${_formatTime(_notLookingSeconds)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                  ],
+                  // children: [
+                  //   if (_shortLookAwayCount > 0)
+                  //     Text(
+                  //       'Menoleh: $_shortLookAwayCount kali',
+                  //       style: const TextStyle(
+                  //         color: Colors.white,
+                  //         fontSize: 16,
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //     ),
+                  //   if (_notLookingSeconds > 0)
+                  //     Text(
+                  //       'Waktu menoleh: ${_formatTime(_notLookingSeconds)}',
+                  //       style: const TextStyle(
+                  //         color: Colors.white,
+                  //         fontSize: 16,
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //     ),
+                  // ],
                 ),
               ),
             ),
@@ -430,14 +430,14 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                   color: Colors.red.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  'Waktu tanpa wajah: ${_formatTime(_timeLeft)}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                // child: Text(
+                //   'Waktu tanpa wajah: ${_formatTime(_timeLeft)}',
+                //   style: const TextStyle(
+                //     color: Colors.white,
+                //     fontSize: 18,
+                //     fontWeight: FontWeight.bold,
+                //   ),
+                // ),
               ),
             ),
           if (_showBlinkCountdown)
@@ -445,20 +445,20 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
               top: 250,
               left: 20,
               child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.deepOrange.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Harus kedip dalam: $_blinkCountdown detik',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  // padding: const EdgeInsets.all(10),
+                  // decoration: BoxDecoration(
+                  //   color: Colors.deepOrange.withOpacity(0.8),
+                  //   borderRadius: BorderRadius.circular(8),
+                  // ),
+                  // child: Text(
+                  //   'Harus kedip dalam: $_blinkCountdown detik',
+                  //   style: const TextStyle(
+                  //     color: Colors.white,
+                  //     fontSize: 18,
+                  //     fontWeight: FontWeight.bold,
+                  //   ),
+                  // ),
                   ),
-                ),
-              ),
             ),
         ],
       ),

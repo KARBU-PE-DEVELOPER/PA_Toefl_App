@@ -108,8 +108,8 @@ class FullTestApi {
 
   Future<List<Answer>> getAnswers(String packetId) async {
     try {
-      final Response rawResponse = await DioToefl.instance
-          .get('${Env.simulationUrl}/answer/users/$packetId');
+      final Response rawResponse =
+          await DioToefl.instance.get('${Env.apiUrl}/answer/users/$packetId');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       return (response.payload as List<dynamic>)
