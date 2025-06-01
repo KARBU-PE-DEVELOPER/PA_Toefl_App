@@ -1,23 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:toefl/models/estimated_score.dart' as model;
-import 'package:toefl/models/game_data.dart';
-import 'package:toefl/pages/rank_page.dart';
 import 'package:toefl/remote/api/estimated_score.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
-import 'package:toefl/widgets/home_page/topic_interest.dart';
-import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
 import 'package:toefl/widgets/toefl_progress_indicator.dart';
-
-import 'user_rank_card.dart';
 
 class EstimatedScoreWidget extends StatefulWidget {
   EstimatedScoreWidget({super.key});
@@ -46,7 +36,7 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
       model.EstimatedScore temp = await estimatedScoreApi.getEstimatedScore();
       _updateScore(temp);
     } catch (e) {
-      print("Error in fetchEstimatedScore: $e");
+      debugPrint("Error in fetchEstimatedScore: $e");
     } finally {
       _setLoadingState(false);
     }
@@ -71,6 +61,45 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
         };
       });
     }
+  }
+
+  // Helper method untuk mendapatkan user score sebagai double
+  double _getUserScoreAsDouble() {
+    if (estimatedScore?.userScore == null) return 0.0;
+
+    // Jika menggunakan model dengan String
+    if (estimatedScore!.userScore is String) {
+      return double.tryParse(estimatedScore!.userScore as String) ?? 0.0;
+    }
+
+    // Jika menggunakan model dengan double (alternative model)
+    if (estimatedScore!.userScore is double) {
+      return estimatedScore!.userScore as double;
+    }
+
+    return 0.0;
+  }
+
+  // Helper method untuk format score display
+  String _formatScore(dynamic score) {
+    if (score == null) return "0.00";
+
+    if (score is String) {
+      // Jika sudah string, langsung return
+      return score;
+    }
+
+    if (score is double) {
+      // Jika double, format ke 2 desimal
+      return score.toStringAsFixed(2);
+    }
+
+    if (score is int) {
+      // Jika int, convert ke double lalu format
+      return score.toDouble().toStringAsFixed(2);
+    }
+
+    return score.toString();
   }
 
   @override
@@ -111,7 +140,7 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        "${estimatedScore?.userScore}",
+                                        _formatScore(estimatedScore?.userScore),
                                         style: TextStyle(
                                             fontSize: constraint.maxHeight / 7,
                                             fontWeight: FontWeight.w800,
@@ -119,7 +148,7 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                                             color: Color(0xFF00394C)),
                                       ),
                                       Text(
-                                        "/${estimatedScore?.targetUser}",
+                                        "/${estimatedScore?.targetUser ?? 0}",
                                         style: TextStyle(
                                             fontSize: constraint.maxHeight / 10,
                                             fontWeight: FontWeight.w800,
@@ -130,7 +159,7 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                                 ),
                                 Positioned(
                                   child: ToeflProgressIndicator(
-                                    value: (estimatedScore?.userScore ?? 0) /
+                                    value: _getUserScoreAsDouble() /
                                         _getTargetScore(),
                                     scale: constraint.maxHeight / 150,
                                     strokeWidth: constraint.maxHeight / 10,
@@ -149,7 +178,6 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  // "Estimated score",
                                   'My Target'.tr(),
                                   style: TextStyle(
                                       fontSize: 18,
@@ -159,7 +187,7 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
                                 ),
                                 ...score.entries.map(
                                   (entry) => Text(
-                                    '${entry.key}: ${entry.value}',
+                                    '${entry.key}: ${_formatScore(entry.value)}',
                                     style: TextStyle(
                                         fontSize: 14,
                                         fontFamily:
@@ -212,17 +240,6 @@ class _EstimatedScoreWidgetState extends State<EstimatedScoreWidget> {
         const SizedBox(
           height: 30,
         ),
-        // const Padding(
-        //   padding: EdgeInsets.symmetric(horizontal: 14),
-        //   child: Text(
-        //     "Today’s Learning",
-        //     style: TextStyle(
-        //         color: Color(0xFF00394C),
-        //         fontSize: 24,
-        //         fontWeight: FontWeight.w700),
-        //   ),
-        // ),
-        // const KeeplearningProgress(),
       ],
     );
   }

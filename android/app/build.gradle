@@ -23,12 +23,12 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.pens.toefl"
+    namespace "com.pens.vocadia"
     compileSdkVersion 35
     ndkVersion flutter.ndkVersion
 
     defaultConfig {
-        applicationId "com.pens.toefl"
+        applicationId "com.pens.vocadia"
         minSdkVersion 21
         targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()

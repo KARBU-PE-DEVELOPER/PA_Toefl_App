@@ -20,11 +20,11 @@ class SimulationTestWidget extends StatelessWidget {
                 InkWell(
                   borderRadius: BorderRadius.circular(10),
                   onTap: null,
-                  // () => Navigator.of(context).pushNamed(
-                  //   RouteKey.simulationpage,
-                  //   arguments: {
-                  //     "type": "test", // Mengirim tipe "test"
-                  //   },
+                  //   () => Navigator.of(context).pushNamed(
+                  // RouteKey.simulationpage,
+                  // arguments: {
+                  //   "type": "test", // Mengirim tipe "test"
+                  // },
                   // ),
                   child: Opacity(
                     opacity: 0.5, // Add opacity to show it's disabled
