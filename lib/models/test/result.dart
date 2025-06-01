@@ -8,11 +8,19 @@ class Result {
   @JsonKey(defaultValue: '', fromJson: _stringFromJson)
   final String id;
 
-  @JsonKey(defaultValue: 0, name: 'score', fromJson: _intFromNullableJson)
-  final int percentage;
-
   @JsonKey(defaultValue: 0.0, name: 'score_toefl', fromJson: _doubleFromJson)
   final double toeflScore;
+
+  @JsonKey(
+      defaultValue: 0.0, name: 'score_listening', fromJson: _doubleFromJson)
+  final double scoreListening;
+
+  @JsonKey(defaultValue: 0.0, name: 'score_reading', fromJson: _doubleFromJson)
+  final double scoreReading;
+
+  @JsonKey(
+      defaultValue: 0.0, name: 'score_structure', fromJson: _doubleFromJson)
+  final double scoreStructure;
 
   @JsonKey(defaultValue: 0, name: 'target_user', fromJson: _intFromNullableJson)
   final int targetUser;
@@ -94,8 +102,10 @@ class Result {
 
   Result({
     required this.id,
-    required this.percentage,
     required this.toeflScore,
+    required this.scoreListening,
+    required this.scoreReading,
+    required this.scoreStructure,
     required this.targetUser,
     required this.answeredQuestion,
     required this.correctQuestionAll,
@@ -124,6 +134,18 @@ class Result {
     required this.accuracyReading,
   });
 
+  // ✅ Tambahkan getter untuk calculate percentage
+  int get percentage {
+    if (totalQuestionAll == 0) return 0;
+    return ((correctQuestionAll / totalQuestionAll) * 100).round();
+  }
+
+  // ✅ Getter untuk TOEFL score percentage terhadap target
+  int get toeflScorePercentage {
+    if (targetUser == 0) return 0;
+    return ((toeflScore / targetUser) * 100).round();
+  }
+
   factory Result.fromJson(Map<String, dynamic> json) => _$ResultFromJson(json);
 
   factory Result.fromJsonString(String jsonString) =>
@@ -134,7 +156,7 @@ class Result {
   String toStringJson() => jsonEncode(toJson());
 }
 
-// 🔧 Custom deserializers
+// Custom deserializers (sama seperti sebelumnya)
 String _stringFromJson(dynamic value) {
   if (value == null) return '';
   return value.toString();

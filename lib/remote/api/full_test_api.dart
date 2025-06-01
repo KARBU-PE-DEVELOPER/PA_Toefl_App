@@ -132,7 +132,7 @@ class FullTestApi {
       debugPrint('error get test result: $e');
       return Result(
         id: '',
-        percentage: 0,
+        
         toeflScore: 0,
         correctQuestionAll: 0,
         totalQuestionAll: 0,
@@ -159,7 +159,7 @@ class FullTestApi {
         totalReading: 0,
         accuracyReading: 0,
         targetUser: 0,
-        answeredQuestion: 0,
+        answeredQuestion: 0, scoreListening: 0, scoreReading: 0, scoreStructure: 0,
       );
     }
   }

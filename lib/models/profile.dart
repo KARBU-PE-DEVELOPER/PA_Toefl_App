@@ -8,10 +8,10 @@ part 'profile.g.dart';
 class Profile {
   final dynamic id;
   final String level;
-  @JsonKey(name: 'current_score', defaultValue: 0)
-  int currentScore;
-  @JsonKey(name: 'target_score', defaultValue: 0)
-  int targetScore;
+  @JsonKey(name: 'current_score', fromJson: _toDouble, defaultValue: 0.0)
+  double currentScore;
+  @JsonKey(name: 'target_score', fromJson: _toDouble, defaultValue: 0.0)
+  double targetScore;
   @JsonKey(name: 'name_user', defaultValue: '')
   final String nameUser;
   @JsonKey(defaultValue: 0)
@@ -31,6 +31,12 @@ class Profile {
     required this.profileImage,
     required this.isFriend,
   });
+  static double _toDouble(dynamic value) {
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    if (value is double) return value;
+    return 0.0;
+  }
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
