@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:toefl/models/test/history.dart';
+import 'package:toefl/remote/api/history_api.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 
@@ -11,72 +13,99 @@ class HistoryScore extends StatefulWidget {
 
 class _HistoryScoreState extends State<HistoryScore> {
   String selectedType = "Test";
-  final ScrollController _scrollController = ScrollController();
+  ScrollController? _scrollController;
   bool canScrollLeft = false;
   bool canScrollRight = false;
 
-  final List<Map<String, dynamic>> historyData = [
-    {
-      "id": 1,
-      "type": "Test",
-      "listening": 25,
-      "structure": 23,
-      "reading": 27,
-      "total": 75,
-      "date": "2025-04-02",
-      "time": "08:30 AM"
-    },
-    {
-      "id": 2,
-      "type": "Simulation",
-      "listening": 22,
-      "structure": 20,
-      "reading": 24,
-      "total": 66,
-      "date": "2025-04-01",
-      "time": "10:00 AM"
-    },
-    {
-      "id": 3,
-      "type": "Test",
-      "listening": 28,
-      "structure": 25,
-      "reading": 30,
-      "total": 83,
-      "date": "2025-03-30",
-      "time": "02:15 PM"
-    },
-  ];
+  final HistoryApi _historyApi = HistoryApi();
+  List<HistoryItem> historyData = [];
+  bool isLoading = true;
+  bool isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_updateScrollIndicators);
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _updateScrollIndicators());
+    // Initialize ScrollController safely
+    _initializeScrollController();
+    // Load initial data
+    _loadHistoryData();
+  }
+
+  void _initializeScrollController() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _scrollController = ScrollController();
+          _scrollController!.addListener(_updateScrollIndicators);
+          isInitialized = true;
+        });
+        _updateScrollIndicators();
+      }
+    });
+  }
+
+  Future<void> _loadHistoryData() async {
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      debugPrint("Loading history data for type: $selectedType");
+      final data =
+          await _historyApi.getHistoryByType(selectedType.toLowerCase());
+
+      if (mounted) {
+        setState(() {
+          historyData = data;
+          isLoading = false;
+        });
+        debugPrint("History data loaded: ${data.length} items");
+      }
+    } catch (e) {
+      debugPrint('Error loading history data: $e');
+      if (mounted) {
+        setState(() {
+          historyData = [];
+          isLoading = false;
+        });
+      }
+    }
   }
 
   void _updateScrollIndicators() {
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
+    if (_scrollController == null ||
+        !_scrollController!.hasClients ||
+        !mounted) {
+      return;
+    }
 
-    setState(() {
-      canScrollLeft = currentScroll > 0;
-      canScrollRight = currentScroll < maxScroll;
-    });
+    try {
+      final maxScroll = _scrollController!.position.maxScrollExtent;
+      final currentScroll = _scrollController!.offset;
+
+      setState(() {
+        canScrollLeft = currentScroll > 0;
+        canScrollRight = currentScroll < maxScroll;
+      });
+    } catch (e) {
+      debugPrint('Error updating scroll indicators: $e');
+    }
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_updateScrollIndicators);
-    _scrollController.dispose();
+    _scrollController?.removeListener(_updateScrollIndicators);
+    _scrollController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredData =
-        historyData.where((item) => item["type"] == selectedType).toList();
+    final filteredData = historyData
+        .where((item) => item.type.toLowerCase() == selectedType.toLowerCase())
+        .toList();
 
     return SizedBox(
       width: double.infinity,
@@ -94,11 +123,14 @@ class _HistoryScoreState extends State<HistoryScore> {
                     bottomLeft: Radius.circular(2),
                   ),
                   child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedType = "Test";
-                      });
-                    },
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            setState(() {
+                              selectedType = "Test";
+                            });
+                            _loadHistoryData();
+                          },
                     style: ButtonStyle(
                       backgroundColor: WidgetStateProperty.all(
                         selectedType == "Test"
@@ -129,11 +161,14 @@ class _HistoryScoreState extends State<HistoryScore> {
                     topRight: Radius.circular(50),
                   ),
                   child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedType = "Simulation";
-                      });
-                    },
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            setState(() {
+                              selectedType = "Simulation";
+                            });
+                            _loadHistoryData();
+                          },
                     style: ButtonStyle(
                       backgroundColor: WidgetStateProperty.all(
                         selectedType == "Simulation"
@@ -163,47 +198,88 @@ class _HistoryScoreState extends State<HistoryScore> {
 
             const SizedBox(height: 16),
 
-            // Scrollable Table
-            Scrollbar(
-              controller: _scrollController,
-              thumbVisibility: true,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 800),
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text("No")),
-                      DataColumn(label: Text("Total")),
-                      DataColumn(label: Text("Date & Time")),
-                      DataColumn(label: Text("Listening")),
-                      DataColumn(label: Text("Structure")),
-                      DataColumn(label: Text("Reading")),
-                    ],
-                    rows: List.generate(filteredData.length, (index) {
-                      final data = filteredData[index];
-                      final dateTime = "${data["date"]} ${data["time"]}";
-                      return DataRow(cells: [
-                        DataCell(Text("${index + 1}")),
-                        DataCell(Text("${data["total"]}")),
-                        DataCell(Text(dateTime)),
-                        DataCell(Text("${data["listening"]}")),
-                        DataCell(Text("${data["structure"]}")),
-                        DataCell(Text("${data["reading"]}")),
-                      ]);
-                    }),
-                  ),
-                ),
-              ),
-            ),
+            // Scrollable Table with loading and empty states
+            isLoading
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                : filteredData.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.history,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'There is no $selectedType history yet',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : _buildDataTable(filteredData),
 
             const SizedBox(height: 8),
-
-            // Scroll indicator line
-
             const SizedBox(height: 30),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataTable(List<HistoryItem> filteredData) {
+    // Only build the scrollable table if controller is initialized
+    if (!isInitialized || _scrollController == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Scrollbar(
+      controller: _scrollController!,
+      thumbVisibility: true,
+      child: SingleChildScrollView(
+        controller: _scrollController!,
+        scrollDirection: Axis.horizontal,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 800),
+          child: DataTable(
+            columns: const [
+              DataColumn(label: Text("No")),
+              DataColumn(label: Text("Total")),
+              DataColumn(label: Text("Date & Time")),
+              DataColumn(label: Text("Listening")),
+              DataColumn(label: Text("Structure")),
+              DataColumn(label: Text("Reading")),
+            ],
+            rows: List.generate(filteredData.length, (index) {
+              final data = filteredData[index];
+              return DataRow(cells: [
+                DataCell(Text("${index + 1}")),
+                DataCell(Text(data.displayTotal)),
+                DataCell(Text("-")),
+                DataCell(Text(data.displayListening)),
+                DataCell(Text(data.displayStructure)),
+                DataCell(Text(data.displayReading)),
+              ]);
+            }),
+          ),
         ),
       ),
     );
