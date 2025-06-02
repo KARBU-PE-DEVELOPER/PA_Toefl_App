@@ -40,7 +40,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Profile profile = Profile(
     id: 0,
     level: "",
-    currentScore: 0,
+    currentScore: "",
     targetScore: 0,
     profileImage: "",
     nameUser: "",

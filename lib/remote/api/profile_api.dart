@@ -28,7 +28,7 @@ class ProfileApi {
       return Profile(
         id: 0,
         level: "",
-        currentScore: 0,
+        currentScore: "",
         targetScore: 0,
         profileImage: "",
         nameUser: "",
@@ -50,7 +50,7 @@ class ProfileApi {
       return Profile(
         id: 0,
         level: "",
-        currentScore: 0,
+        currentScore: "",
         targetScore: 0,
         profileImage: "",
         nameUser: "",
@@ -117,7 +117,7 @@ class ProfileApi {
     try {
       String fileName = image?.path.split('/').last ?? "";
       final Response rawResponse = await (dio ?? DioToefl.instance).post(
-        '${Env.userUrl}/edit/profile',
+        '${Env.userUrl}/users/edit-profile',
         data: FormData.fromMap({
           'name': name,
           "file": image != null

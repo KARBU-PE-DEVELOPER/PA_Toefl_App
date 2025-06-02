@@ -84,16 +84,16 @@ class _SettingState extends State<Setting> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, RouteKey.editProfile,
-                  arguments: {"name": widget.name, "image": widget.image});
-            },
-            child: _listTileCustom(
-              Icons.edit_note,
-              'edit_profile'.tr(),
-            ),
-          ),
+          // GestureDetector(
+          //   onTap: () {
+          //     Navigator.pushNamed(context, RouteKey.editProfile,
+          //         arguments: {"name": widget.name, "image": widget.image});
+          //   },
+          //   child: _listTileCustom(
+          //     Icons.edit_note,
+          //     'edit_profile'.tr(),
+          //   ),
+          // ),
           _listTileCustom(Icons.notifications, 'notification'.tr(),
               trailing: _switchButton()),
           const Divider(

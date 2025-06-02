@@ -6,29 +6,17 @@ part 'profile.g.dart';
 
 @JsonSerializable()
 class Profile {
-<<<<<<< HEAD
+  @JsonKey(name: 'id', defaultValue: 0)
   final int id;
   
   @JsonKey(name: 'level', defaultValue: "")
   String level;
   @JsonKey(name: 'current_score', defaultValue: "")
-  int currentScore;
+  String currentScore;
   @JsonKey(name: 'target_score', defaultValue: 0)
   int targetScore;
   // @JsonKey(defaultValue: 0)
   // int rank;
-=======
-  final dynamic id;
-  final String level;
-  @JsonKey(name: 'current_score', fromJson: _toDouble, defaultValue: 0.0)
-  double currentScore;
-  @JsonKey(name: 'target_score', fromJson: _toDouble, defaultValue: 0.0)
-  double targetScore;
-  @JsonKey(name: 'name_user', defaultValue: '')
-  final String nameUser;
-  @JsonKey(defaultValue: 0)
-  int rank;
->>>>>>> 39296d12af8e6a834580ed1601707eaa3dd562fc
   @JsonKey(name: 'profile_image', defaultValue: '')
   final String profileImage;
   @JsonKey(name: 'name_user', defaultValue: '')

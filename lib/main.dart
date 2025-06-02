@@ -62,7 +62,7 @@
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: Locale(Platform.localeName),
-        title: 'PENS English Learning',
+        title: 'Vocadia',
         theme: ThemeData(
           primaryColor: HexColor(mariner700),
           secondaryHeaderColor: HexColor(mariner100),
