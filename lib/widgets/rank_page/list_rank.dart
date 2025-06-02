@@ -38,7 +38,7 @@ class _ListRankState extends State<ListRank> {
                   ),
                 ),
               ),
-              const SizedBox(width: 15),
+              // const SizedBox(width: 15),
               const CircleAvatar(
                 backgroundImage: AssetImage('assets/images/avatar_profile.png'),
                 radius: 25,

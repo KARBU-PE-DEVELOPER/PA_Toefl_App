@@ -14,7 +14,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     this.height = kToolbarHeight,
     required this.title,
-    this.backgroundColor = Colors.white,
+    this.backgroundColor,
     this.withBack = true,
     this.actions,
   });
@@ -22,7 +22,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: backgroundColor,
+      // backgroundColor: backgroundColor,
       scrolledUnderElevation: 0,
       centerTitle: true,
       leading: withBack!

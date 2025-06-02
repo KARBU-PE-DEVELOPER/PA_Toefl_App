@@ -72,7 +72,8 @@ class _RankPageState extends State<RankPage> {
                                 index + 3; // Mulai dari peringkat ke-4
                             return Padding(
                               padding: EdgeInsets.only(
-                                top: index == 0 ? 90 : 8,
+                                top: index == 0 ? 10 : 8,
+                                // top: 8,
                                 bottom:
                                     actualIndex == listRank.length - 1 ? 20 : 8,
                                 left: 24,
@@ -118,7 +119,7 @@ class _RankPageState extends State<RankPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      // const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         verticalDirection: VerticalDirection.up,
