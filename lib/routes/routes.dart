@@ -214,11 +214,11 @@ final routes = <String, Widget Function(BuildContext)>{
       image: data?["image"] ?? '',
     );
   },
-  RouteKey.searchUser: (context) {
-    final data =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    return SearchUserPage(
-      searchFriend: data?["searchFriend"] ?? false,
-    );
-  },
+  // RouteKey.searchUser: (context) {
+  //   final data =
+  //       ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+  //   return SearchUserPage(
+  //     searchFriend: data?["searchFriend"] ?? false,
+  //   );
+  // },
 };

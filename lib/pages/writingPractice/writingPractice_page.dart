@@ -87,7 +87,6 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: GameAppBar(
         title: "writing_practice".tr(),
       ),
