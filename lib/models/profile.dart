@@ -6,6 +6,7 @@ part 'profile.g.dart';
 
 @JsonSerializable()
 class Profile {
+<<<<<<< HEAD
   final int id;
   
   @JsonKey(name: 'level', defaultValue: "")
@@ -16,6 +17,18 @@ class Profile {
   int targetScore;
   // @JsonKey(defaultValue: 0)
   // int rank;
+=======
+  final dynamic id;
+  final String level;
+  @JsonKey(name: 'current_score', fromJson: _toDouble, defaultValue: 0.0)
+  double currentScore;
+  @JsonKey(name: 'target_score', fromJson: _toDouble, defaultValue: 0.0)
+  double targetScore;
+  @JsonKey(name: 'name_user', defaultValue: '')
+  final String nameUser;
+  @JsonKey(defaultValue: 0)
+  int rank;
+>>>>>>> 39296d12af8e6a834580ed1601707eaa3dd562fc
   @JsonKey(name: 'profile_image', defaultValue: '')
   final String profileImage;
   @JsonKey(name: 'name_user', defaultValue: '')
@@ -36,6 +49,12 @@ class Profile {
     required this.emailUser,
     // required this.isFriend,
   });
+  static double _toDouble(dynamic value) {
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    if (value is double) return value;
+    return 0.0;
+  }
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
