@@ -101,7 +101,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Skeletonizer(
       enabled: isLoading,
       child: Scaffold(
-          backgroundColor: Colors.white,
+          
           appBar: CommonAppBar(
             title: 'appbar_profile'.tr(),
             withBack: widget.isMe ? false : true,
