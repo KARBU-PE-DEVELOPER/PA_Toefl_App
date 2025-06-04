@@ -83,9 +83,11 @@ final routes = <String, Widget Function(BuildContext)>{
     debugPrint("Navigating to fullTest with: $data");
 
     return FullTestPage(
-      diffInSec: data?["diffInSeconds"] ?? 0,
-      isRetake: data?["isRetake"] ?? false,
-      packetType: data?['packetType'] ?? '',
+       diffInSec: data?["diffInSeconds"] ?? 0,
+    isRetake: data?["isRetake"] ?? false,
+    packetType: data?["packetType"] ?? "simulation",
+    packetId: data?["packetId"] ?? "", // TAMBAH PARAMETER INI
+    packetName: data?["packetName"] ?? "",
     );
   },
   RouteKey.regist: (context) => const RegistPage(),
@@ -130,6 +132,7 @@ final routes = <String, Widget Function(BuildContext)>{
       packetId: data?["packetId"] ?? "",
       isMiniTest: data?["isMiniTest"] ?? false,
       packetName: data?["packetName"] ?? "",
+      packetType: data?['packetType'] ?? 'simulation', // TAMBAH DEFAULT VALUE
     );
   },
   RouteKey.profile: (context) {

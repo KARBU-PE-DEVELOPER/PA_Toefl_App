@@ -50,13 +50,21 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
       state = state.copyWith(isLoading: true);
 
       final testStat = await _testSharedPref.getStatus();
+      debugPrint("📊 TEST STATUS: $testStat"); // Debug log
+      debugPrint("💾 STORED ID: ${testStat?.id}"); // Debug log
       debugPrint("total pertanyaan ${state.totalQuestions}");
 
       if (testStat != null) {
+        // Validasi ID sebelum digunakan
+        if (testStat.id.isEmpty) {
+          debugPrint("❌ ERROR: Test status ID is empty!");
+          throw Exception("Invalid test status ID");
+        }
+
         if (testStat.resetTable) {
           await _testSharedPref.saveStatus(
             TestStatus(
-              id: testStat.id,
+              id: testStat.id, // Pastikan konsisten
               startTime: testStat.startTime,
               name: testStat.name,
               resetTable: false,
@@ -66,7 +74,8 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
           await resetPacketTable();
         }
 
-        // Ambil dari API meskipun resetTable == false
+        // Ambil dari API dengan ID yang benar
+        debugPrint("🔄 CALLING API WITH ID: ${testStat.id}"); // Debug log
         await _getPacketDetailFromApi(testStat.id);
         await _insertQuestionsToLocal();
         await getQuestionByNumber(1);
@@ -75,9 +84,12 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
           testStatus: testStat,
           totalQuestions: state.packetDetail.questions.length,
         );
+      } else {
+        debugPrint("❌ ERROR: Test status is null!");
+        throw Exception("No test status found");
       }
     } catch (e) {
-      debugPrint("error: $e");
+      debugPrint("💥 ERROR IN onInit: $e");
     } finally {
       state = state.copyWith(isLoading: false);
     }
@@ -120,6 +132,7 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
 
   Future<void> _getPacketDetailFromApi(String id) async {
     try {
+      debugPrint("🔍 GETTING PACKET DETAIL FOR ID: $id"); // Tambahkan ini
       final packetDetail = await _fullTestApi.getPacketDetail(id);
       debugPrint(
           "Packet Detail dari API: ${packetDetail.questions.length} pertanyaan");
@@ -127,6 +140,8 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
           packetDetail: packetDetail,
           totalQuestions: packetDetail.questions.length);
     } catch (e) {
+      debugPrint(
+          "❌ ERROR GETTING PACKET DETAIL FOR ID $id: $e"); // Tambahkan ini
       rethrow;
     }
   }
