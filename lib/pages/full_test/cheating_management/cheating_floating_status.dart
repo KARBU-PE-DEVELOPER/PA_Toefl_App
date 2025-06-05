@@ -132,8 +132,8 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
       ),
       onDragEnd: (details) {
         final screenSize = MediaQuery.of(context).size;
-        final widgetWidth = _isExpanded ? 180 : 60;
-        final widgetHeight = _isExpanded ? 140 : 60;
+        final widgetWidth = _isExpanded ? 200 : 60; // PERBESAR WIDTH
+        final widgetHeight = _isExpanded ? 180 : 60; // PERBESAR HEIGHT
 
         setState(() {
           _xPosition = math.max(
@@ -153,9 +153,9 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
       shadowColor: _getLookAwayColor().withOpacity(0.3),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        width: _isExpanded ? 180 : 60,
-        height: _isExpanded ? 140 : 60,
-        padding: EdgeInsets.all(_isExpanded ? 10 : 6),
+        width: _isExpanded ? 200 : 60, // PERBESAR WIDTH
+        height: _isExpanded ? 180 : 60, // PERBESAR HEIGHT
+        padding: EdgeInsets.all(_isExpanded ? 12 : 6), // PERBESAR PADDING
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -222,98 +222,89 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
   Widget _buildExpandedContent() {
     final lookAwayRemaining = widget.maxLookAway - widget.lookAwayCount;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header with status icon
-          Row(
-            children: [
-              Icon(
-                _getStatusIcon(),
-                color: _getLookAwayColor(),
-                size: 16,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  widget.currentStatus,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween, // DISTRIBUSI RATA
+      children: [
+        // Header with status icon
+        Row(
+          children: [
+            Icon(
+              _getStatusIcon(),
+              color: _getLookAwayColor(),
+              size: 18, // PERBESAR ICON
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                widget.currentStatus,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12, // PERBESAR FONT
+                  fontWeight: FontWeight.bold,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-
-          // Look away counter
-          _buildInfoRow(
-            Icons.visibility_off,
-            "Look away",
-            "$lookAwayRemaining/${widget.maxLookAway}",
-            _getLookAwayColor(),
-          ),
-
-          const SizedBox(height: 2),
-
-          // Face detection countdown timer - MENGGUNAKAN COUNTDOWN
-          if (widget.faceNotDetectedSeconds > 0)
-            _buildInfoRow(
-              Icons.timer,
-              "Face Timer",
-              _formatCountdown(
-                  widget.faceNotDetectedCountdown), // COUNTDOWN FORMAT
-              _getTimeColor(),
-            ),
-
-          const SizedBox(height: 2),
-
-          // Blink status
-          _buildInfoRow(
-            Icons.remove_red_eye,
-            "Blink",
-            widget.blinkCountdown > 0 ? "${widget.blinkCountdown}s" : "✓",
-            widget.blinkCountdown <= 3 ? Colors.orange : Colors.green,
-          ),
-
-          const SizedBox(height: 4),
-
-          // Minimize button
-          Center(
-            child: Container(
-              width: 20,
-              height: 2,
-              decoration: BoxDecoration(
-                color: Colors.white54,
-                borderRadius: BorderRadius.circular(1),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
+          ],
+        ),
+
+        // Look away counter
+        _buildInfoRow(
+          Icons.visibility_off,
+          "Look away",
+          "$lookAwayRemaining/${widget.maxLookAway}",
+          _getLookAwayColor(),
+        ),
+
+        // Face detection countdown timer - MENGGUNAKAN COUNTDOWN
+        if (widget.faceNotDetectedSeconds > 0)
+          _buildInfoRow(
+            Icons.timer,
+            "Face Timer",
+            _formatCountdown(
+                widget.faceNotDetectedCountdown), // COUNTDOWN FORMAT
+            _getTimeColor(),
           ),
-        ],
-      ),
+
+        // Blink status
+        _buildInfoRow(
+          Icons.remove_red_eye,
+          "Blink",
+          widget.blinkCountdown > 0 ? "${widget.blinkCountdown}s" : "✓",
+          widget.blinkCountdown <= 3 ? Colors.orange : Colors.green,
+        ),
+
+        // Minimize button
+        Center(
+          child: Container(
+            width: 24, // PERBESAR BUTTON
+            height: 3,
+            decoration: BoxDecoration(
+              color: Colors.white54,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value, Color color) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1),
+      padding: const EdgeInsets.symmetric(vertical: 2), // PERBESAR SPACING
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 10),
-          const SizedBox(width: 3),
+          Icon(icon, color: color, size: 14), // PERBESAR ICON
+          const SizedBox(width: 6), // PERBESAR SPACING
           Expanded(
             child: Text(
               label,
               style: const TextStyle(
                 color: Colors.white70,
-                fontSize: 8,
+                fontSize: 11, // PERBESAR FONT
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -322,7 +313,7 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
             value,
             style: TextStyle(
               color: color,
-              fontSize: 9,
+              fontSize: 11, // PERBESAR FONT
               fontWeight: FontWeight.bold,
             ),
           ),
