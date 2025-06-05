@@ -53,7 +53,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
     'faceNotDetectedSeconds': 0,
     'faceNotDetectedCountdown': 300,
     'blinkCountdown': 10,
-    'currentStatus': 'Memulai monitoring...',
+    'currentStatus': 'Start monitoring...',
     'blinkStatus': 'Normal',
   });
 
@@ -90,7 +90,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
         // UPDATE STATUS AWAL
         _statusNotifier.value = {
           ..._statusNotifier.value,
-          'currentStatus': 'Monitoring aktif',
+          'currentStatus': 'Monitoring Active',
         };
 
         // Buat hidden camera detection
@@ -212,7 +212,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Ujian Otomatis Di-Submit',
+                    'Auto Submit Exam',
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -233,7 +233,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                       const Icon(Icons.security, color: Colors.red, size: 48),
                       const SizedBox(height: 12),
                       const Text(
-                        'Pelanggaran Terdeteksi',
+                        'Cheating Detected',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -250,7 +250,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Ujian Anda akan otomatis di-submit untuk menjaga integritas pengujian.',
+                  'Your test will be automatically submitted to maintain test integration.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
@@ -267,7 +267,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 45),
                 ),
-                child: const Text('Submit Ujian'),
+                child: const Text('Submit Exam'),
               ),
             ],
           ),
@@ -640,9 +640,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
           context: context,
           barrierDismissible: false,
           builder: (_) => AlertDialog(
-            title: const Text('Mode Terkunci Dinonaktifkan'),
-            content: const Text(
-                'Silakan klik "Kunci Ulang" untuk melanjutkan ujian.'),
+            title: const Text('Locked Mode Disabled'),
+            content: const Text('Please click "Re-Lock" to continue the exam.'),
             actions: [
               TextButton(
                 onPressed: () async {
@@ -650,7 +649,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                   await FlutterLockTask().startLockTask();
                   isAskedToReLock = false;
                 },
-                child: const Text('Kunci Ulang'),
+                child: const Text('Rekey'),
               )
             ],
           ),

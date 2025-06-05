@@ -118,7 +118,7 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Kedipkan mata Anda',
+                      'Blink your eyes',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -128,7 +128,7 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Untuk memverifikasi kehadiran Anda',
+                      'To verify your presence',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.white.withOpacity(0.85),
@@ -193,8 +193,7 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
       } else {
         timer.cancel();
         if (!_blinkDetectedInCurrentWindow) {
-          _showPersistentBlinkWarning(
-              "Silakan kedipkan mata untuk membuktikan Anda manusia.");
+          _showPersistentBlinkWarning("Please blink to prove you are human.");
         }
         Future.delayed(const Duration(seconds: 1), () {
           _blinkCountdown = 15; // RESET KE 15 DETIK
