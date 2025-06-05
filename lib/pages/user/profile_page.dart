@@ -40,11 +40,11 @@ class _ProfilePageState extends State<ProfilePage> {
   Profile profile = Profile(
     id: 0,
     level: "",
-    currentScore: "",
+    currentScore: 0,
     targetScore: 0,
     profileImage: "",
     nameUser: "",
-    emailUser: "",
+    // emailUser: "",
   );
   final profileApi = ProfileApi();
   final miniGameApi = MiniGameApi();

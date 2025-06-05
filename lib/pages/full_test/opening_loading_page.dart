@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lottie/lottie.dart';
 import 'package:toefl/models/test/test_status.dart';
 import 'package:toefl/remote/local/shared_pref/test_shared_preferences.dart';
 import 'package:toefl/routes/route_key.dart';
@@ -129,17 +127,18 @@ class _OpeningLoadingPageState extends ConsumerState<OpeningLoadingPage>
         _isNavigatingToTest = true;
       });
 
-      Navigator.pushNamed(
+      // GUNAKAN pushReplacement BUKAN pushNamed + then
+      Navigator.pushReplacementNamed(
         context,
         RouteKey.fullTest,
         arguments: {
           "diffInSeconds": diff.inSeconds + 4,
           "isRetake": widget.isRetake,
           "packetType": widget.packetType,
+          "packetId": widget.packetId,
+          "packetName": widget.packetName,
         },
-      ).then((value) {
-        Navigator.of(context).pop();
-      });
+      );
     }
   }
 

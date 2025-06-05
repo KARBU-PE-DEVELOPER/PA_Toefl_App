@@ -10,22 +10,24 @@ import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/utils/hex_color.dart';
-import 'package:toefl/widgets/blue_button.dart';
 import 'package:toefl/widgets/blue_container.dart';
 import 'package:toefl/widgets/toefl_progress_indicator.dart';
 
 import '../../widgets/common_app_bar.dart';
 
 class TestResultPage extends StatefulWidget {
-  const TestResultPage(
-      {super.key,
-      required this.packetId,
-      required this.isMiniTest,
-      required this.packetName});
+  const TestResultPage({
+    super.key,
+    required this.packetId,
+    required this.isMiniTest,
+    required this.packetName,
+    required this.packetType, // TAMBAH PARAMETER INI
+  });
 
   final String packetId;
   final bool isMiniTest;
   final String packetName;
+  final String packetType; // TAMBAH FIELD INI
 
   @override
   State<TestResultPage> createState() => _TestResultPageState();
@@ -35,6 +37,7 @@ class _TestResultPageState extends State<TestResultPage> {
   FullTestApi api = FullTestApi();
   bool isLoading = false;
   Result? result;
+
   @override
   void initState() {
     super.initState();
@@ -52,10 +55,21 @@ class _TestResultPageState extends State<TestResultPage> {
     });
   }
 
+  // FUNCTION UNTUK MENDAPATKAN TITLE BERDASARKAN PACKET TYPE
+  String _getPageTitle() {
+    if (widget.packetType.toLowerCase() == "test") {
+      return "Test Result";
+    } else {
+      return "Simulation Result";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonAppBar(title: 'test_result'.tr()),
+      appBar: CommonAppBar(
+        title: _getPageTitle(), // GUNAKAN DYNAMIC TITLE
+      ),
       body: Skeletonizer(
         enabled: isLoading,
         child: Padding(
@@ -186,63 +200,6 @@ class _TestResultPageState extends State<TestResultPage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      //   children: [
-                      //     GestureDetector(
-                      //       onTap: () {
-                      //         Navigator.pushNamed(
-                      //             context, RouteKey.reviewTestPage, arguments: {
-                      //           "packetId": widget.packetId,
-                      //           "isFull": !widget.isMiniTest
-                      //         });
-                      //       },
-                      //       child: Container(
-                      //         height: 50,
-                      //         width: MediaQuery.of(context).size.width * 0.38,
-                      //         padding: const EdgeInsets.symmetric(
-                      //             vertical: 8, horizontal: 24),
-                      //         decoration: BoxDecoration(
-                      //             color: Colors.transparent,
-                      //             borderRadius: BorderRadius.circular(10),
-                      //             border:
-                      //                 Border.all(color: HexColor(mariner700))),
-                      //         child: Center(
-                      //           child: Text('review_test'.tr(),
-                      //               textAlign: TextAlign.center,
-                      //               style: CustomTextStyle.bold18
-                      //                   .copyWith(color: HexColor(mariner700))),
-                      //         ),
-                      //       ),
-                      //     ),
-                      //     const SizedBox(width: 4),
-                      //     BlueButton(
-                      //       size: MediaQuery.of(context).size.width * 0.38,
-                      //       title: 'retake_test'.tr(),
-                      //       onTap: () {
-                      //         widget.isMiniTest
-                      //             ? Navigator.of(context).pushNamed(
-                      //                 RouteKey.openingMiniTest,
-                      //                 arguments: {
-                      //                     "id": widget.packetId,
-                      //                     "isRetake": true,
-                      //                     "packetName": widget.packetName
-                      //                   }).then((value) {
-                      //                 Navigator.pop(context, true);
-                      //               })
-                      //             : Navigator.of(context).pushNamed(
-                      //                 RouteKey.openingLoadingTest,
-                      //                 arguments: {
-                      //                     "id": widget.packetId,
-                      //                     "isRetake": true,
-                      //                     "packetName": widget.packetName
-                      //                   }).then((value) {
-                      //                 Navigator.pop(context, true);
-                      //               });
-                      //       },
-                      //     ),
-                      //   ],
-                      // ),
                     ],
                   ),
                 ),
@@ -343,7 +300,6 @@ class _TestResultPageState extends State<TestResultPage> {
                     Container(
                       padding: const EdgeInsets.only(
                           top: 60, left: 20, right: 24, bottom: 12),
-                      // margin: EdgeInsets.only(top: 24),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color: HexColor(primaryWhite),
@@ -422,7 +378,6 @@ class _TestResultPageState extends State<TestResultPage> {
                     Container(
                       padding: const EdgeInsets.only(
                           top: 60, left: 20, right: 24, bottom: 12),
-                      // margin: EdgeInsets.only(top: 24),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color: HexColor(primaryWhite),

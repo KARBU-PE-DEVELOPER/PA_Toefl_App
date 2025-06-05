@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:slide_countdown/slide_countdown.dart';
-import 'package:toefl/pages/full_test/cheating_detection.dart';
+import 'package:toefl/pages/full_test/cheating_management/cheating_detection_manager.dart';
+import 'package:toefl/pages/full_test/cheating_management/cheating_floating_status.dart';
+import 'package:toefl/pages/full_test/cheating_management/enhanced_face_detection_page.dart';
 import 'package:toefl/pages/full_test/form_section.dart';
 import 'package:toefl/pages/full_test/submit_dialog.dart';
 import 'package:toefl/routes/route_key.dart';
@@ -15,7 +17,6 @@ import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/utils/hex_color.dart';
 
-import 'bookmark_button.dart';
 import 'bottom_sheet_full_test.dart';
 
 class FullTestPage extends ConsumerStatefulWidget {
@@ -24,31 +25,39 @@ class FullTestPage extends ConsumerStatefulWidget {
     required this.diffInSec,
     required this.isRetake,
     required this.packetType,
+    required this.packetId, // TAMBAH PARAMETER INI
+    required this.packetName, // TAMBAH PARAMETER INI
   });
 
   final int diffInSec;
   final bool isRetake;
   final String packetType;
+  final String packetId; // TAMBAH FIELD INI
+  final String packetName; // TAMBAH FIELD INI
 
   @override
   ConsumerState<FullTestPage> createState() => _FullTestPageState();
 }
 
-Timer? _lockTaskChecker;
-bool isAskedToReLock = false;
-bool isTestFinished = false;
-late final bool isSubmittingFinal; // true saat submit akhir
-
 class _FullTestPageState extends ConsumerState<FullTestPage> {
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   if (widget.packetType == "test") {
-  //     FlutterLockTask().startLockTask().then((value) {
-  //       debugPrint("startLockTask: $value");
-  //     });
-  //   }
-  // }
+  Timer? _lockTaskChecker;
+  bool isAskedToReLock = false;
+  bool isTestFinished = false;
+  bool _isCheatingDetectionActive = false;
+  bool _isSubmitting = false; // TAMBAH FLAG UNTUK SUBMIT
+  Widget? _hiddenCheatingDetection;
+
+  // Status untuk floating widget - GUNAKAN NOTIFIER
+  final ValueNotifier<Map<String, dynamic>> _statusNotifier = ValueNotifier({
+    'lookAwayCount': 0,
+    'faceNotDetectedSeconds': 0,
+    'faceNotDetectedCountdown': 300,
+    'blinkCountdown': 10,
+    'currentStatus': 'Memulai monitoring...',
+    'blinkStatus': 'Normal',
+  });
+
+  OverlayEntry? _floatingOverlay;
 
   @override
   void initState() {
@@ -58,50 +67,253 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
         debugPrint("startLockTask: $value");
       });
 
-      // // Jalankan deteksi kecurangan otomatis saat mulai
-      // WidgetsBinding.instance.addPostFrameCallback((_) {
-      //   showDialog(
-      //     context: context,
-      //     barrierDismissible: false,
-      //     builder: (_) => AlertDialog(
-      //       content: const FaceDetectionPage(),
-      //       actions: [
-      //         TextButton(
-      //           onPressed: () {
-      //             Navigator.pop(context);
-      //           },
-      //           child: const Text('Tutup'),
-      //         ),
-      //       ],
-      //     ),
-      //   );
-      // });
+      // LANGSUNG START CHEATING DETECTION
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startCheatingDetection();
+      });
 
-      // Loop check setiap 2 detik
       _lockTaskChecker =
           Timer.periodic(const Duration(seconds: 2), (timer) async {
         final isActive = await FlutterLockTask().isInLockTaskMode();
         if (!isActive && mounted) {
-          // Lock task keluar secara paksa
           checkLockStatusPeriodically();
         }
       });
     }
   }
 
-  // @override
-  // void dispose() {
-  //   if (widget.packetType == "test") {
-  //     FlutterLockTask().stopLockTask().then((value) {
-  //       debugPrint("stopLockTask: $value");
-  //     });
-  //   }
-  //   super.dispose();
-  // }
+  void _startCheatingDetection() {
+    if (!_isCheatingDetectionActive && mounted) {
+      setState(() {
+        _isCheatingDetectionActive = true;
+
+        // UPDATE STATUS AWAL
+        _statusNotifier.value = {
+          ..._statusNotifier.value,
+          'currentStatus': 'Monitoring aktif',
+        };
+
+        // Buat hidden camera detection
+        _hiddenCheatingDetection = HiddenCameraFaceDetection(
+          onAutoSubmit: (reason) {
+            debugPrint("🚨 AUTO SUBMIT TRIGGERED: $reason");
+            _handleAutoSubmit(reason);
+          },
+          onStatusUpdate: (lookAway, faceTime, faceCountdown, blinkCountdown,
+              status, blinkStatus) {
+            if (mounted && !_isSubmitting) {
+              // JANGAN UPDATE JIKA SEDANG SUBMIT
+              // UPDATE DATA LANGSUNG TANPA RECREATE OVERLAY
+              _statusNotifier.value = {
+                'lookAwayCount': lookAway,
+                'faceNotDetectedSeconds': faceTime,
+                'faceNotDetectedCountdown': faceCountdown,
+                'blinkCountdown': blinkCountdown,
+                'currentStatus': status,
+                'blinkStatus': blinkStatus,
+              };
+
+              debugPrint(
+                  "📊 Status Update - LookAway: $lookAway, Face: $faceTime, Countdown: $faceCountdown, Status: $status");
+            }
+          },
+        );
+      });
+
+      // BUAT FLOATING OVERLAY SEKALI SAJA
+      _createFloatingOverlay();
+    }
+  }
+
+  void _createFloatingOverlay() {
+    _removeFloatingOverlay(); // Remove existing overlay if any
+
+    _floatingOverlay = OverlayEntry(
+      builder: (context) => ValueListenableBuilder<Map<String, dynamic>>(
+        valueListenable: _statusNotifier,
+        builder: (context, statusData, child) {
+          // SEMBUNYIKAN OVERLAY JIKA SEDANG SUBMIT/LOADING
+          if (_isSubmitting) {
+            return const SizedBox.shrink();
+          }
+
+          return FloatingCheatingStatus(
+            lookAwayCount: statusData['lookAwayCount'] ?? 0,
+            maxLookAway: CheatingDetectionManager.MAX_LOOK_AWAY_COUNT,
+            faceNotDetectedSeconds: statusData['faceNotDetectedSeconds'] ?? 0,
+            faceNotDetectedCountdown:
+                statusData['faceNotDetectedCountdown'] ?? 300,
+            blinkCountdown: statusData['blinkCountdown'] ?? 10,
+            currentStatus: statusData['currentStatus'] ?? 'Normal',
+            blinkStatus: statusData['blinkStatus'] ?? 'Normal',
+            onUpdate: () {
+              // Callback ketika widget di-update - TIDAK PERLU LAGI
+            },
+          );
+        },
+      ),
+    );
+
+    // Insert overlay dengan delay
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _floatingOverlay != null && !_isSubmitting) {
+        Overlay.of(context).insert(_floatingOverlay!);
+      }
+    });
+  }
+
+  void _removeFloatingOverlay() {
+    if (_floatingOverlay != null) {
+      _floatingOverlay!.remove();
+      _floatingOverlay = null;
+    }
+  }
+
+  void _stopCheatingDetection() {
+    debugPrint("🛑 Stopping cheating detection...");
+
+    setState(() {
+      _isSubmitting = true; // SET FLAG SUBMIT
+      _isCheatingDetectionActive = false;
+      _hiddenCheatingDetection = null;
+    });
+
+    // HILANGKAN OVERLAY
+    _removeFloatingOverlay();
+
+    debugPrint("✅ Cheating detection stopped and overlay removed");
+  }
+
+  void _handleAutoSubmit(String reason) {
+    debugPrint("🔥 HANDLE AUTO SUBMIT CALLED: $reason");
+
+    if (isTestFinished) {
+      debugPrint("⚠️ Test already finished, ignoring auto submit");
+      return;
+    }
+
+    debugPrint("✅ Processing auto submit...");
+    isTestFinished = true;
+
+    // Stop cheating detection dan remove overlay
+    _stopCheatingDetection();
+
+    // ENSURE DIALOG SHOWS
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        debugPrint("📋 Showing auto submit dialog...");
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.warning, color: Colors.red, size: 32),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Ujian Otomatis Di-Submit',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.security, color: Colors.red, size: 48),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Pelanggaran Terdeteksi',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        reason,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Ujian Anda akan otomatis di-submit untuk menjaga integritas pengujian.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _performAutoSubmit();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 45),
+                ),
+                child: const Text('Submit Ujian'),
+              ),
+            ],
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> _performAutoSubmit() async {
+    debugPrint("🚀 Performing auto submit...");
+    try {
+      bool submitResult =
+          await ref.read(fullTestProvider.notifier).submitAnswer();
+      debugPrint("📤 Submit result: $submitResult");
+
+      if (widget.packetType == "test") {
+        await FlutterLockTask().stopLockTask();
+      }
+
+      if (submitResult) {
+        _lockTaskChecker?.cancel();
+        bool resetResult = await ref.read(fullTestProvider.notifier).resetAll();
+        if (resetResult && context.mounted) {
+          // NAVIGASI KE TEST RESULT DENGAN PACKET TYPE
+          Navigator.pushReplacementNamed(
+            context,
+            RouteKey.testresult,
+            arguments: {
+              'packetId': ref.read(fullTestProvider).packetDetail.id.toString(),
+              'isMiniTest': false,
+              'packetName': ref.read(fullTestProvider).packetDetail.name,
+              'packetType': widget.packetType, // KIRIM PACKET TYPE
+            },
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error during auto submit: $e');
+    }
+  }
 
   @override
   void dispose() {
-    _lockTaskChecker?.cancel(); // stop checker
+    _removeFloatingOverlay();
+    _statusNotifier.dispose(); // DISPOSE NOTIFIER
+    _lockTaskChecker?.cancel();
     if (widget.packetType == "test") {
       FlutterLockTask().stopLockTask().then((value) {
         debugPrint("stopLockTask: $value");
@@ -114,6 +326,12 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final state = ref.watch(fullTestProvider);
+
+    // DETECT LOADING STATE DAN HIDE OVERLAY
+    if (state.isSubmitLoading && !_isSubmitting) {
+      debugPrint("🔄 Submit loading detected, stopping cheating detection");
+      _stopCheatingDetection();
+    }
 
     final countdownDuration = widget.diffInSec >= 7200
         ? const Duration(seconds: 2)
@@ -128,6 +346,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
+            if (_hiddenCheatingDetection != null && !_isSubmitting)
+              Positioned.fill(
+                child: _hiddenCheatingDetection!,
+              ),
             Positioned(
                 top: 50,
                 child: SizedBox(
@@ -151,9 +373,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          height: 10,
-                        ),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
                             const Spacer(),
@@ -169,16 +389,13 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                             )
                           ],
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
+                        const SizedBox(height: 20),
                         Row(
                           children: [
                             Consumer(
                               builder: (context, ref, child) {
                                 final state = ref.watch(fullTestProvider);
-                                final totalQuestions = state
-                                    .totalQuestions; // Ambil jumlah total soal
+                                final totalQuestions = state.totalQuestions;
                                 final answeredQuestions = state
                                     .questionsFilledStatus
                                     .where((element) => element == true)
@@ -197,8 +414,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                             Consumer(
                               builder: (context, ref, child) {
                                 final state = ref.watch(fullTestProvider);
-                                final totalQuestions = state
-                                    .totalQuestions; // Ambil jumlah total soal
+                                final totalQuestions = state.totalQuestions;
                                 final answeredQuestions = state
                                     .questionsFilledStatus
                                     .where((element) => element == true)
@@ -242,30 +458,36 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                                 color: Colors.transparent,
                               ),
                               onDone: () async {
-                                ref
+                                // STOP CHEATING DETECTION SAAT TIMER HABIS
+                                _stopCheatingDetection();
+
+                                bool submitResult = await ref
                                     .read(fullTestProvider.notifier)
-                                    .submitAnswer()
-                                    .then((value) {
-                                  if (value) {
-                                    ref
-                                        .read(fullTestProvider.notifier)
-                                        .resetAll()
-                                        .then((value) {
-                                      Navigator.popUntil(
-                                          context,
-                                          (route) =>
-                                              RouteKey.openingLoadingTest ==
-                                              route.settings.name);
-                                    });
+                                    .submitAnswer();
+                                if (submitResult) {
+                                  await ref
+                                      .read(fullTestProvider.notifier)
+                                      .resetAll();
+
+                                  if (context.mounted) {
+                                    // LANGSUNG REPLACE KE TEST RESULT TANPA POP
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      RouteKey.testresult,
+                                      arguments: {
+                                        'packetId': widget.packetId,
+                                        'isMiniTest': false,
+                                        'packetName': widget.packetName,
+                                        'packetType': widget.packetType,
+                                      },
+                                    );
                                   }
-                                });
+                                }
                               },
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
+                        const SizedBox(height: 20),
                         Consumer(
                           builder: (context, ref, child) {
                             final state = ref.watch(fullTestProvider);
@@ -324,7 +546,6 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
                       children: [
-                        // Previous Button: tampil kalau soal sekarang > 1
                         if ((state.selectedQuestions.firstOrNull?.number ?? 1) >
                             1)
                           IconButton(
@@ -344,79 +565,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                             ),
                           )
                         else
-                          const SizedBox(
-                              width:
-                                  48), // buat ruang supaya layout gak berubah
-
-                        // const Spacer(),
-
-                        // // Tombol lain tetap di tengah seperti security dan list
-                        // // Tampilkan ikon sesuai tipe paket
-                        // if (widget.packetType == "test")
-                        //   IconButton(
-                        //     onPressed: () {
-                        //       showDialog(
-                        //         context: context,
-                        //         builder: (context) {
-                        //           return AlertDialog(
-                        //             title: const Center(
-                        //               child: Text(
-                        //                 'Face Detection',
-                        //                 style: TextStyle(
-                        //                     fontWeight: FontWeight.bold,
-                        //                     fontSize: 18),
-                        //               ),
-                        //             ),
-                        //             content: const FaceDetectionPage(),
-                        //             actions: [
-                        //               TextButton(
-                        //                 onPressed: () {
-                        //                   Navigator.pop(context);
-                        //                 },
-                        //                 child: const Text('Tutup'),
-                        //               ),
-                        //             ],
-                        //           );
-                        //         },
-                        //       );
-                        //     },
-                        //     icon: const Icon(
-                        //       Icons.security,
-                        //       size: 28,
-                        //     ),
-                        //   )
-                        // else
-                        //   Consumer(
-                        //     builder: (context, ref, child) {
-                        //       final state = ref.watch(fullTestProvider);
-
-                        //       // Ambil soal pertama jika ada
-                        //       final firstQuestion =
-                        //           state.selectedQuestions.isNotEmpty
-                        //               ? state.selectedQuestions.first
-                        //               : null;
-
-                        //       if (firstQuestion == null) {
-                        //         // Jika tidak ada soal, tampilkan ikon bookmark kosong tapi disable
-                        //         return IconButton(
-                        //           onPressed: null,
-                        //           icon: const Icon(
-                        //             Icons.bookmark_border,
-                        //             size: 28,
-                        //             color: Colors.grey, // disabled color
-                        //           ),
-                        //         );
-                        //       } else {
-                        //         return BookmarkButton(
-                        //           initalValue: firstQuestion.bookmarked,
-                        //           questions: state.selectedQuestions,
-                        //         );
-                        //       }
-                        //     },
-                        //   ),
-
+                          const SizedBox(width: 48),
                         const Spacer(),
-
                         IconButton(
                           onPressed: () {
                             ref
@@ -447,10 +597,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                             size: 30,
                           ),
                         ),
-
                         const Spacer(),
-
-                        // Next Button: tampil kalau soal sekarang < totalQuestions
                         if ((state.selectedQuestions.lastOrNull?.number ?? 1) <
                             state.totalQuestions)
                           IconButton(
@@ -470,8 +617,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                             ),
                           )
                         else
-                          const SizedBox(
-                              width: 48), // ruang supaya gak bergeser
+                          const SizedBox(width: 48),
                       ],
                     )),
               ),
@@ -489,7 +635,6 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
     if (!isActive && !isAskedToReLock) {
       isAskedToReLock = true;
 
-      // Tampilkan dialog hanya sekali
       if (context.mounted) {
         showDialog(
           context: context,
@@ -503,8 +648,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                 onPressed: () async {
                   Navigator.pop(context);
                   await FlutterLockTask().startLockTask();
-                  isAskedToReLock =
-                      false; // Reset agar bisa muncul lagi jika keluar lagi
+                  isAskedToReLock = false;
                 },
                 child: const Text('Kunci Ulang'),
               )
@@ -530,9 +674,12 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
               },
               onYes: () async {
                 Navigator.pop(submitContext);
+
+                // STOP CHEATING DETECTION SEBELUM SUBMIT
+                _stopCheatingDetection();
+
                 bool submitResult = false;
 
-                // Directly call submitAnswer
                 submitResult =
                     await ref.read(fullTestProvider.notifier).submitAnswer();
 
@@ -548,15 +695,17 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                   bool resetResult =
                       await ref.read(fullTestProvider.notifier).resetAll();
                   if (resetResult && context.mounted) {
-                    Navigator.popUntil(
-                        context,
-                        (route) =>
-                            RouteKey.openingLoadingTest == route.settings.name);
-                  }
-                  if (widget.packetType == "test") {
-                    FlutterLockTask().stopLockTask().then((value) {
-                      debugPrint("stopLockTask: $value");
-                    });
+                    // LANGSUNG REPLACE KE TEST RESULT TANPA POP
+                    Navigator.pushReplacementNamed(
+                      context,
+                      RouteKey.testresult,
+                      arguments: {
+                        'packetId': widget.packetId,
+                        'isMiniTest': false,
+                        'packetName': widget.packetName,
+                        'packetType': widget.packetType,
+                      },
+                    );
                   }
                 }
               },

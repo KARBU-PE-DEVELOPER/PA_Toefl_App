@@ -28,11 +28,11 @@ class ProfileApi {
       return Profile(
         id: 0,
         level: "",
-        currentScore: "",
+        currentScore: 0,
         targetScore: 0,
         profileImage: "",
         nameUser: "",
-        emailUser: "",
+        // emailUser: "",
       );
     }
   }
@@ -50,11 +50,11 @@ class ProfileApi {
       return Profile(
         id: 0,
         level: "",
-        currentScore: "",
+        currentScore: 0,
         targetScore: 0,
         profileImage: "",
         nameUser: "",
-        emailUser: "",
+        // emailUser: "",
       );
     }
   }

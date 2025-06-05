@@ -169,7 +169,8 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
     Navigator.pushNamed(context, RouteKey.testresult, arguments: {
       "packetId": packet.id.toString(),
       "isMiniTest": false,
-      "packetName": packet.name
+      "packetName": packet.name,
+      "packetType": selectedType,
     }).then((afterRetake) {
       if (afterRetake == true) {
         _onInit();
@@ -237,8 +238,8 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                       "packetType": selectedType,
                                     },
                                   ).then((value) {
-                                    _onInit();
-                                    _pushReviewPage(packet);
+                                    // _onInit();
+                                    // _pushReviewPage(packet);
                                   });
                                   return;
                                 }
@@ -281,7 +282,19 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                     200) {
                                                   debugPrint(
                                                       "Paket claimed successfully.");
-
+                                                  await TestSharedPreference()
+                                                      .saveStatus(
+                                                    TestStatus(
+                                                      id: packet.id
+                                                          .toString(), // Pastikan menggunakan packet.id yang benar
+                                                      startTime: DateTime.now()
+                                                          .toIso8601String(),
+                                                      name: packet.name,
+                                                      resetTable: true,
+                                                      isRetake:
+                                                          packet.wasFilled,
+                                                    ),
+                                                  );
                                                   // Jika tipe test, tampilkan modal attention
                                                   if (selectedType !=
                                                       "simulation") {
@@ -326,9 +339,9 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                                           selectedType,
                                                                     },
                                                                   ).then((value) {
-                                                                    _onInit();
-                                                                    _pushReviewPage(
-                                                                        packet);
+                                                                    // _onInit();
+                                                                    // _pushReviewPage(
+                                                                    //     packet);
                                                                   });
                                                                 },
                                                                 child: Text(
@@ -356,8 +369,8 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                             selectedType,
                                                       },
                                                     ).then((value) {
-                                                      _onInit();
-                                                      _pushReviewPage(packet);
+                                                      // _onInit();
+                                                      // _pushReviewPage(packet);
                                                     });
                                                   }
                                                 } else if (response

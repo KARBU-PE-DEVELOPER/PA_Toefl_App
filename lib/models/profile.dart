@@ -6,23 +6,18 @@ part 'profile.g.dart';
 
 @JsonSerializable()
 class Profile {
-  @JsonKey(name: 'id', defaultValue: 0)
-  final int id;
-  
-  @JsonKey(name: 'level', defaultValue: "")
-  String level;
-  @JsonKey(name: 'current_score', defaultValue: "")
-  String currentScore;
-  @JsonKey(name: 'target_score', defaultValue: 0)
-  int targetScore;
+  final dynamic id;
+  final String level;
+  @JsonKey(name: 'current_score', fromJson: _toDouble, defaultValue: 0.0)
+  double currentScore;
+  @JsonKey(name: 'target_score', fromJson: _toDouble, defaultValue: 0.0)
+  double targetScore;
+  @JsonKey(name: 'name_user', defaultValue: '')
+  final String nameUser;
   // @JsonKey(defaultValue: 0)
   // int rank;
   @JsonKey(name: 'profile_image', defaultValue: '')
   final String profileImage;
-  @JsonKey(name: 'name_user', defaultValue: '')
-  final String nameUser;
-  @JsonKey(name: 'email_user', defaultValue: '')
-  final String emailUser;
   // @JsonKey(name: 'is_friend', defaultValue: false)
   // final bool isFriend;
 
@@ -31,10 +26,9 @@ class Profile {
     required this.level,
     required this.currentScore,
     required this.targetScore,
+    required this.nameUser,
     // required this.rank,
     required this.profileImage,
-    required this.nameUser,
-    required this.emailUser,
     // required this.isFriend,
   });
   static double _toDouble(dynamic value) {
@@ -62,9 +56,9 @@ class Profile {
       level: level,
       currentScore: currentScore,
       targetScore: targetScore,
-      profileImage: profileImage,
       nameUser: nameUser,
-      emailUser: emailUser,
+      // rank: rank,
+      profileImage: profileImage,
       // isFriend: isFriend ?? this.isFriend,
     );
   }
