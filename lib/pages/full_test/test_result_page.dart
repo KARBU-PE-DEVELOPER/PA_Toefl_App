@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lock_task/flutter_lock_task.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -37,12 +38,16 @@ class _TestResultPageState extends State<TestResultPage> {
   FullTestApi api = FullTestApi();
   bool isLoading = false;
   Result? result;
-
+  static const platform = MethodChannel('com.pens.vocadia/exam_security');
   @override
   void initState() {
     super.initState();
     _init();
-    FlutterLockTask().stopLockTask();
+    if (widget.packetType == "test") {
+      platform.invokeMethod('stopExamMode').catchError((e) {
+        debugPrint("Error stopping native exam mode: $e");
+      });
+    }
   }
 
   void _init() async {

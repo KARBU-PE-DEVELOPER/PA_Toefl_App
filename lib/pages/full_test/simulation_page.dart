@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:toefl/pages/full_test/cheating_management/AttentionDialog.dart';
 import 'package:toefl/remote/api/full_test_api.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
@@ -296,64 +297,51 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                     ),
                                                   );
                                                   // Jika tipe test, tampilkan modal attention
+                                                  // Replace the existing showDialog section with this:
                                                   if (selectedType !=
                                                       "simulation") {
                                                     showDialog(
                                                       context: context,
-                                                      barrierDismissible:
-                                                          false, // Tidak bisa ditutup dengan klik di luar
+                                                      barrierDismissible: false,
                                                       builder: (BuildContext
                                                           attentionContext) {
-                                                        return WillPopScope(
-                                                          onWillPop: () async =>
-                                                              false, // Mencegah tombol back
-                                                          child: AlertDialog(
-                                                            title: Text(
-                                                                "attention"
-                                                                    .tr()),
-                                                            content: Text(
-                                                                "isiContent"
-                                                                    .tr()),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () {
-                                                                  Navigator.of(
-                                                                          attentionContext)
-                                                                      .pop();
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pushNamed(
-                                                                    RouteKey
-                                                                        .openingLoadingTest,
-                                                                    arguments: {
-                                                                      "id": packet
-                                                                          .id
-                                                                          .toString(),
-                                                                      "packetName":
-                                                                          packet
-                                                                              .name,
-                                                                      "isRetake":
-                                                                          packet
-                                                                              .wasFilled,
-                                                                      "packetType":
-                                                                          selectedType,
-                                                                    },
-                                                                  ).then((value) {
-                                                                    // _onInit();
-                                                                    // _pushReviewPage(
-                                                                    //     packet);
-                                                                  });
+                                                        return PopScope(
+                                                          canPop:
+                                                              false, // Prevents back button
+                                                          child:
+                                                              AttentionDialog(
+                                                            onConfirm: () {
+                                                              Navigator.of(
+                                                                      attentionContext)
+                                                                  .pop();
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pushNamed(
+                                                                RouteKey
+                                                                    .openingLoadingTest,
+                                                                arguments: {
+                                                                  "id": packet
+                                                                      .id
+                                                                      .toString(),
+                                                                  "packetName":
+                                                                      packet
+                                                                          .name,
+                                                                  "isRetake": packet
+                                                                      .wasFilled,
+                                                                  "packetType":
+                                                                      selectedType,
                                                                 },
-                                                                child: Text(
-                                                                    "Start"),
-                                                              ),
-                                                            ],
+                                                              ).then((value) {
+                                                                // _onInit();
+                                                                // _pushReviewPage(packet);
+                                                              });
+                                                            },
                                                           ),
                                                         );
                                                       },
                                                     );
                                                   } else {
-                                                    // Untuk simulation, langsung pindah ke halaman test dengan tombol konfirmasi saja
+                                                    // For simulation, go directly to test
                                                     Navigator.of(context)
                                                         .pushNamed(
                                                       RouteKey

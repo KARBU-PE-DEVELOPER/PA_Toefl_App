@@ -9,6 +9,8 @@ class FloatingCheatingStatus extends StatefulWidget {
   final int blinkCountdown;
   final String currentStatus;
   final String blinkStatus;
+  final bool isCurrentlyLookingAway; // TAMBAHAN
+  final int currentLookAwayDuration; // TAMBAHAN
   final VoidCallback? onUpdate;
 
   const FloatingCheatingStatus({
@@ -20,6 +22,8 @@ class FloatingCheatingStatus extends StatefulWidget {
     required this.blinkCountdown,
     required this.currentStatus,
     required this.blinkStatus,
+    required this.isCurrentlyLookingAway, // TAMBAHAN
+    required this.currentLookAwayDuration, // TAMBAHAN
     this.onUpdate,
   }) : super(key: key);
 
@@ -72,6 +76,14 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
 
   Color _getLookAwayColor() {
     final remaining = widget.maxLookAway - widget.lookAwayCount;
+
+    // WARNA KHUSUS SAAT SEDANG MENOLEH
+    if (widget.isCurrentlyLookingAway) {
+      if (widget.currentLookAwayDuration >= 3) return Colors.red;
+      if (widget.currentLookAwayDuration >= 1) return Colors.orange;
+      return Colors.yellow;
+    }
+
     if (remaining >= 3) return Colors.green;
     if (remaining >= 1) return Colors.orange;
     return Colors.red;
@@ -84,26 +96,24 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
     return Colors.red;
   }
 
-  // FUNGSI BARU: Mendapatkan warna border berdasarkan status yang paling kritis
   Color _getBorderColor() {
-    // Cek status face not detected terlebih dahulu (prioritas tertinggi)
     if (widget.currentStatus.contains("not detected")) {
       return _getTimeColor();
     }
 
-    // Cek status look away
-    if (widget.currentStatus.contains("Look away")) {
+    if (widget.currentStatus.contains("Turning head") ||
+        widget.isCurrentlyLookingAway) {
       return _getLookAwayColor();
     }
 
-    // Jika tidak ada masalah khusus, gunakan warna look away sebagai default
     return _getLookAwayColor();
   }
 
   IconData _getStatusIcon() {
     if (widget.currentStatus.contains("not detected"))
       return Icons.face_retouching_off;
-    if (widget.currentStatus.contains("Look away")) return Icons.visibility_off;
+    if (widget.currentStatus.contains("Turning head") ||
+        widget.isCurrentlyLookingAway) return Icons.visibility_off;
     return Icons.face;
   }
 
@@ -165,8 +175,7 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
     return Material(
       elevation: 8,
       borderRadius: BorderRadius.circular(12),
-      shadowColor:
-          _getBorderColor().withOpacity(0.3), // GUNAKAN _getBorderColor()
+      shadowColor: _getBorderColor().withOpacity(0.3),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         width: _isExpanded ? 170.0 : 60.0,
@@ -182,8 +191,7 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
           ),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color:
-                _getBorderColor(), // GUNAKAN _getBorderColor() BUKAN _getLookAwayColor()
+            color: _getBorderColor(),
             width: 2,
           ),
         ),
@@ -209,16 +217,15 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
 
   Widget _buildCollapsedContent() {
     final remaining = widget.maxLookAway - widget.lookAwayCount;
-    // UBAH LOGIKA PULSE: Aktif saat face not detected ATAU look away kritis
-    final shouldPulse =
-        widget.currentStatus.contains("not detected") || remaining <= 1;
+    final shouldPulse = widget.currentStatus.contains("not detected") ||
+        remaining <= 1 ||
+        widget.isCurrentlyLookingAway;
 
     return AnimatedBuilder(
       animation: _pulseAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale:
-              shouldPulse ? _pulseAnimation.value : 1.0, // GUNAKAN shouldPulse
+          scale: shouldPulse ? _pulseAnimation.value : 1.0,
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -226,19 +233,19 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
               children: [
                 Icon(
                   _getStatusIcon(),
-                  color:
-                      _getBorderColor(), // GUNAKAN _getBorderColor() UNTUK KONSISTENSI
+                  color: _getBorderColor(),
                   size: 20,
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  // TAMPILKAN COUNTDOWN JIKA FACE NOT DETECTED, ATAU REMAINING LOOK AWAY
-                  widget.currentStatus.contains("not detected")
-                      ? _formatCountdown(widget.faceNotDetectedCountdown)
-                      : '$remaining',
+                  // TAMPILKAN DURASI MENOLEH JIKA SEDANG MENOLEH
+                  widget.isCurrentlyLookingAway
+                      ? '${widget.currentLookAwayDuration}s'
+                      : widget.currentStatus.contains("not detected")
+                          ? _formatCountdown(widget.faceNotDetectedCountdown)
+                          : '$remaining',
                   style: TextStyle(
-                    color:
-                        _getBorderColor(), // GUNAKAN _getBorderColor() UNTUK KONSISTENSI
+                    color: _getBorderColor(),
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -265,13 +272,8 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Status header
                 _buildStatusHeader(),
-
-                // Stats
                 _buildStatsSection(lookAwayRemaining),
-
-                // Minimize button
                 _buildMinimizeButton(),
               ],
             ),
@@ -288,8 +290,7 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
         children: [
           Icon(
             _getStatusIcon(),
-            color:
-                _getBorderColor(), // GUNAKAN _getBorderColor() UNTUK KONSISTENSI
+            color: _getBorderColor(),
             size: 14,
           ),
           const SizedBox(width: 4),
@@ -319,11 +320,13 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Look away
+          // Look away dengan durasi
           _buildStatRow(
             Icons.visibility_off,
             "Look Away",
-            "$lookAwayRemaining/${widget.maxLookAway}",
+            widget.isCurrentlyLookingAway
+                ? "${widget.currentLookAwayDuration}s/${5}s"
+                : "$lookAwayRemaining/${widget.maxLookAway}",
             _getLookAwayColor(),
           ),
 
@@ -355,7 +358,6 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Left side
           Expanded(
             flex: 3,
             child: Row(
@@ -377,7 +379,6 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
               ],
             ),
           ),
-          // Right side
           Expanded(
             flex: 2,
             child: Text(
