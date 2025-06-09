@@ -68,6 +68,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     'blinkCountdown': 10,
     'currentStatus': 'Start monitoring...',
     'blinkStatus': 'Normal',
+    'isCurrentlyLookingAway': false, // TAMBAHAN
+    'currentLookAwayDuration': 0, // TAMBAHAN
   });
 
   OverlayEntry? _floatingOverlay;
@@ -260,15 +262,19 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
   }
 
   void _handleLockTaskBypass() {
-    if (_isBypassDialogShowing || !mounted) return;
+    if (_isBypassDialogShowing || !mounted || isTestFinished) return;
 
     _lockTaskChecker?.cancel();
+
+    debugPrint("🚨 BYPASS DETECTED: Auto-submitting test.");
+
+    // Set flags to prevent multiple submissions
     setState(() {
       _isBypassDialogShowing = true;
+      isTestFinished = true;
     });
 
-    debugPrint("🚨 BYPASS DETECTED: Showing confirmation dialog.");
-
+    // Show brief notification then auto-submit
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -293,9 +299,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
             const SizedBox(width: 12),
             const Expanded(
               child: Text(
-                'Security Warning',
+                'Security Violation Detected',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.red,
                 ),
@@ -305,70 +311,66 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Colors.orange.withOpacity(0.3),
-                  width: 1,
-                ),
+                color: Colors.red.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.withOpacity(0.2)),
               ),
-              child: Row(
+              child: Column(
                 children: [
                   Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange.shade700,
-                    size: 20,
+                    color: Colors.red.shade600,
+                    size: 48,
                   ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Access Restricted!',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Lock Task Mode Bypassed',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black87,
                     ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'You have exited the secure exam environment. Your test will be automatically submitted for security reasons.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade700,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'You must remain within the exam application during the test session. Please choose to continue the exam or finish it now.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.blue.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.info_outline,
                     color: Colors.blue.shade600,
-                    size: 16,
+                    size: 20,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
-                      'Leaving the app may affect your exam results.',
+                      'Auto-submitting in 3 seconds...',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.blue,
-                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -377,74 +379,16 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
             ),
           ],
         ),
-        actionsPadding: const EdgeInsets.all(16),
-        actions: [
-          TextButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop();
-              FlutterLockTask().startLockTask().then((_) {
-                debugPrint("Re-locking task...");
-                setState(() {
-                  _isBypassDialogShowing = false;
-                });
-                _startLockTaskChecker();
-              });
-            },
-            icon: const Icon(
-              Icons.play_arrow_rounded,
-              size: 18,
-            ),
-            label: const Text(
-              'Continue Exam',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.green.shade700,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(color: Colors.green.shade300),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() {
-                _isBypassDialogShowing = false;
-              });
-              _showFinishedDialog(context, ref);
-            },
-            icon: const Icon(
-              Icons.stop_circle_outlined,
-              size: 18,
-              color: Colors.white,
-            ),
-            label: const Text(
-              'Finish Exam',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              elevation: 2,
-            ),
-          ),
-        ],
       ),
     );
+
+    // Auto-submit after 3 seconds
+    Timer(const Duration(seconds: 3), () async {
+      if (mounted) {
+        Navigator.of(context).pop(); // Close dialog
+        await _performAutoSubmit();
+      }
+    });
   }
 
   void _startCheatingDetection() {
@@ -470,6 +414,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                 'blinkCountdown': blinkCountdown,
                 'currentStatus': status,
                 'blinkStatus': blinkStatus,
+                'isCurrentlyLookingAway':
+                    false, // Default value, akan diupdate oleh manager
+                'currentLookAwayDuration':
+                    0, // Default value, akan diupdate oleh manager
               };
             }
           },
@@ -497,6 +445,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
             blinkCountdown: statusData['blinkCountdown'] ?? 10,
             currentStatus: statusData['currentStatus'] ?? 'Normal',
             blinkStatus: statusData['blinkStatus'] ?? 'Normal',
+            isCurrentlyLookingAway:
+                statusData['isCurrentlyLookingAway'] ?? false, // TAMBAHAN
+            currentLookAwayDuration:
+                statusData['currentLookAwayDuration'] ?? 0, // TAMBAHAN
             onUpdate: () {},
           );
         },

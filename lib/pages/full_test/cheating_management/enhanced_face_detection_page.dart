@@ -43,8 +43,7 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
   bool _isSnackBarShowing = false;
   Timer? _snackBarTimer;
 
-  // Status untuk floating widget
-  int _blinkCountdown = 15; // UBAH JADI 15 DETIK
+  int _blinkCountdown = 15;
 
   @override
   void initState() {
@@ -149,7 +148,7 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
             ],
           ),
         ),
-        backgroundColor: const Color(0xFFFF6F00), // Deep orange
+        backgroundColor: const Color(0xFFFF6F00),
         elevation: 6,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -185,9 +184,7 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
         _cheatingManager.updateBlinkCountdown(_blinkCountdown - 1);
         _blinkCountdown--;
 
-        // UPDATE COUNTDOWN DI SNACKBAR JIKA SEDANG TAMPIL
         if (_isSnackBarShowing) {
-          // Force rebuild snackbar dengan countdown baru
           setState(() {});
         }
       } else {
@@ -196,7 +193,7 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
           _showPersistentBlinkWarning("Please blink to prove you are human.");
         }
         Future.delayed(const Duration(seconds: 1), () {
-          _blinkCountdown = 15; // RESET KE 15 DETIK
+          _blinkCountdown = 15;
           _startBlinkMonitoringTimer();
         });
       }
@@ -284,15 +281,16 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
 
         final headY = faces.first.headEulerAngleY ?? 0.0;
 
+        // LOGIKA BARU: Menggunakan startLookAway dan stopLookAway
         if (headY.abs() > 40) {
           if (_isLookingForward) {
-            _cheatingManager.recordLookAway();
+            _cheatingManager.startLookAway(); // MULAI MENGHITUNG DURASI
             _isLookingForward = false;
           }
         } else {
           if (!_isLookingForward) {
+            _cheatingManager.stopLookAway(); // STOP MENGHITUNG DURASI
             _isLookingForward = true;
-            _cheatingManager.resetFaceDetected();
           }
         }
 
@@ -308,12 +306,11 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
                 _blinkDetectedInCurrentWindow = true;
                 _cheatingManager.blinkDetected();
 
-                // DISMISS SNACKBAR KETIKA BERHASIL KEDIP
                 _dismissBlinkWarning();
 
                 _blinkMonitorTimer?.cancel();
                 Future.delayed(const Duration(seconds: 1), () {
-                  _blinkCountdown = 15; // RESET KE 15 DETIK
+                  _blinkCountdown = 15;
                   _startBlinkMonitoringTimer();
                 });
               }
@@ -345,18 +342,14 @@ class _HiddenCameraFaceDetectionState extends State<HiddenCameraFaceDetection> {
   void dispose() {
     debugPrint("🧹 Disposing HiddenCameraFaceDetection...");
 
-    // CLEANUP SNACKBAR
     _dismissBlinkWarning();
 
-    // STOP CAMERA
     if (_cameraController.value.isInitialized) {
       _cameraController.dispose();
     }
 
-    // CLEANUP FACE DETECTOR
     _faceDetector.close();
 
-    // CANCEL TIMERS
     _frameTimer?.cancel();
     _notLookingTimer?.cancel();
     _blinkMonitorTimer?.cancel();
