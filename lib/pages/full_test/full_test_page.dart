@@ -49,6 +49,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
   bool _isBypassDialogShowing = false;
   bool _isFinishDialogShowing = false;
   Widget? _hiddenCheatingDetection;
+  bool _isLockTaskDialogShowing = false;
+  Timer? _lockTaskCountdownTimer;
+  int _lockTaskCountdown = 10;
+  final ValueNotifier<int> _countdownNotifier = ValueNotifier<int>(10);
 
   // Enhanced background detection with multiple strategies
   AppLifecycleState? _lastAppState;
@@ -251,7 +255,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     _lockTaskChecker?.cancel();
     _lockTaskChecker =
         Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (isTestFinished || !mounted || _isBypassDialogShowing) {
+      if (isTestFinished ||
+          !mounted ||
+          _isBypassDialogShowing ||
+          _isLockTaskDialogShowing) {
         return;
       }
       final isActive = await FlutterLockTask().isInLockTaskMode();
@@ -262,23 +269,51 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
   }
 
   void _handleLockTaskBypass() {
-    if (_isBypassDialogShowing || !mounted || isTestFinished) return;
+    if (_isBypassDialogShowing ||
+        !mounted ||
+        isTestFinished ||
+        _isLockTaskDialogShowing) return;
 
     _lockTaskChecker?.cancel();
 
-    debugPrint("🚨 BYPASS DETECTED: Auto-submitting test.");
+    debugPrint("🚨 BYPASS DETECTED: Starting 10 second countdown.");
 
     // Set flags to prevent multiple submissions
     setState(() {
       _isBypassDialogShowing = true;
-      isTestFinished = true;
+      _isLockTaskDialogShowing = true;
+      _lockTaskCountdown = 10;
     });
 
-    // Show brief notification then auto-submit
+    // Reset countdown notifier
+    _countdownNotifier.value = 10;
+
+    // Start countdown timer
+    _lockTaskCountdownTimer =
+        Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        _lockTaskCountdown--;
+        _countdownNotifier.value = _lockTaskCountdown;
+        debugPrint("⏰ Countdown: $_lockTaskCountdown seconds remaining");
+
+        if (_lockTaskCountdown <= 0) {
+          timer.cancel();
+          debugPrint("⏰ Countdown finished - auto submitting");
+          if (Navigator.canPop(context)) {
+            Navigator.of(context).pop(); // Close dialog
+          }
+          _performAutoSubmit();
+        }
+      } else {
+        timer.cancel();
+      }
+    });
+
+    // Show countdown dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -364,14 +399,19 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Auto-submitting in 3 seconds...',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  Expanded(
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: _countdownNotifier,
+                      builder: (context, countdown, child) {
+                        return Text(
+                          'Auto-submitting in $countdown seconds...',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -379,14 +419,36 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
             ),
           ],
         ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              debugPrint("👍 User clicked 'Mengerti' - canceling auto submit");
+              _lockTaskCountdownTimer?.cancel();
+              setState(() {
+                _isBypassDialogShowing = false;
+                _isLockTaskDialogShowing = false;
+              });
+              Navigator.of(dialogContext).pop();
+              _startLockTaskChecker(); // Restart checker
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 45),
+            ),
+            child: const Text('Mengerti'),
+          ),
+        ],
       ),
-    );
-
-    // Auto-submit after 3 seconds
-    Timer(const Duration(seconds: 3), () async {
+    ).then((_) {
+      // Dialog dismissed by other means
+      debugPrint("🔄 Dialog closed - cleaning up timer");
+      _lockTaskCountdownTimer?.cancel();
       if (mounted) {
-        Navigator.of(context).pop(); // Close dialog
-        await _performAutoSubmit();
+        setState(() {
+          _isBypassDialogShowing = false;
+          _isLockTaskDialogShowing = false;
+        });
       }
     });
   }
@@ -574,6 +636,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
   Future<void> _performAutoSubmit() async {
     debugPrint("🚀 Performing auto submit...");
     try {
+      setState(() {
+        isTestFinished = true;
+      });
+
       bool submitResult =
           await ref.read(fullTestProvider.notifier).submitAnswer();
       debugPrint("📤 Submit result: $submitResult");
@@ -607,7 +673,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     WidgetsBinding.instance.removeObserver(this);
     _removeFloatingOverlay();
     _statusNotifier.dispose();
+    _countdownNotifier.dispose();
     _lockTaskChecker?.cancel();
+    _lockTaskCountdownTimer?.cancel();
     _resetBackgroundTracking();
     if (!isTestFinished && widget.packetType == "test") {
       FlutterLockTask().stopLockTask().then((value) {
@@ -624,6 +692,17 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
 
     await _showFinishedDialog(context, ref);
     return false;
+  }
+
+  // Menangani penekanan tombol home/back
+  void _handleSystemNavigation() {
+    debugPrint("🏠 System navigation detected (Home/Back button pressed)");
+    if (!_isFinishDialogShowing &&
+        !_isBypassDialogShowing &&
+        !_isSubmitting &&
+        !isTestFinished) {
+      _showFinishedDialog(context, ref);
+    }
   }
 
   @override
@@ -643,7 +722,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (!didPop) {
-          await _handleWillPop();
+          debugPrint("🔙 PopScope triggered - showing finish dialog");
+          _handleSystemNavigation();
         }
       },
       child: Scaffold(
@@ -683,6 +763,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                             const Spacer(),
                             GestureDetector(
                               onTap: () async {
+                                debugPrint("📋 Submit button tapped");
                                 _showFinishedDialog(context, ref);
                               },
                               child: Text(
