@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:toefl/models/games/searchword_game.dart';
 import 'package:toefl/remote/api/games/searchword_api.dart';
 
@@ -22,6 +23,11 @@ class _WordSearchGameState extends State<WordSearchGame> {
   final GlobalKey _gridKey = GlobalKey();
   bool isLoading = true;
 
+  int score = 0;
+  int timeRemaining = 60;
+  Timer? _timer;
+  bool gameOver = false;
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +42,7 @@ class _WordSearchGameState extends State<WordSearchGame> {
       grid = generateGridWithWords(words, gridSize);
     } catch (e) {
       words = [];
-      grid = List.generate(gridSize, (_) => List.generate(gridSize, (_) => ''));
+      grid = List.generate(gridSize, (i) => List.generate(gridSize, (j) => ''));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Gagal memuat kata: $e")),
       );
@@ -44,13 +50,59 @@ class _WordSearchGameState extends State<WordSearchGame> {
 
     setState(() {
       isLoading = false;
+      _startTimer();
     });
   }
 
-  List<List<String>> generateGridWithWords(List<String> words, int size) {
-    List<List<String>> board = List.generate(size, (_) => List.generate(size, (_) => ''));
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (timeRemaining > 0) {
+        setState(() {
+          timeRemaining--;
+        });
+      } else {
+        _endGame();
+      }
+    });
+  }
 
+ void _endGame() async {
+  _timer?.cancel();
+
+  setState(() {
+    gameOver = true;
+  });
+
+  try {
+    await SearchWordApi().store(score.toDouble()); // Submit the score
+  } catch (e) {
+    debugPrint("Score submission failed: $e");
+  }
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      title: const Text("Time's Up!"),
+      content: Text("Your score: $score\nWords found: ${foundWords.length}/${words.length}"),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            Navigator.pop(context);
+          },
+          child: const Text("OK"),
+        ),
+      ],
+    ),
+  );
+}
+
+
+  List<List<String>> generateGridWithWords(List<String> words, int size) {
+    List<List<String>> board = List.generate(size, (y) => List.generate(size, (x) => ''));
     final rand = Random();
+
     for (var word in words) {
       bool placed = false;
       int attempts = 0;
@@ -103,6 +155,8 @@ class _WordSearchGameState extends State<WordSearchGame> {
   }
 
   void handleCellTap(int x, int y) {
+    if (gameOver) return;
+
     Offset pos = Offset(x.toDouble(), y.toDouble());
     if (selected.contains(pos)) return;
 
@@ -114,8 +168,13 @@ class _WordSearchGameState extends State<WordSearchGame> {
         if (selectedWord == word && !foundWords.contains(word)) {
           foundWords.add(word);
           foundPositions.addAll(selected);
+          score += 20; // increment score
           selectedWord = '';
           selected.clear();
+
+          if (foundWords.length == words.length) {
+            _endGame();
+          }
           break;
         }
       }
@@ -130,8 +189,14 @@ class _WordSearchGameState extends State<WordSearchGame> {
   }
 
   @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    double cellSize = MediaQuery.of(context).size.width*0.095;
+    double cellSize = MediaQuery.of(context).size.width * 0.095;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -145,10 +210,12 @@ class _WordSearchGameState extends State<WordSearchGame> {
           : Column(
               children: [
                 const SizedBox(height: 10),
-                const Text(
-                  "Find the hidden words!",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  "Time Left: $timeRemaining sec | Score: $score",
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 10),
+                const Text("Find the hidden words!"),
                 const SizedBox(height: 10),
                 LayoutBuilder(
                   builder: (context, constraints) {
@@ -223,32 +290,6 @@ class _WordSearchGameState extends State<WordSearchGame> {
                       backgroundColor: found ? Colors.green : Colors.grey.shade300,
                     );
                   }).toList(),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle_outline),
-                  onPressed: foundWords.length == words.length
-                      ? () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: const Text("All Found!"),
-                              content: const Text("Great job! You found all the words."),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text("OK"),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                      : null,
-                  label: const Text("Finish"),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    backgroundColor: Colors.indigo,
-                  ),
                 ),
               ],
             ),

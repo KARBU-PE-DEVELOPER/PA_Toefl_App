@@ -30,7 +30,7 @@ class ScrambleGameApi {
   Future<bool> submitScrambleResult(double score) async {
     try {
       final Response rawResponse = await _dio.post(
-        '${Env.gameUrl}/minigames/scrabbleeGame/submit-answers',
+        '${Env.gameUrl}/minigames/scrabbleWordGame/submit-answers',
         data: {
           'score': score,
         },

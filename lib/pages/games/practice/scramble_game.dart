@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:toefl/remote/api/games/scramble_api.dart';
+import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -19,7 +21,12 @@ class _ScrambleGameState extends State<ScrambleGame> {
   List<String?> currentAnswer = [];
   List<String> letterOptions = [];
   int currentIndex = 0;
+  int attempts = 0;
+  int maxAttempts = 0;
+  int timeLeft = 60;
   bool isLoading = true;
+  bool isGameFinished = false;
+  late Timer _timer;
 
   @override
   void initState() {
@@ -32,28 +39,44 @@ class _ScrambleGameState extends State<ScrambleGame> {
       isLoading = true;
       currentAnswer = [];
       currentIndex = 0;
+      attempts = 0;
+      isGameFinished = false;
+      timeLeft = 100;
     });
 
     final api = ScrambleGameApi();
-    final data = await api.fetchScrambleWord(); // must include `clue`
+    final data = await api.fetchScrambleWord();
 
     if (data != null) {
-      setState(() {
-        word = data.answer.toUpperCase();
-        clue = data.clue;
-        currentAnswer = List.filled(word.length, null);
-        letterOptions = _generateLetterOptions(word);
-        isLoading = false;
-      });
+      word = data.answer.toUpperCase();
+      clue = data.clue;
     } else {
-      setState(() {
-        word = "DEFAULT";
-        clue = "Fallback clue.";
-        currentAnswer = List.filled(word.length, null);
-        letterOptions = _generateLetterOptions(word);
-        isLoading = false;
-      });
+      word = "DEFAULT";
+      clue = "Fallback clue.";
     }
+
+    maxAttempts = word.length * 2;
+
+    setState(() {
+      currentAnswer = List.filled(word.length, null);
+      letterOptions = _generateLetterOptions(word);
+      isLoading = false;
+    });
+
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (timeLeft <= 0 || isGameFinished) {
+        _timer.cancel();
+        _showResultModal();
+      } else {
+        setState(() {
+          timeLeft--;
+        });
+      }
+    });
   }
 
   List<String> _generateLetterOptions(String word) {
@@ -61,7 +84,6 @@ class _ScrambleGameState extends State<ScrambleGame> {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     final rand = Random();
 
-    // Tambahkan 3-5 huruf acak yang tidak ada di kata
     int extraCount = 3 + rand.nextInt(3);
     while (extraCount > 0) {
       String randomChar = alphabet[rand.nextInt(alphabet.length)];
@@ -76,13 +98,94 @@ class _ScrambleGameState extends State<ScrambleGame> {
   }
 
   void _selectLetter(String letter) {
-    if (currentIndex < word.length && word[currentIndex] == letter) {
-      setState(() {
-        currentAnswer[currentIndex] = letter;
-        currentIndex++;
-      });
+  if (isGameFinished || currentIndex >= word.length) return;
+
+  setState(() {
+    if (word[currentIndex] == letter) {
+      currentAnswer[currentIndex] = letter;
+      currentIndex++;
+      letterOptions.remove(letter); // Hapus huruf dari opsi setelah benar
+    } else {
+      attempts++; // Tambah attempt hanya saat salah
+    }
+
+    if (currentIndex >= word.length || attempts >= maxAttempts) {
+      isGameFinished = true;
+      _timer.cancel();
+      _showResultModal();
+    }
+  });
+}
+
+
+  int _calculateScore() {
+    const int maxScore = 100;
+    int timeScore = ((timeLeft / 100) * 70).round();
+    int attemptScore = (((maxAttempts - attempts).clamp(0, maxAttempts) / maxAttempts) * 30).round();
+    return (timeScore + attemptScore).clamp(0, maxScore);
+  }
+
+Future<void> _submitScore(int score) async {
+    try {
+      await ScrambleGameApi().submitScrambleResult(score.toDouble());
+    } catch (e) {
+      debugPrint("Submit score failed: $e");
     }
   }
+  
+  void _showResultModal() {
+  final isWin = !currentAnswer.contains(null);
+  final score = _calculateScore();
+
+  // Submit skor sebelum menampilkan dialog
+  _submitScore(score);
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        isWin ? 'congratulations'.tr() : 'game_over'.tr(),
+        textAlign: TextAlign.center,
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('the_correct_word_was'.tr()),
+          const SizedBox(height: 4),
+          Text(word,
+              style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red)),
+          const SizedBox(height: 12),
+          Text("Score: $score",
+              style: const TextStyle(fontSize: 20, color: Colors.green)),
+          const SizedBox(height: 20),
+          ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _startNewGame();
+                },
+                child: Text('restart'.tr()),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    RouteKey.main,
+                    (route) => false,
+                  );
+                },
+                child: Text('quit'.tr()),
+              ),
+        ],
+      ),
+    ),
+  );
+}
+
 
   Widget _buildLetterBox(String? letter) {
     return Container(
@@ -138,6 +241,12 @@ class _ScrambleGameState extends State<ScrambleGame> {
   }
 
   @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: GameAppBar(title: 'scramble_game'.tr()),
@@ -153,6 +262,18 @@ class _ScrambleGameState extends State<ScrambleGame> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Text(
+                      "Time Left: $timeLeft",
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Attempts: $attempts / $maxAttempts",
+                      style: const TextStyle(fontSize: 16),
+                    ),
                     const SizedBox(height: 16),
                     _buildHowToPlay(),
                     const SizedBox(height: 24),
@@ -168,19 +289,6 @@ class _ScrambleGameState extends State<ScrambleGame> {
                     const SizedBox(height: 24),
                     _buildClue(),
                     const Spacer(),
-                    ElevatedButton(
-                      onPressed: currentAnswer.contains(null)
-                          ? null
-                          : () {
-                              // Do something on finish
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade300,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                      child: const Text("Finish"),
-                    )
                   ],
                 ),
               ),
