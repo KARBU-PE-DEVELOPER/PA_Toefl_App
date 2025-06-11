@@ -5,10 +5,12 @@ class FloatingCheatingStatus extends StatefulWidget {
   final int lookAwayCount;
   final int maxLookAway;
   final int faceNotDetectedSeconds;
-  final int faceNotDetectedCountdown; // TAMBAH PARAMETER INI
+  final int faceNotDetectedCountdown;
   final int blinkCountdown;
   final String currentStatus;
   final String blinkStatus;
+  final bool isCurrentlyLookingAway; // TAMBAHAN
+  final int currentLookAwayDuration; // TAMBAHAN
   final VoidCallback? onUpdate;
 
   const FloatingCheatingStatus({
@@ -16,10 +18,12 @@ class FloatingCheatingStatus extends StatefulWidget {
     required this.lookAwayCount,
     required this.maxLookAway,
     required this.faceNotDetectedSeconds,
-    required this.faceNotDetectedCountdown, // TAMBAH PARAMETER INI
+    required this.faceNotDetectedCountdown,
     required this.blinkCountdown,
     required this.currentStatus,
     required this.blinkStatus,
+    required this.isCurrentlyLookingAway, // TAMBAHAN
+    required this.currentLookAwayDuration, // TAMBAHAN
     this.onUpdate,
   }) : super(key: key);
 
@@ -72,6 +76,14 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
 
   Color _getLookAwayColor() {
     final remaining = widget.maxLookAway - widget.lookAwayCount;
+
+    // WARNA KHUSUS SAAT SEDANG MENOLEH
+    if (widget.isCurrentlyLookingAway) {
+      if (widget.currentLookAwayDuration >= 3) return Colors.red;
+      if (widget.currentLookAwayDuration >= 1) return Colors.orange;
+      return Colors.yellow;
+    }
+
     if (remaining >= 3) return Colors.green;
     if (remaining >= 1) return Colors.orange;
     return Colors.red;
@@ -84,14 +96,27 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
     return Colors.red;
   }
 
+  Color _getBorderColor() {
+    if (widget.currentStatus.contains("not detected")) {
+      return _getTimeColor();
+    }
+
+    if (widget.currentStatus.contains("Turning head") ||
+        widget.isCurrentlyLookingAway) {
+      return _getLookAwayColor();
+    }
+
+    return _getLookAwayColor();
+  }
+
   IconData _getStatusIcon() {
     if (widget.currentStatus.contains("not detected"))
       return Icons.face_retouching_off;
-    if (widget.currentStatus.contains("Look away")) return Icons.visibility_off;
+    if (widget.currentStatus.contains("Turning head") ||
+        widget.isCurrentlyLookingAway) return Icons.visibility_off;
     return Icons.face;
   }
 
-  // FUNGSI UNTUK FORMAT WAKTU COUNTDOWN
   String _formatCountdown(int seconds) {
     final minutes = seconds ~/ 60;
     final remainingSeconds = seconds % 60;
@@ -123,7 +148,7 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
       feedback: Material(
         color: Colors.transparent,
         elevation: 15,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(12),
         child: _buildStatusContainer(),
       ),
       childWhenDragging: Opacity(
@@ -132,8 +157,8 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
       ),
       onDragEnd: (details) {
         final screenSize = MediaQuery.of(context).size;
-        final widgetWidth = _isExpanded ? 180 : 60;
-        final widgetHeight = _isExpanded ? 140 : 60;
+        final widgetWidth = _isExpanded ? 170.0 : 60.0;
+        final widgetHeight = _isExpanded ? 120.0 : 60.0;
 
         setState(() {
           _xPosition = math.max(
@@ -149,13 +174,12 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
   Widget _buildStatusContainer() {
     return Material(
       elevation: 8,
-      borderRadius: BorderRadius.circular(15),
-      shadowColor: _getLookAwayColor().withOpacity(0.3),
+      borderRadius: BorderRadius.circular(12),
+      shadowColor: _getBorderColor().withOpacity(0.3),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        width: _isExpanded ? 180 : 60,
-        height: _isExpanded ? 140 : 60,
-        padding: EdgeInsets.all(_isExpanded ? 10 : 6),
+        width: _isExpanded ? 170.0 : 60.0,
+        height: _isExpanded ? 120.0 : 60.0,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -165,20 +189,27 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
               Colors.black54,
             ],
           ),
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _getLookAwayColor(),
+            color: _getBorderColor(),
             width: 2,
           ),
         ),
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              _isExpanded = !_isExpanded;
-            });
-          },
-          child:
-              _isExpanded ? _buildExpandedContent() : _buildCollapsedContent(),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: _isExpanded
+                  ? _buildExpandedContent()
+                  : _buildCollapsedContent(),
+            ),
+          ),
         ),
       ),
     );
@@ -186,11 +217,15 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
 
   Widget _buildCollapsedContent() {
     final remaining = widget.maxLookAway - widget.lookAwayCount;
+    final shouldPulse = widget.currentStatus.contains("not detected") ||
+        remaining <= 1 ||
+        widget.isCurrentlyLookingAway;
+
     return AnimatedBuilder(
       animation: _pulseAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: remaining <= 1 ? _pulseAnimation.value : 1.0,
+          scale: shouldPulse ? _pulseAnimation.value : 1.0,
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -198,18 +233,22 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
               children: [
                 Icon(
                   _getStatusIcon(),
-                  color: _getLookAwayColor(),
-                  size: 18,
+                  color: _getBorderColor(),
+                  size: 20,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
-                  '$remaining',
+                  // TAMPILKAN DURASI MENOLEH JIKA SEDANG MENOLEH
+                  widget.isCurrentlyLookingAway
+                      ? '${widget.currentLookAwayDuration}s'
+                      : widget.currentStatus.contains("not detected")
+                          ? _formatCountdown(widget.faceNotDetectedCountdown)
+                          : '$remaining',
                   style: TextStyle(
-                    color: _getLookAwayColor(),
+                    color: _getBorderColor(),
                     fontWeight: FontWeight.bold,
-                    fontSize: 11,
+                    fontSize: 12,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -222,77 +261,52 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
   Widget _buildExpandedContent() {
     final lookAwayRemaining = widget.maxLookAway - widget.lookAwayCount;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header with status icon
-          Row(
-            children: [
-              Icon(
-                _getStatusIcon(),
-                color: _getLookAwayColor(),
-                size: 16,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  widget.currentStatus,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-
-          // Look away counter
-          _buildInfoRow(
-            Icons.visibility_off,
-            "Look away",
-            "$lookAwayRemaining/${widget.maxLookAway}",
-            _getLookAwayColor(),
-          ),
-
-          const SizedBox(height: 2),
-
-          // Face detection countdown timer - MENGGUNAKAN COUNTDOWN
-          if (widget.faceNotDetectedSeconds > 0)
-            _buildInfoRow(
-              Icons.timer,
-              "Face Timer",
-              _formatCountdown(
-                  widget.faceNotDetectedCountdown), // COUNTDOWN FORMAT
-              _getTimeColor(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: SizedBox(
+            width: 158,
+            height: 108,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildStatusHeader(),
+                _buildStatsSection(lookAwayRemaining),
+                _buildMinimizeButton(),
+              ],
             ),
-
-          const SizedBox(height: 2),
-
-          // Blink status
-          _buildInfoRow(
-            Icons.remove_red_eye,
-            "Blink",
-            widget.blinkCountdown > 0 ? "${widget.blinkCountdown}s" : "✓",
-            widget.blinkCountdown <= 3 ? Colors.orange : Colors.green,
           ),
+        );
+      },
+    );
+  }
 
-          const SizedBox(height: 4),
-
-          // Minimize button
-          Center(
-            child: Container(
-              width: 20,
-              height: 2,
-              decoration: BoxDecoration(
-                color: Colors.white54,
-                borderRadius: BorderRadius.circular(1),
+  Widget _buildStatusHeader() {
+    return SizedBox(
+      height: 20,
+      child: Row(
+        children: [
+          Icon(
+            _getStatusIcon(),
+            color: _getBorderColor(),
+            size: 14,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              widget.currentStatus.length > 12
+                  ? "${widget.currentStatus.substring(0, 9)}..."
+                  : widget.currentStatus,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                height: 1.1,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -300,33 +314,102 @@ class _FloatingCheatingStatusState extends State<FloatingCheatingStatus>
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+  Widget _buildStatsSection(int lookAwayRemaining) {
+    return SizedBox(
+      height: 72,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(icon, color: color, size: 10),
-          const SizedBox(width: 3),
+          // Look away dengan durasi
+          _buildStatRow(
+            Icons.visibility_off,
+            "Look Away",
+            widget.isCurrentlyLookingAway
+                ? "${widget.currentLookAwayDuration}s/${5}s"
+                : "$lookAwayRemaining/${widget.maxLookAway}",
+            _getLookAwayColor(),
+          ),
+
+          // Face timer (kondisional)
+          if (widget.faceNotDetectedSeconds > 0)
+            _buildStatRow(
+              Icons.timer,
+              "Timer",
+              _formatCountdown(widget.faceNotDetectedCountdown),
+              _getTimeColor(),
+            ),
+
+          // Blink
+          _buildStatRow(
+            Icons.remove_red_eye,
+            "Blink",
+            widget.blinkCountdown > 0 ? "${widget.blinkCountdown}s" : "✓",
+            widget.blinkCountdown <= 3 ? Colors.orange : Colors.green,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(IconData icon, String label, String value, Color color) {
+    return SizedBox(
+      height: 18,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
           Expanded(
+            flex: 3,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: color, size: 12),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 9,
+                      height: 1.1,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
             child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 8,
+              value,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                height: 1.1,
               ),
+              textAlign: TextAlign.end,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMinimizeButton() {
+    return SizedBox(
+      height: 12,
+      child: Center(
+        child: Container(
+          width: 16,
+          height: 3,
+          decoration: BoxDecoration(
+            color: Colors.white54,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
       ),
     );
   }

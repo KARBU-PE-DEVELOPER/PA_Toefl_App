@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lock_task/flutter_lock_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
@@ -25,36 +26,54 @@ class FullTestPage extends ConsumerStatefulWidget {
     required this.diffInSec,
     required this.isRetake,
     required this.packetType,
-    required this.packetId, // TAMBAH PARAMETER INI
-    required this.packetName, // TAMBAH PARAMETER INI
+    required this.packetId,
+    required this.packetName,
   });
 
   final int diffInSec;
   final bool isRetake;
   final String packetType;
-  final String packetId; // TAMBAH FIELD INI
-  final String packetName; // TAMBAH FIELD INI
+  final String packetId;
+  final String packetName;
 
   @override
   ConsumerState<FullTestPage> createState() => _FullTestPageState();
 }
 
-class _FullTestPageState extends ConsumerState<FullTestPage> {
+class _FullTestPageState extends ConsumerState<FullTestPage>
+    with WidgetsBindingObserver {
   Timer? _lockTaskChecker;
-  bool isAskedToReLock = false;
   bool isTestFinished = false;
   bool _isCheatingDetectionActive = false;
-  bool _isSubmitting = false; // TAMBAH FLAG UNTUK SUBMIT
+  bool _isSubmitting = false;
+  bool _isBypassDialogShowing = false;
+  bool _isFinishDialogShowing = false;
   Widget? _hiddenCheatingDetection;
+  bool _isLockTaskDialogShowing = false;
+  Timer? _lockTaskCountdownTimer;
+  int _lockTaskCountdown = 10;
+  final ValueNotifier<int> _countdownNotifier = ValueNotifier<int>(10);
 
-  // Status untuk floating widget - GUNAKAN NOTIFIER
+  // Enhanced background detection with multiple strategies
+  AppLifecycleState? _lastAppState;
+  DateTime? _backgroundStartTime;
+  Timer? _backgroundCheckTimer;
+  int _backgroundEventCount = 0;
+  Timer? _backgroundEventResetTimer;
+
+  // Lower threshold for more sensitive detection
+  static const int _backgroundThresholdMs = 100; // Very low threshold
+  static const int _maxBackgroundEvents = 3; // Multiple events trigger
+
   final ValueNotifier<Map<String, dynamic>> _statusNotifier = ValueNotifier({
     'lookAwayCount': 0,
     'faceNotDetectedSeconds': 0,
     'faceNotDetectedCountdown': 300,
     'blinkCountdown': 10,
-    'currentStatus': 'Memulai monitoring...',
+    'currentStatus': 'Start monitoring...',
     'blinkStatus': 'Normal',
+    'isCurrentlyLookingAway': false, // TAMBAHAN
+    'currentLookAwayDuration': 0, // TAMBAHAN
   });
 
   OverlayEntry? _floatingOverlay;
@@ -62,38 +81,386 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _lastAppState = WidgetsBinding.instance.lifecycleState;
+
     if (widget.packetType == "test") {
       FlutterLockTask().startLockTask().then((value) {
         debugPrint("startLockTask: $value");
       });
 
-      // LANGSUNG START CHEATING DETECTION
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _startCheatingDetection();
       });
 
-      _lockTaskChecker =
-          Timer.periodic(const Duration(seconds: 2), (timer) async {
-        final isActive = await FlutterLockTask().isInLockTaskMode();
-        if (!isActive && mounted) {
-          checkLockStatusPeriodically();
-        }
-      });
+      _startLockTaskChecker();
     }
+  }
+
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+
+    debugPrint("🔄 App lifecycle changed from ${_lastAppState} to $state");
+
+    // Skip if test is already finished or dialogs are showing
+    if (isTestFinished || _isFinishDialogShowing || _isBypassDialogShowing) {
+      _lastAppState = state;
+      return;
+    }
+
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+        // App is going to background
+        _backgroundEventCount++;
+        debugPrint(
+            "📱 Background event #$_backgroundEventCount at: ${DateTime.now()}");
+
+        if (_backgroundStartTime == null) {
+          _backgroundStartTime = DateTime.now();
+          debugPrint("📱 App went to background at: $_backgroundStartTime");
+        }
+
+        // Reset event counter after some time if no dialog shown
+        _backgroundEventResetTimer?.cancel();
+        _backgroundEventResetTimer = Timer(const Duration(seconds: 5), () {
+          _backgroundEventCount = 0;
+          debugPrint("🔄 Reset background event counter");
+        });
+
+        // Check if too many background events (indicates user trying to leave)
+        if (_backgroundEventCount >= _maxBackgroundEvents) {
+          debugPrint(
+              "🚨 Multiple background events detected - showing dialog immediately");
+          Timer(const Duration(milliseconds: 100), () {
+            if (mounted &&
+                !_isFinishDialogShowing &&
+                !_isBypassDialogShowing &&
+                !isTestFinished) {
+              _showFinishedDialog(context, ref);
+            }
+          });
+        }
+
+        _startBackgroundTimer();
+        break;
+
+      case AppLifecycleState.resumed:
+        // App returned to foreground
+        debugPrint("📱 App resumed to foreground");
+
+        if (_backgroundStartTime != null) {
+          final backgroundDuration =
+              DateTime.now().difference(_backgroundStartTime!);
+          debugPrint(
+              "📊 Background duration: ${backgroundDuration.inMilliseconds}ms");
+          debugPrint("📊 Background event count: $_backgroundEventCount");
+
+          // Multiple conditions to trigger dialog
+          bool shouldShowDialog = false;
+          String reason = "";
+
+          // Condition 1: Duration threshold (lowered)
+          if (backgroundDuration.inMilliseconds > _backgroundThresholdMs) {
+            shouldShowDialog = true;
+            reason =
+                "background duration (${backgroundDuration.inMilliseconds}ms)";
+          }
+
+          // Condition 2: Multiple background events in short time
+          if (_backgroundEventCount >= 2) {
+            shouldShowDialog = true;
+            reason = "multiple background events ($_backgroundEventCount)";
+          }
+
+          // Condition 3: Any background event for test mode (very strict)
+          if (widget.packetType == "test" && _backgroundEventCount >= 1) {
+            shouldShowDialog = true;
+            reason = "any background event in test mode";
+          }
+
+          if (shouldShowDialog) {
+            debugPrint(
+                "🚨 Trigger condition met: $reason - showing finish dialog");
+
+            Timer(const Duration(milliseconds: 300), () {
+              if (mounted &&
+                  !_isFinishDialogShowing &&
+                  !_isBypassDialogShowing &&
+                  !isTestFinished) {
+                _showFinishedDialog(context, ref);
+              }
+            });
+          } else {
+            debugPrint("✅ Background conditions within acceptable range");
+          }
+
+          // Check lock task status when returning from background
+          if (widget.packetType == "test") {
+            final isActive = await FlutterLockTask().isInLockTaskMode();
+            if (!isActive) {
+              _handleLockTaskBypass();
+            }
+          }
+        }
+
+        // Reset background tracking
+        _resetBackgroundTracking();
+        break;
+
+      case AppLifecycleState.detached:
+        debugPrint("💀 App is being terminated");
+        _resetBackgroundTracking();
+        break;
+    }
+
+    _lastAppState = state;
+  }
+
+  void _startBackgroundTimer() {
+    _backgroundCheckTimer?.cancel();
+    _backgroundCheckTimer =
+        Timer(Duration(milliseconds: _backgroundThresholdMs + 200), () {
+      // If still in background after threshold
+      if (_backgroundStartTime != null &&
+          DateTime.now().difference(_backgroundStartTime!).inMilliseconds >
+              _backgroundThresholdMs &&
+          mounted &&
+          !_isFinishDialogShowing &&
+          !_isBypassDialogShowing &&
+          !isTestFinished) {
+        debugPrint("🚨 Background timer triggered - showing dialog");
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _showFinishedDialog(context, ref);
+          }
+        });
+      }
+    });
+  }
+
+  void _resetBackgroundTracking() {
+    _backgroundStartTime = null;
+    _backgroundCheckTimer?.cancel();
+    _backgroundCheckTimer = null;
+    _backgroundEventResetTimer?.cancel();
+    _backgroundEventResetTimer = null;
+    // Don't reset _backgroundEventCount immediately, let the timer handle it
+  }
+
+  void _startLockTaskChecker() {
+    _lockTaskChecker?.cancel();
+    _lockTaskChecker =
+        Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (isTestFinished ||
+          !mounted ||
+          _isBypassDialogShowing ||
+          _isLockTaskDialogShowing) {
+        return;
+      }
+      final isActive = await FlutterLockTask().isInLockTaskMode();
+      if (!isActive) {
+        _handleLockTaskBypass();
+      }
+    });
+  }
+
+  void _handleLockTaskBypass() {
+    if (_isBypassDialogShowing ||
+        !mounted ||
+        isTestFinished ||
+        _isLockTaskDialogShowing) return;
+
+    _lockTaskChecker?.cancel();
+
+    debugPrint("🚨 BYPASS DETECTED: Starting 10 second countdown.");
+
+    // Set flags to prevent multiple submissions
+    setState(() {
+      _isBypassDialogShowing = true;
+      _isLockTaskDialogShowing = true;
+      _lockTaskCountdown = 10;
+    });
+
+    // Reset countdown notifier
+    _countdownNotifier.value = 10;
+
+    // Start countdown timer
+    _lockTaskCountdownTimer =
+        Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        _lockTaskCountdown--;
+        _countdownNotifier.value = _lockTaskCountdown;
+        debugPrint("⏰ Countdown: $_lockTaskCountdown seconds remaining");
+
+        if (_lockTaskCountdown <= 0) {
+          timer.cancel();
+          debugPrint("⏰ Countdown finished - auto submitting");
+          if (Navigator.canPop(context)) {
+            Navigator.of(context).pop(); // Close dialog
+          }
+          _performAutoSubmit();
+        }
+      } else {
+        timer.cancel();
+      }
+    });
+
+    // Show countdown dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.security,
+                color: Colors.red,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Security Violation Detected',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.withOpacity(0.2)),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red.shade600,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Lock Task Mode Bypassed',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'You have exited the secure exam environment. Your test will be automatically submitted for security reasons.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade700,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.blue.shade600,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: _countdownNotifier,
+                      builder: (context, countdown, child) {
+                        return Text(
+                          'Auto-submitting in $countdown seconds...',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              debugPrint("👍 User clicked 'Mengerti' - canceling auto submit");
+              _lockTaskCountdownTimer?.cancel();
+              setState(() {
+                _isBypassDialogShowing = false;
+                _isLockTaskDialogShowing = false;
+              });
+              Navigator.of(dialogContext).pop();
+              _startLockTaskChecker(); // Restart checker
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 45),
+            ),
+            child: const Text('Mengerti'),
+          ),
+        ],
+      ),
+    ).then((_) {
+      // Dialog dismissed by other means
+      debugPrint("🔄 Dialog closed - cleaning up timer");
+      _lockTaskCountdownTimer?.cancel();
+      if (mounted) {
+        setState(() {
+          _isBypassDialogShowing = false;
+          _isLockTaskDialogShowing = false;
+        });
+      }
+    });
   }
 
   void _startCheatingDetection() {
     if (!_isCheatingDetectionActive && mounted) {
       setState(() {
         _isCheatingDetectionActive = true;
-
-        // UPDATE STATUS AWAL
         _statusNotifier.value = {
           ..._statusNotifier.value,
-          'currentStatus': 'Monitoring aktif',
+          'currentStatus': 'Monitoring Active',
         };
-
-        // Buat hidden camera detection
         _hiddenCheatingDetection = HiddenCameraFaceDetection(
           onAutoSubmit: (reason) {
             debugPrint("🚨 AUTO SUBMIT TRIGGERED: $reason");
@@ -102,8 +469,6 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
           onStatusUpdate: (lookAway, faceTime, faceCountdown, blinkCountdown,
               status, blinkStatus) {
             if (mounted && !_isSubmitting) {
-              // JANGAN UPDATE JIKA SEDANG SUBMIT
-              // UPDATE DATA LANGSUNG TANPA RECREATE OVERLAY
               _statusNotifier.value = {
                 'lookAwayCount': lookAway,
                 'faceNotDetectedSeconds': faceTime,
@@ -111,32 +476,28 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                 'blinkCountdown': blinkCountdown,
                 'currentStatus': status,
                 'blinkStatus': blinkStatus,
+                'isCurrentlyLookingAway':
+                    false, // Default value, akan diupdate oleh manager
+                'currentLookAwayDuration':
+                    0, // Default value, akan diupdate oleh manager
               };
-
-              debugPrint(
-                  "📊 Status Update - LookAway: $lookAway, Face: $faceTime, Countdown: $faceCountdown, Status: $status");
             }
           },
         );
       });
-
-      // BUAT FLOATING OVERLAY SEKALI SAJA
       _createFloatingOverlay();
     }
   }
 
   void _createFloatingOverlay() {
-    _removeFloatingOverlay(); // Remove existing overlay if any
-
+    _removeFloatingOverlay();
     _floatingOverlay = OverlayEntry(
       builder: (context) => ValueListenableBuilder<Map<String, dynamic>>(
         valueListenable: _statusNotifier,
         builder: (context, statusData, child) {
-          // SEMBUNYIKAN OVERLAY JIKA SEDANG SUBMIT/LOADING
           if (_isSubmitting) {
             return const SizedBox.shrink();
           }
-
           return FloatingCheatingStatus(
             lookAwayCount: statusData['lookAwayCount'] ?? 0,
             maxLookAway: CheatingDetectionManager.MAX_LOOK_AWAY_COUNT,
@@ -146,15 +507,15 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
             blinkCountdown: statusData['blinkCountdown'] ?? 10,
             currentStatus: statusData['currentStatus'] ?? 'Normal',
             blinkStatus: statusData['blinkStatus'] ?? 'Normal',
-            onUpdate: () {
-              // Callback ketika widget di-update - TIDAK PERLU LAGI
-            },
+            isCurrentlyLookingAway:
+                statusData['isCurrentlyLookingAway'] ?? false, // TAMBAHAN
+            currentLookAwayDuration:
+                statusData['currentLookAwayDuration'] ?? 0, // TAMBAHAN
+            onUpdate: () {},
           );
         },
       ),
     );
-
-    // Insert overlay dengan delay
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _floatingOverlay != null && !_isSubmitting) {
         Overlay.of(context).insert(_floatingOverlay!);
@@ -171,16 +532,14 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
 
   void _stopCheatingDetection() {
     debugPrint("🛑 Stopping cheating detection...");
-
-    setState(() {
-      _isSubmitting = true; // SET FLAG SUBMIT
-      _isCheatingDetectionActive = false;
-      _hiddenCheatingDetection = null;
-    });
-
-    // HILANGKAN OVERLAY
+    if (mounted) {
+      setState(() {
+        _isSubmitting = true;
+        _isCheatingDetectionActive = false;
+        _hiddenCheatingDetection = null;
+      });
+    }
     _removeFloatingOverlay();
-
     debugPrint("✅ Cheating detection stopped and overlay removed");
   }
 
@@ -195,10 +554,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
     debugPrint("✅ Processing auto submit...");
     isTestFinished = true;
 
-    // Stop cheating detection dan remove overlay
     _stopCheatingDetection();
 
-    // ENSURE DIALOG SHOWS
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         debugPrint("📋 Showing auto submit dialog...");
@@ -212,7 +569,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Ujian Otomatis Di-Submit',
+                    'Auto Submit Exam',
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -233,7 +590,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                       const Icon(Icons.security, color: Colors.red, size: 48),
                       const SizedBox(height: 12),
                       const Text(
-                        'Pelanggaran Terdeteksi',
+                        'Cheating Detected',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -250,7 +607,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Ujian Anda akan otomatis di-submit untuk menjaga integritas pengujian.',
+                  'Your test will be automatically submitted to maintain test integration.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
@@ -267,7 +624,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 45),
                 ),
-                child: const Text('Submit Ujian'),
+                child: const Text('Submit Exam'),
               ),
             ],
           ),
@@ -279,19 +636,21 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
   Future<void> _performAutoSubmit() async {
     debugPrint("🚀 Performing auto submit...");
     try {
+      setState(() {
+        isTestFinished = true;
+      });
+
       bool submitResult =
           await ref.read(fullTestProvider.notifier).submitAnswer();
       debugPrint("📤 Submit result: $submitResult");
-
       if (widget.packetType == "test") {
         await FlutterLockTask().stopLockTask();
+        debugPrint("stopLockTask in auto-submit successful");
       }
-
       if (submitResult) {
         _lockTaskChecker?.cancel();
         bool resetResult = await ref.read(fullTestProvider.notifier).resetAll();
         if (resetResult && context.mounted) {
-          // NAVIGASI KE TEST RESULT DENGAN PACKET TYPE
           Navigator.pushReplacementNamed(
             context,
             RouteKey.testresult,
@@ -299,7 +658,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
               'packetId': ref.read(fullTestProvider).packetDetail.id.toString(),
               'isMiniTest': false,
               'packetName': ref.read(fullTestProvider).packetDetail.name,
-              'packetType': widget.packetType, // KIRIM PACKET TYPE
+              'packetType': widget.packetType,
             },
           );
         }
@@ -311,15 +670,39 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _removeFloatingOverlay();
-    _statusNotifier.dispose(); // DISPOSE NOTIFIER
+    _statusNotifier.dispose();
+    _countdownNotifier.dispose();
     _lockTaskChecker?.cancel();
-    if (widget.packetType == "test") {
+    _lockTaskCountdownTimer?.cancel();
+    _resetBackgroundTracking();
+    if (!isTestFinished && widget.packetType == "test") {
       FlutterLockTask().stopLockTask().then((value) {
-        debugPrint("stopLockTask: $value");
+        debugPrint("stopLockTask on dispose: $value");
       });
     }
     super.dispose();
+  }
+
+  Future<bool> _handleWillPop() async {
+    if (_isFinishDialogShowing || _isBypassDialogShowing || _isSubmitting) {
+      return false;
+    }
+
+    await _showFinishedDialog(context, ref);
+    return false;
+  }
+
+  // Menangani penekanan tombol home/back
+  void _handleSystemNavigation() {
+    debugPrint("🏠 System navigation detected (Home/Back button pressed)");
+    if (!_isFinishDialogShowing &&
+        !_isBypassDialogShowing &&
+        !_isSubmitting &&
+        !isTestFinished) {
+      _showFinishedDialog(context, ref);
+    }
   }
 
   @override
@@ -327,20 +710,32 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final state = ref.watch(fullTestProvider);
 
-    // DETECT LOADING STATE DAN HIDE OVERLAY
     if (state.isSubmitLoading && !_isSubmitting) {
       debugPrint("🔄 Submit loading detected, stopping cheating detection");
       _stopCheatingDetection();
     }
 
-    final countdownDuration = widget.diffInSec >= 7200
-        ? const Duration(seconds: 2)
-        : const Duration(hours: 2) - Duration(seconds: widget.diffInSec);
+    Duration countdownDuration;
+    if (state.testStatus.startTime.isNotEmpty) {
+      final startTime = DateTime.parse(state.testStatus.startTime);
+      final elapsed = DateTime.now().difference(startTime);
+      final totalTestTime = const Duration(hours: 2);
+      countdownDuration = totalTestTime - elapsed;
 
+      // Pastikan tidak negatif
+      if (countdownDuration.isNegative) {
+        countdownDuration = const Duration(seconds: 0);
+      }
+    } else {
+      countdownDuration = const Duration(hours: 2);
+    }
     return PopScope(
       canPop: false,
-      onPopInvoked: (val) async {
-        _showFinishedDialog(context, ref);
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (!didPop) {
+          debugPrint("🔙 PopScope triggered - showing finish dialog");
+          _handleSystemNavigation();
+        }
       },
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -379,6 +774,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                             const Spacer(),
                             GestureDetector(
                               onTap: () async {
+                                debugPrint("📋 Submit button tapped");
                                 _showFinishedDialog(context, ref);
                               },
                               child: Text(
@@ -458,9 +854,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                                 color: Colors.transparent,
                               ),
                               onDone: () async {
-                                // STOP CHEATING DETECTION SAAT TIMER HABIS
                                 _stopCheatingDetection();
-
                                 bool submitResult = await ref
                                     .read(fullTestProvider.notifier)
                                     .submitAnswer();
@@ -470,7 +864,6 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
                                       .resetAll();
 
                                   if (context.mounted) {
-                                    // LANGSUNG REPLACE KE TEST RESULT TANPA POP
                                     Navigator.pushReplacementNamed(
                                       context,
                                       RouteKey.testresult,
@@ -628,38 +1021,20 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
     );
   }
 
-  checkLockStatusPeriodically() async {
-    if (isTestFinished) return;
-    final isActive = await FlutterLockTask().isInLockTaskMode();
-
-    if (!isActive && !isAskedToReLock) {
-      isAskedToReLock = true;
-
-      if (context.mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AlertDialog(
-            title: const Text('Mode Terkunci Dinonaktifkan'),
-            content: const Text(
-                'Silakan klik "Kunci Ulang" untuk melanjutkan ujian.'),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await FlutterLockTask().startLockTask();
-                  isAskedToReLock = false;
-                },
-                child: const Text('Kunci Ulang'),
-              )
-            ],
-          ),
-        );
-      }
-    }
-  }
-
   Future<dynamic> _showFinishedDialog(BuildContext context, WidgetRef ref) {
+    if (_isFinishDialogShowing ||
+        _isBypassDialogShowing ||
+        _isSubmitting ||
+        isTestFinished) {
+      debugPrint("⚠️ Dialog already showing or conditions not met");
+      return Future.value();
+    }
+
+    debugPrint("📋 Showing finish dialog");
+    setState(() {
+      _isFinishDialogShowing = true;
+    });
+
     return showDialog(
       barrierDismissible: false,
       context: context,
@@ -670,32 +1045,33 @@ class _FullTestPageState extends ConsumerState<FullTestPage> {
               const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           content: SubmitDialog(
               onNo: () {
+                debugPrint("📋 Dialog dismissed - No");
+                setState(() {
+                  _isFinishDialogShowing = false;
+                });
                 Navigator.pop(submitContext);
               },
               onYes: () async {
+                debugPrint("📋 Dialog confirmed - Yes");
+                setState(() {
+                  _isFinishDialogShowing = false;
+                });
                 Navigator.pop(submitContext);
-
-                // STOP CHEATING DETECTION SEBELUM SUBMIT
                 _stopCheatingDetection();
-
                 bool submitResult = false;
-
                 submitResult =
                     await ref.read(fullTestProvider.notifier).submitAnswer();
-
                 if (widget.packetType == "test") {
                   FlutterLockTask().stopLockTask().then((value) {
                     debugPrint("stopLockTask: $value");
                   });
                 }
-
                 if (submitResult) {
                   isTestFinished = true;
                   _lockTaskChecker?.cancel();
                   bool resetResult =
                       await ref.read(fullTestProvider.notifier).resetAll();
                   if (resetResult && context.mounted) {
-                    // LANGSUNG REPLACE KE TEST RESULT TANPA POP
                     Navigator.pushReplacementNamed(
                       context,
                       RouteKey.testresult,

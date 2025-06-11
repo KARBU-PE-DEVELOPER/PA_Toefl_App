@@ -99,23 +99,48 @@ class _OpeningLoadingPageState extends ConsumerState<OpeningLoadingPage>
     }
   }
 
+  // Di OpeningLoadingPage._onInit()
   Future<void> _onInit() async {
     final TestSharedPreference sharedPref = TestSharedPreference();
     final status = await sharedPref.getStatus();
 
+    debugPrint("🔍 OPENING LOADING PAGE DEBUG:");
+    debugPrint("   - Widget Packet ID: '${widget.packetId}'");
+    debugPrint("   - Widget Packet Name: '${widget.packetName}'");
+    debugPrint("   - Widget Is Retake: ${widget.isRetake}");
+    debugPrint("   - Existing Status: $status");
+
     DateTime startDate = DateTime.now();
     if (status != null) {
       startDate = DateTime.parse(status.startTime);
+      debugPrint("📅 Using existing start time: ${status.startTime}");
     } else {
-      await sharedPref.saveStatus(TestStatus(
+      debugPrint("💾 Creating new test status...");
+      final newStatus = TestStatus(
           id: widget.packetId.toString(),
           startTime: DateTime.now().toIso8601String(),
           name: widget.packetName,
           resetTable: true,
-          isRetake: widget.isRetake));
+          isRetake: widget.isRetake);
+
+      debugPrint("💾 New Status Details:");
+      debugPrint("   - ID: '${newStatus.id}'");
+      debugPrint("   - Name: '${newStatus.name}'");
+      debugPrint("   - Start Time: '${newStatus.startTime}'");
+      debugPrint("   - Reset Table: ${newStatus.resetTable}");
+      debugPrint("   - Is Retake: ${newStatus.isRetake}");
+
+      await sharedPref.saveStatus(newStatus);
+
+      // Verify save
+      final savedStatus = await sharedPref.getStatus();
+      debugPrint("✅ Verified saved status: $savedStatus");
     }
+
+    debugPrint("🚀 Calling provider.onInit()...");
     await ref.read(fullTestProvider.notifier).onInit();
     await Future.delayed(const Duration(seconds: 4));
+
     debugPrint(
         "OpeningLoadingPage: ${widget.packetId}, ${widget.packetName}, ${widget.packetType}, ${widget.isRetake}");
 
@@ -127,7 +152,6 @@ class _OpeningLoadingPageState extends ConsumerState<OpeningLoadingPage>
         _isNavigatingToTest = true;
       });
 
-      // GUNAKAN pushReplacement BUKAN pushNamed + then
       Navigator.pushReplacementNamed(
         context,
         RouteKey.fullTest,

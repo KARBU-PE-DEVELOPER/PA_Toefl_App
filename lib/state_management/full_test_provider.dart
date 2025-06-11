@@ -1,13 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:toefl/models/test/on_going.dart';
 import 'package:toefl/models/test/packet_detail.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:toefl/models/test/test_status.dart';
 import 'package:toefl/remote/api/full_test_api.dart';
 import 'package:toefl/remote/local/shared_pref/test_shared_preferences.dart';
 import 'package:toefl/remote/local/sqlite/full_test_table.dart';
+import 'package:toefl/remote/local_database_service.dart';
 import 'package:toefl/utils/list_ext.dart';
-
+import 'dart:math' as math;
 part 'full_test_provider.freezed.dart';
 
 @freezed
@@ -50,42 +52,64 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
       state = state.copyWith(isLoading: true);
 
       final testStat = await _testSharedPref.getStatus();
-      debugPrint("📊 TEST STATUS: $testStat"); // Debug log
-      debugPrint("💾 STORED ID: ${testStat?.id}"); // Debug log
-      debugPrint("total pertanyaan ${state.totalQuestions}");
 
       if (testStat != null) {
-        // Validasi ID sebelum digunakan
         if (testStat.id.isEmpty) {
-          debugPrint("❌ ERROR: Test status ID is empty!");
-          throw Exception("Invalid test status ID");
+          throw Exception("Invalid test status ID - ID is empty");
         }
 
+        // Update state dengan testStatus dulu
+        state = state.copyWith(testStatus: testStat);
+
+        // Reset table logic...
         if (testStat.resetTable) {
-          await _testSharedPref.saveStatus(
-            TestStatus(
-              id: testStat.id, // Pastikan konsisten
-              startTime: testStat.startTime,
-              name: testStat.name,
-              resetTable: false,
-              isRetake: testStat.isRetake,
-            ),
+          debugPrint("🔄 Resetting table for new test");
+          final updatedStatus = TestStatus(
+            id: testStat.id,
+            startTime: testStat.startTime,
+            name: testStat.name,
+            resetTable: false,
+            isRetake: testStat.isRetake,
           );
+
+          await _testSharedPref.saveStatus(updatedStatus);
+          state = state.copyWith(testStatus: updatedStatus);
           await resetPacketTable();
         }
 
-        // Ambil dari API dengan ID yang benar
-        debugPrint("🔄 CALLING API WITH ID: ${testStat.id}"); // Debug log
+        // Get packet detail
         await _getPacketDetailFromApi(testStat.id);
-        await _insertQuestionsToLocal();
+        state =
+            state.copyWith(totalQuestions: state.packetDetail.questions.length);
+
+        // Insert questions
+        final existingQuestions = await _fullTestTable.getAllAnswer();
+        if (existingQuestions.isEmpty || testStat.resetTable) {
+          await _insertQuestionsToLocal();
+          debugPrint("📝 Inserted questions to local database");
+        } else {
+          debugPrint(
+              "📋 Using existing questions in local database (${existingQuestions.length} questions)");
+        }
+
+        // TAMBAHKAN DEBUG MAPPING SEBELUM SYNC
+        await debugQuestionMapping();
+
+        // Sync untuk ongoing test
+        if (testStat.isRetake && !testStat.resetTable) {
+          debugPrint("🔄 This is a continuing test, syncing with server...");
+          await syncWithServerData();
+
+          // DEBUG LAGI SETELAH SYNC
+          await debugQuestionMapping();
+        } else {
+          debugPrint("🆕 This is a new test, no sync needed");
+        }
+
         await getQuestionByNumber(1);
 
-        state = state.copyWith(
-          testStatus: testStat,
-          totalQuestions: state.packetDetail.questions.length,
-        );
+        debugPrint("✅ Initialization completed successfully");
       } else {
-        debugPrint("❌ ERROR: Test status is null!");
         throw Exception("No test status found");
       }
     } catch (e) {
@@ -119,6 +143,242 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
     }
   }
 
+  Future<void> syncWithServerData() async {
+    try {
+      debugPrint(
+          "🔍 SYNC DEBUG - state.testStatus.id: '${state.testStatus.id}'");
+
+      if (state.testStatus.id.isEmpty) {
+        debugPrint("❌ Cannot sync: test status ID is empty");
+        return;
+      }
+
+      final ongoingData =
+          await _fullTestApi.getOngoingTestData(state.testStatus.id);
+
+      if (ongoingData == null) {
+        debugPrint("ℹ️ No ongoing data from server");
+        return;
+      }
+
+      // Update time information
+      if (ongoingData.packetClaim != null) {
+        final claim = ongoingData.packetClaim!;
+        if (claim.timeStart?.isNotEmpty == true) {
+          final updatedStatus = TestStatus(
+            id: state.testStatus.id,
+            startTime: claim.timeStart!,
+            name: state.testStatus.name,
+            resetTable: false,
+            isRetake: true,
+          );
+
+          await _testSharedPref.saveStatus(updatedStatus);
+          state = state.copyWith(testStatus: updatedStatus);
+          debugPrint("⏰ Updated start time: ${claim.timeStart}");
+        }
+      }
+
+      // Sync user answers
+      if (ongoingData.userAnswers.isNotEmpty) {
+        debugPrint(
+            "📥 Syncing ${ongoingData.userAnswers.length} answers from server");
+
+        int syncedCount = 0;
+        for (final userAnswer in ongoingData.userAnswers) {
+          final serverQuestionId = userAnswer.questionId.toString();
+          debugPrint(
+              "🔍 Processing server answer - Question ID: $serverQuestionId");
+
+          try {
+            // Direct database query untuk cari question berdasarkan ID
+            final questionNumber =
+                await _findQuestionNumberById(serverQuestionId);
+
+            if (questionNumber != null && questionNumber > 0) {
+              debugPrint(
+                  "✅ Found mapping: Server ID $serverQuestionId -> Local Number $questionNumber");
+
+              if (userAnswer.answerUser.isNotEmpty &&
+                  userAnswer.answerUser != "-") {
+                await _fullTestTable.updateAnswer(
+                    questionNumber, userAnswer.answerUser);
+                syncedCount++;
+                debugPrint(
+                    "✅ Synced answer for question $questionNumber: '${userAnswer.answerUser}'");
+              }
+            } else {
+              debugPrint(
+                  "❌ Question not found for server ID: $serverQuestionId");
+            }
+          } catch (e) {
+            debugPrint("❌ Error processing question $serverQuestionId: $e");
+          }
+        }
+
+        // Update filled status
+        final filledStatus = await getQuestionsFilledStatus();
+        state = state.copyWith(questionsFilledStatus: filledStatus);
+
+        final answeredCount = filledStatus.where((f) => f).length;
+        debugPrint(
+            "📊 Sync completed: $syncedCount answers synced, $answeredCount/${filledStatus.length} questions filled");
+      }
+    } catch (e, stackTrace) {
+      debugPrint("⚠️ Error syncing with server: $e");
+    }
+  }
+
+// Helper method untuk cari question number berdasarkan ID
+  Future<int?> _findQuestionNumberById(String questionId) async {
+    try {
+      final database = await LocalDatabaseService().database;
+      final result = await database.rawQuery(
+          'SELECT number FROM ${_fullTestTable.tableName} WHERE id_question = ? LIMIT 1',
+          [questionId]);
+
+      if (result.isNotEmpty) {
+        return result.first['number'] as int?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint("❌ Error finding question number for ID $questionId: $e");
+      return null;
+    }
+  }
+
+  Future<void> _insertQuestionsToLocal() async {
+    try {
+      debugPrint(
+          "📝 Starting to insert ${state.packetDetail.questions.length} questions");
+
+      // Reset database dulu untuk memastikan clean state
+      await _fullTestTable.resetDatabase();
+      debugPrint("🔄 Database reset completed");
+
+      for (int i = 0; i < state.packetDetail.questions.length; i++) {
+        final question = state.packetDetail.questions[i];
+        final questionNumber = i + 1; // Number dimulai dari 1
+
+        debugPrint(
+            "📝 Processing question ${questionNumber}: ID=${question.id}");
+
+        // Insert dengan question number yang benar
+        _fullTestTable.insertQuestion(question, questionNumber);
+      }
+
+      debugPrint(
+          "✅ Successfully inserted ${state.packetDetail.questions.length} questions");
+
+      // Verifikasi hasil insert
+      await _verifyDatabaseInsert();
+    } catch (e, stackTrace) {
+      debugPrint("❌ Error inserting questions: $e");
+      debugPrint("❌ Stack trace: $stackTrace");
+    }
+  }
+
+  Future<void> _verifyDatabaseInsert() async {
+    try {
+      final allQuestions = await _fullTestTable.getAllAnswer();
+      debugPrint(
+          "🔍 Database verification: ${allQuestions.length} questions found");
+
+      // Check first 3 questions
+      for (int i = 0; i < math.min(3, allQuestions.length); i++) {
+        final q = allQuestions[i];
+        debugPrint(
+            "   DB Question ${i + 1}: ID='${q?.id}', Number=${q?.number}");
+      }
+
+      // Check if numbers are set correctly
+      final numberSet = allQuestions.map((q) => q?.number).toSet();
+      debugPrint("🔍 Question numbers in DB: ${numberSet.take(10)}...");
+
+      if (numberSet.contains(0)) {
+        debugPrint("⚠️ WARNING: Found questions with number 0!");
+      } else {
+        debugPrint("✅ All questions have proper numbers");
+      }
+    } catch (e) {
+      debugPrint("❌ Error verifying database: $e");
+    }
+  }
+
+  // Tambahkan method debugging untuk melihat struktur data
+  Future<void> debugQuestionMapping() async {
+    debugPrint("=== QUESTION MAPPING DEBUG ===");
+
+    final questions = state.packetDetail.questions;
+    debugPrint("📋 Total questions in packet: ${questions.length}");
+
+    // Show first 10 questions untuk debugging
+    for (int i = 0; i < math.min(10, questions.length); i++) {
+      final q = questions[i];
+      debugPrint("   Question ${i + 1}: ID=${q.id}, Number=${q.number}");
+    }
+
+    // Check local database
+    final localAnswers = await _fullTestTable.getAllAnswer();
+    final answeredLocal =
+        localAnswers.where((a) => a?.answer?.isNotEmpty == true).length;
+    debugPrint(
+        "📊 Local database: $answeredLocal answered out of ${localAnswers.length}");
+
+    // Show answered questions
+    for (int i = 0; i < math.min(5, localAnswers.length); i++) {
+      final answer = localAnswers[i];
+      if (answer?.answer?.isNotEmpty == true) {
+        debugPrint("   Local Answer ${i + 1}: '${answer!.answer}'");
+      }
+    }
+
+    debugPrint("=== END DEBUG ===");
+  }
+
+// Di FullTestProvider, tambahkan auto-save yang lebih robust
+  Future<void> autoSaveCurrentProgress() async {
+    try {
+      if (state.selectedQuestions.isNotEmpty) {
+        final currentQuestion = state.selectedQuestions.first;
+
+        // Save current answer to server
+        final request = [
+          {
+            "question_id": currentQuestion.id,
+            "bookmark": (currentQuestion.bookmarked ?? 0) > 0,
+            "answer_user":
+                currentQuestion.answer.isNotEmpty ? currentQuestion.answer : "-"
+          }
+        ];
+
+        await _fullTestApi.saveAsnwerNextPage(request, state.testStatus.id);
+
+        // Update local status
+        final filledStatus = await getQuestionsFilledStatus();
+        state = state.copyWith(questionsFilledStatus: filledStatus);
+      }
+    } catch (e) {
+      debugPrint("Auto-save error: $e");
+    }
+  }
+
+// Panggil auto-save setiap kali ada perubahan jawaban
+  Future<void> updateAnswer(int number, String answer) async {
+    try {
+      await _fullTestTable.updateAnswer(number, answer);
+      await getQuestionByNumber(number);
+
+      // Auto-save to server
+      await autoSaveCurrentProgress();
+
+      final filledStatus = await getQuestionsFilledStatus();
+      state = state.copyWith(questionsFilledStatus: filledStatus);
+    } catch (e) {
+      debugPrint("error: $e");
+    }
+  }
+
   // Future<void> _getPacketDetailFromApi(String id) async {
   //   try {
   //     final packetDetail = await _fullTestApi.getPacketDetail(id);
@@ -142,19 +402,6 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
     } catch (e) {
       debugPrint(
           "❌ ERROR GETTING PACKET DETAIL FOR ID $id: $e"); // Tambahkan ini
-      rethrow;
-    }
-  }
-
-  Future<void> _insertQuestionsToLocal() async {
-    try {
-      final packetDetail = state.packetDetail;
-      for (var i = 0; i < packetDetail.questions.length; i++) {
-        final question = packetDetail.questions[i];
-        debugPrint("Insert ke SQLite: ${question.id}");
-        _fullTestTable.insertQuestion(question, (i + 1));
-      }
-    } catch (e) {
       rethrow;
     }
   }
@@ -225,17 +472,17 @@ class FullTestProvider extends StateNotifier<FullTestProviderState> {
   //   }
   // }
 
-  Future<void> updateAnswer(int number, String answer) async {
-    try {
-      await _fullTestTable.updateAnswer(number, answer);
-      // Perbarui pertanyaan yang dipilih di state
-      await getQuestionByNumber(number);
-      final filledStatus = await getQuestionsFilledStatus();
-      state = state.copyWith(questionsFilledStatus: filledStatus);
-    } catch (e) {
-      debugPrint("error: $e");
-    }
-  }
+  // Future<void> updateAnswer(int number, String answer) async {
+  //   try {
+  //     await _fullTestTable.updateAnswer(number, answer);
+  //     // Perbarui pertanyaan yang dipilih di state
+  //     await getQuestionByNumber(number);
+  //     final filledStatus = await getQuestionsFilledStatus();
+  //     state = state.copyWith(questionsFilledStatus: filledStatus);
+  //   } catch (e) {
+  //     debugPrint("error: $e");
+  //   }
+  // }
 
   // Future<List<bool>> getQuestionsFilledStatus() async {
   //   try {
