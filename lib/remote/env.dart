@@ -64,6 +64,6 @@ class Env {
   static const String mainUrl = 'http://103.106.72.182:8040/api';
   static const String secondaryStorageUrl = 'http://103.106.72.182:8040/api';
   static const String userUrl = 'http://103.106.72.182:8041/api';
-  static const String simulationUrl = 'http://103.106.72.182:8042/api';
+  static const String simulationUrl = 'http://103.106.72.182:8046/api';
   static const String gameUrl = 'http://103.106.72.182:8045/api';
 }

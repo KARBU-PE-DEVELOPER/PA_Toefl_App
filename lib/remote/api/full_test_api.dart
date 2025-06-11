@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:toefl/models/test/answer.dart';
+import 'package:toefl/models/test/on_going.dart';
 import 'package:toefl/models/test/packet_detail.dart';
 import 'package:toefl/models/test/result.dart';
 import 'package:toefl/remote/dio_toefl.dart';
@@ -132,7 +133,6 @@ class FullTestApi {
       debugPrint('error get test result: $e');
       return Result(
         id: '',
-        
         toeflScore: 0,
         correctQuestionAll: 0,
         totalQuestionAll: 0,
@@ -159,8 +159,67 @@ class FullTestApi {
         totalReading: 0,
         accuracyReading: 0,
         targetUser: 0,
-        answeredQuestion: 0, scoreListening: 0, scoreReading: 0, scoreStructure: 0,
+        answeredQuestion: 0,
+        scoreListening: 0,
+        scoreReading: 0,
+        scoreStructure: 0,
       );
+    }
+  }
+
+  Future<OngoingTestData?> getOngoingTestData(String packetId) async {
+    try {
+      debugPrint("🔍 Getting ongoing test data for packet: $packetId");
+
+      // Validasi packetId tidak kosong
+      if (packetId.isEmpty) {
+        debugPrint("❌ Packet ID is empty!");
+        return null;
+      }
+
+      final response = await DioToefl.instance.get(
+        '${Env.simulationUrl}/get-pakets/$packetId',
+        options: Options(
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      debugPrint("📡 API Response status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data is String
+            ? json.decode(response.data)
+            : response.data;
+
+        debugPrint("📦 Response structure: ${data.keys}");
+
+        if (data['success'] == true && data['payload'] != null) {
+          final payload = data['payload'] as Map<String, dynamic>;
+
+          debugPrint("📋 Payload keys: ${payload.keys}");
+
+          // Check if there are user_answer and packet_claim data
+          if (payload.containsKey('user_answer') &&
+              payload.containsKey('packet_claim')) {
+            debugPrint("✅ Found user_answer and packet_claim data");
+            return OngoingTestData.fromJson(payload);
+          } else {
+            debugPrint(
+                "ℹ️ No user_answer or packet_claim found - this is a new test");
+            return null;
+          }
+        }
+      } else if (response.statusCode == 404) {
+        debugPrint("⚠️ Packet not found or not accessible");
+        return null;
+      }
+
+      debugPrint(
+          "⚠️ Failed to get ongoing test data - Status: ${response.statusCode}");
+      return null;
+    } catch (e) {
+      debugPrint("❌ Error getting ongoing test data: $e");
+      return null;
     }
   }
 }

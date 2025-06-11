@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/blueButtonNew.dart';
+import 'package:toefl/widgets/blueButtonNewNo.dart';
 import 'package:toefl/widgets/blue_button.dart';
 import 'package:toefl/widgets/border_button.dart';
 
@@ -49,7 +50,7 @@ class SubmitDialog extends StatelessWidget {
             Row(
               children: [
                 const Spacer(),
-                BorderButton(
+                BlueButtonNewNo(
                     title: "No",
                     onTap: () {
                       onNo();

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:toefl/pages/full_test/cheating_management/AttentionDialog.dart';
 import 'package:toefl/remote/api/full_test_api.dart';
 import 'package:toefl/remote/dio_toefl.dart';
 import 'package:toefl/remote/env.dart';
@@ -39,11 +40,11 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
   String selectedType = "test";
   int? unfinishedPacketId;
   Set<int> ongoingPacketIds = {};
+  Map<int, bool> packetCompletionStatus = {}; // Track completion status
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Ambil argumen dari Navigator
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args != null && args is Map<String, dynamic> && args['type'] != null) {
       selectedType = args['type'];
@@ -54,54 +55,67 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
     setState(() => isLoading = true);
 
     try {
-      // Step 1: Ambil semua packet dari backend
       final allPackets = await _fullTestApi.getAllPacket();
-
-      // Step 2: Reset ongoing & completed sets
       ongoingPacketIds.clear();
-      final Set<int> completedPacketIds = {};
+      packetCompletionStatus.clear();
 
-      // Step 3: Cek status tiap packet dari backend
+      // Check status for each packet
       for (final packet in allPackets) {
         try {
-          final response = await DioToefl.instance.get(
-            '${Env.simulationUrl}/check-exam/${packet.id}',
-            options: Options(
-                validateStatus: (status) => status != null && status < 500),
-          );
-
           final packetId = packet.id is int
               ? packet.id as int
               : int.tryParse(packet.id.toString());
           if (packetId == null) continue;
 
+          // Call check-exam API
+          final response = await DioToefl.instance.get(
+            '${Env.simulationUrl}/check-exam/$packetId',
+            options: Options(
+              validateStatus: (status) => status != null && status < 500,
+            ),
+          );
+
           if (response.statusCode == 200) {
             final data = response.data is String
                 ? jsonDecode(response.data)
                 : response.data;
+
             if (data['success'] == true && data['payload'] is Map) {
               final payload = data['payload'] as Map<String, dynamic>;
               final isCompleted = payload['completed'] ?? false;
+
+              packetCompletionStatus[packetId] = isCompleted;
+
               if (isCompleted) {
-                completedPacketIds.add(packetId);
+                debugPrint("✅ Packet $packetId is completed");
               } else {
-                ongoingPacketIds.add(packetId);
+                // Check if there's ongoing data
+                final ongoingData =
+                    await _fullTestApi.getOngoingTestData(packetId.toString());
+                if (ongoingData != null && ongoingData.packetClaim != null) {
+                  ongoingPacketIds.add(packetId);
+                  debugPrint("🔄 Found ongoing test for packet $packetId");
+
+                  await _testSharedPref.saveStatus(
+                    TestStatus(
+                      id: packetId.toString(),
+                      startTime: ongoingData.packetClaim!.timeStart.isNotEmpty
+                          ? ongoingData.packetClaim!.timeStart
+                          : DateTime.now().toIso8601String(),
+                      name: packet.name,
+                      resetTable: false,
+                      isRetake: true,
+                    ),
+                  );
+                }
               }
-            } else {
-              completedPacketIds.add(packetId);
             }
-          } else {
-            completedPacketIds.add(packetId);
           }
         } catch (e) {
-          final packetId = packet.id is int
-              ? packet.id as int
-              : int.tryParse(packet.id.toString());
-          if (packetId != null) completedPacketIds.add(packetId);
+          debugPrint("⚠️ Error checking packet ${packet.id}: $e");
         }
       }
 
-      // Step 4: Jika ada ongoing packet, pastikan ambil ulang data langsung dari backend
       final filteredPackets = allPackets
           .where((packet) => packet.packetType == selectedType)
           .toList();
@@ -111,14 +125,37 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
         isLoading = false;
       });
 
-      // Step 5: Handle auto submit jika durasi sudah lebih dari 2 jam
       await _handleOnAutoSubmit();
-
-      // Step 6: Simpan status terakhir
-      testStatus = await _testSharedPref.getStatus();
+      debugPrint("📊 Found ${ongoingPacketIds.length} ongoing tests");
     } catch (e, stack) {
       debugPrint("❌ Error in _onInit: $e\n$stack");
       setState(() => isLoading = false);
+    }
+  }
+
+  // Method to check exam status before proceeding
+  Future<bool> _checkExamStatus(int packetId) async {
+    try {
+      final response = await DioToefl.instance.get(
+        '${Env.simulationUrl}/check-exam/$packetId',
+        options: Options(
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data =
+            response.data is String ? jsonDecode(response.data) : response.data;
+
+        if (data['success'] == true && data['payload'] is Map) {
+          final payload = data['payload'] as Map<String, dynamic>;
+          return payload['completed'] ?? false;
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint("Error checking exam status: $e");
+      return false;
     }
   }
 
@@ -150,8 +187,6 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
         int diffInSecs = DateTime.now().difference(startTime).inSeconds;
         if (diffInSecs >= 7200) {
           bool submitResult = false;
-
-          // Langsung pakai submitAnswer tanpa cek wasFilled
           submitResult =
               await ref.read(fullTestProvider.notifier).submitAnswer();
 
@@ -217,6 +252,10 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                   : packets.isNotEmpty
                       ? List.generate(packets.length, (index) {
                           final packet = packets[index];
+                          final packetId = packet.id is int
+                              ? packet.id as int
+                              : int.tryParse(packet.id.toString()) ?? 0;
+
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: PacketCard(
@@ -224,11 +263,10 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                               questionCount: packet.questionCount,
                               accuracy: packet.accuracy,
                               isDisabled: ongoingPacketIds.isNotEmpty &&
-                                  !ongoingPacketIds.contains(packet.id),
+                                  !ongoingPacketIds.contains(packetId),
                               hasOngoingTest: ongoingPacketIds.isNotEmpty,
-                              // isDisabled: !(packet.questionCount == 140),
                               onTap: () async {
-                                if (ongoingPacketIds.contains(packet.id)) {
+                                if (ongoingPacketIds.contains(packetId)) {
                                   Navigator.of(context).pushNamed(
                                     RouteKey.openingLoadingTest,
                                     arguments: {
@@ -237,14 +275,12 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                       "isRetake": true,
                                       "packetType": selectedType,
                                     },
-                                  ).then((value) {
-                                    // _onInit();
-                                    // _pushReviewPage(packet);
-                                  });
+                                  );
                                   return;
                                 }
+
                                 if (!packet.wasFilled) {
-                                  // Tampilkan dialog konfirmasi sebelum klaim paket
+                                  // Tampilkan dialog konfirmasi
                                   showDialog(
                                     context: context,
                                     builder: (BuildContext claimContext) {
@@ -255,17 +291,31 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                         actions: [
                                           TextButton(
                                             onPressed: () {
-                                              Navigator.of(claimContext)
-                                                  .pop(); // Tutup dialog
+                                              Navigator.of(claimContext).pop();
                                             },
                                             child: Text("No"),
                                           ),
                                           TextButton(
                                             onPressed: () async {
-                                              Navigator.of(claimContext)
-                                                  .pop(); // Tutup dialog konfirmasi
+                                              Navigator.of(claimContext).pop();
+
+                                              // *** PERBAIKAN: Check exam status sebelum klaim ***
+                                              final isCompleted =
+                                                  await _checkExamStatus(
+                                                      packetId);
+
+                                              if (isCompleted) {
+                                                // Jika sudah completed, tampilkan pesan
+                                                _showAlertDialog(
+                                                    "Pemberitahuan",
+                                                    "Anda sudah menyelesaikan paket ini. Coba besok!");
+                                                return;
+                                              }
+
+                                              // Jika belum completed, lanjutkan dengan klaim paket
                                               debugPrint(
                                                   "Claiming paket for packet id: ${packet.id}");
+
                                               try {
                                                 final response = await DioToefl
                                                     .instance
@@ -282,11 +332,11 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                     200) {
                                                   debugPrint(
                                                       "Paket claimed successfully.");
+
                                                   await TestSharedPreference()
                                                       .saveStatus(
                                                     TestStatus(
-                                                      id: packet.id
-                                                          .toString(), // Pastikan menggunakan packet.id yang benar
+                                                      id: packet.id.toString(),
                                                       startTime: DateTime.now()
                                                           .toIso8601String(),
                                                       name: packet.name,
@@ -295,65 +345,47 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                           packet.wasFilled,
                                                     ),
                                                   );
-                                                  // Jika tipe test, tampilkan modal attention
+
+                                                  // Proceed to test/attention dialog
                                                   if (selectedType !=
                                                       "simulation") {
                                                     showDialog(
                                                       context: context,
-                                                      barrierDismissible:
-                                                          false, // Tidak bisa ditutup dengan klik di luar
+                                                      barrierDismissible: false,
                                                       builder: (BuildContext
                                                           attentionContext) {
-                                                        return WillPopScope(
-                                                          onWillPop: () async =>
-                                                              false, // Mencegah tombol back
-                                                          child: AlertDialog(
-                                                            title: Text(
-                                                                "attention"
-                                                                    .tr()),
-                                                            content: Text(
-                                                                "isiContent"
-                                                                    .tr()),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () {
-                                                                  Navigator.of(
-                                                                          attentionContext)
-                                                                      .pop();
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pushNamed(
-                                                                    RouteKey
-                                                                        .openingLoadingTest,
-                                                                    arguments: {
-                                                                      "id": packet
-                                                                          .id
-                                                                          .toString(),
-                                                                      "packetName":
-                                                                          packet
-                                                                              .name,
-                                                                      "isRetake":
-                                                                          packet
-                                                                              .wasFilled,
-                                                                      "packetType":
-                                                                          selectedType,
-                                                                    },
-                                                                  ).then((value) {
-                                                                    // _onInit();
-                                                                    // _pushReviewPage(
-                                                                    //     packet);
-                                                                  });
+                                                        return PopScope(
+                                                          canPop: false,
+                                                          child:
+                                                              AttentionDialog(
+                                                            onConfirm: () {
+                                                              Navigator.of(
+                                                                      attentionContext)
+                                                                  .pop();
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pushNamed(
+                                                                RouteKey
+                                                                    .openingLoadingTest,
+                                                                arguments: {
+                                                                  "id": packet
+                                                                      .id
+                                                                      .toString(),
+                                                                  "packetName":
+                                                                      packet
+                                                                          .name,
+                                                                  "isRetake": packet
+                                                                      .wasFilled,
+                                                                  "packetType":
+                                                                      selectedType,
                                                                 },
-                                                                child: Text(
-                                                                    "Start"),
-                                                              ),
-                                                            ],
+                                                              );
+                                                            },
                                                           ),
                                                         );
                                                       },
                                                     );
                                                   } else {
-                                                    // Untuk simulation, langsung pindah ke halaman test dengan tombol konfirmasi saja
                                                     Navigator.of(context)
                                                         .pushNamed(
                                                       RouteKey
@@ -368,10 +400,7 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                         "packetType":
                                                             selectedType,
                                                       },
-                                                    ).then((value) {
-                                                      // _onInit();
-                                                      // _pushReviewPage(packet);
-                                                    });
+                                                    );
                                                   }
                                                 } else if (response
                                                         .statusCode ==
@@ -382,17 +411,13 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                                           String, dynamic> &&
                                                       responseData["message"] ==
                                                           "Anda sudah mengklaim packet") {
-                                                    debugPrint(
-                                                        "Paket sudah diklaim sebelumnya.");
                                                     _showAlertDialog(
                                                         "Pemberitahuan",
                                                         "Anda sudah mengklaim paket ini sebelumnya.");
                                                   } else {
-                                                    debugPrint(
-                                                        "Paket sudah selesai dikerjakan.");
                                                     _showAlertDialog(
                                                         "Pemberitahuan",
-                                                        "Anda sudah menyelesaikan paket ini.");
+                                                        "Anda sudah menyelesaikan paket ini. Coba besok!");
                                                   }
                                                 } else {
                                                   debugPrint(
@@ -411,11 +436,8 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
                                       );
                                     },
                                   );
-                                  return; // Hentikan eksekusi setelah menampilkan dialog
+                                  return;
                                 }
-
-                                // Jika paket sudah diselesaikan, tampilkan modal konfirmasi untuk review/retake
-                                //
                               },
                             ),
                           );
