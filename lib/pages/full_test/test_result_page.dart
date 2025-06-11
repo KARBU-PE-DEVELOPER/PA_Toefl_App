@@ -22,13 +22,13 @@ class TestResultPage extends StatefulWidget {
     required this.packetId,
     required this.isMiniTest,
     required this.packetName,
-    required this.packetType, // TAMBAH PARAMETER INI
+    required this.packetType,
   });
 
   final String packetId;
   final bool isMiniTest;
   final String packetName;
-  final String packetType; // TAMBAH FIELD INI
+  final String packetType;
 
   @override
   State<TestResultPage> createState() => _TestResultPageState();
@@ -39,6 +39,7 @@ class _TestResultPageState extends State<TestResultPage> {
   bool isLoading = false;
   Result? result;
   static const platform = MethodChannel('com.pens.vocadia/exam_security');
+
   @override
   void initState() {
     super.initState();
@@ -69,397 +70,436 @@ class _TestResultPageState extends State<TestResultPage> {
     }
   }
 
+  // FUNCTION UNTUK KEMBALI KE DASHBOARD
+  void _navigateToDashboard() {
+    // Hapus semua route dan kembali ke dashboard
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/main', // Ganti dengan route dashboard Anda
+      (Route<dynamic> route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonAppBar(
-        title: _getPageTitle(), // GUNAKAN DYNAMIC TITLE
-      ),
-      body: Skeletonizer(
-        enabled: isLoading,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                BlueContainer(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Stack(
-                            children: [
-                              SizedBox(
-                                width: 90,
-                                height: 120,
-                                child: ToeflProgressIndicator(
-                                  value: (result?.percentage ?? 0) / 100.0,
-                                  activeHexColor: mariner800,
-                                  nonActiveHexColor: neutral40,
-                                  size:
-                                      MediaQuery.of(context).size.width * 1 / 5,
-                                  strokeWidth: 18,
-                                  strokeScaler: 1.2,
-                                ),
-                              ),
-                              Positioned(
-                                top: 0,
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Center(
-                                  child: Text(
-                                    "${result?.percentage ?? 0}%",
-                                    textAlign: TextAlign.center,
-                                    style: CustomTextStyle.extrabold24
-                                        .copyWith(color: HexColor(mariner800)),
+    // Menggunakan PopScope untuk Flutter versi terbaru atau WillPopScope untuk versi lama
+    return PopScope(
+      canPop: false, // Mencegah back gesture
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          _navigateToDashboard();
+        }
+      },
+      child: Scaffold(
+        appBar: CommonAppBar(
+          title: _getPageTitle(),
+          withBack: false,
+          actions: [
+            // Tambahkan tombol close yang mengarah ke dashboard
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: _navigateToDashboard,
+            ),
+          ],
+        ),
+        body: Skeletonizer(
+          enabled: isLoading,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  BlueContainer(
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Stack(
+                              children: [
+                                SizedBox(
+                                  width: 90,
+                                  height: 120,
+                                  child: ToeflProgressIndicator(
+                                    value: (result?.percentage ?? 0) / 100.0,
+                                    activeHexColor: mariner800,
+                                    nonActiveHexColor: neutral40,
+                                    size: MediaQuery.of(context).size.width *
+                                        1 /
+                                        5,
+                                    strokeWidth: 18,
+                                    strokeScaler: 1.2,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            children: [
-                              Container(
-                                width: MediaQuery.of(context).size.width * 0.54,
-                                height:
-                                    MediaQuery.of(context).size.height * 1 / 20,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    IconButton(
-                                      icon: SvgPicture.asset(
-                                          'assets/icons/ic_time.svg'),
-                                      onPressed: () {},
+                                Positioned(
+                                  top: 0,
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Center(
+                                    child: Text(
+                                      "${result?.percentage ?? 0}%",
+                                      textAlign: TextAlign.center,
+                                      style: CustomTextStyle.extrabold24
+                                          .copyWith(
+                                              color: HexColor(mariner800)),
                                     ),
-                                    SizedBox(
-                                      width: 70,
-                                      child: Text(
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              children: [
+                                Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.54,
+                                  height: MediaQuery.of(context).size.height *
+                                      1 /
+                                      20,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      IconButton(
+                                        icon: SvgPicture.asset(
+                                            'assets/icons/ic_time.svg'),
+                                        onPressed: () {},
+                                      ),
+                                      SizedBox(
+                                        width: 70,
+                                        child: Text(
+                                          widget.isMiniTest
+                                              ? 'answered_questions'.tr()
+                                              : "Toefl score",
+                                          style: CustomTextStyle.medium14,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Text(
                                         widget.isMiniTest
-                                            ? 'answered_questions'.tr()
-                                            : "Toefl score",
-                                        style: CustomTextStyle.medium14,
+                                            ? "${result?.answeredQuestion ?? 0}/${result?.totalQuestionAll ?? 0}"
+                                            : "${result?.toeflScore ?? 0}/${result?.targetUser ?? 0}",
+                                        style: CustomTextStyle.bold16,
+                                        textAlign: TextAlign.center,
                                       ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      widget.isMiniTest
-                                          ? "${result?.answeredQuestion ?? 0}/${result?.totalQuestionAll ?? 0}"
-                                          : "${result?.toeflScore ?? 0}/${result?.targetUser ?? 0}",
-                                      style: CustomTextStyle.bold16,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(
-                                      width: 20,
-                                    )
-                                  ],
+                                      const SizedBox(
+                                        width: 20,
+                                      )
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                width: MediaQuery.of(context).size.width * 0.54,
-                                height:
-                                    MediaQuery.of(context).size.height * 1 / 20,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    IconButton(
-                                      icon: SvgPicture.asset(
-                                          'assets/icons/ic_checklist.svg'),
-                                      onPressed: () {},
-                                    ),
-                                    SizedBox(
-                                      width: 70,
-                                      child: Text(
-                                        'correct_questions'.tr(),
-                                        style: CustomTextStyle.medium14,
-                                        textAlign: TextAlign.left,
+                                const SizedBox(height: 8),
+                                Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.54,
+                                  height: MediaQuery.of(context).size.height *
+                                      1 /
+                                      20,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      IconButton(
+                                        icon: SvgPicture.asset(
+                                            'assets/icons/ic_checklist.svg'),
+                                        onPressed: () {},
                                       ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      "${result?.correctQuestionAll ?? "0"}/${result?.totalQuestionAll ?? "0"}",
-                                      style: CustomTextStyle.bold16,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(
-                                      width: 20,
-                                    )
-                                  ],
+                                      SizedBox(
+                                        width: 70,
+                                        child: Text(
+                                          'correct_questions'.tr(),
+                                          style: CustomTextStyle.medium14,
+                                          textAlign: TextAlign.left,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Text(
+                                        "${result?.correctQuestionAll ?? "0"}/${result?.totalQuestionAll ?? "0"}",
+                                        style: CustomTextStyle.bold16,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(
+                                        width: 20,
+                                      )
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.only(
+                            top: 60, left: 24, right: 24, bottom: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: HexColor(primaryWhite),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              blurRadius: 1,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            _buildContainerTest(
+                              partText: "Part A",
+                              progressValue:
+                                  (result?.accuracyListeningPartA ?? 0)
+                                          .toDouble() /
+                                      100,
+                              progressText:
+                                  "${result?.accuracyListeningPartA ?? "0"}%",
+                              totalQuestions:
+                                  "${result?.listeningPartACorrect ?? "0"}/${result?.totalListeningPartA ?? "0"}",
+                              correctness: "Correct",
+                              progressColor: Colors.green,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildContainerTest(
+                              partText: "Part B",
+                              progressValue:
+                                  (result?.accuracyListeningPartB ?? 0)
+                                          .toDouble() /
+                                      100,
+                              progressText:
+                                  "${result?.accuracyListeningPartB ?? "0"}%",
+                              totalQuestions:
+                                  "${result?.correctListeningPartB ?? "0"}/${result?.totalListeningPartB ?? "0"}",
+                              correctness: "Correct",
+                              progressColor: HexColor(colorWarning),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildContainerTest(
+                              partText: "Part C",
+                              progressValue:
+                                  (result?.accuracyListeningPartC ?? 0)
+                                          .toDouble() /
+                                      100,
+                              progressText:
+                                  "${result?.accuracyListeningPartC ?? "0"}%",
+                              totalQuestions:
+                                  "${result?.correctListeningPartC ?? "0"}/${result?.totalListeningPartC ?? "0"}",
+                              correctness: "Correct",
+                              progressColor: HexColor(colorError),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(10),
+                              topRight: Radius.circular(10)),
+                          color: HexColor(mariner500),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              blurRadius: 1,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Listening Comprehension : ",
+                                style: CustomTextStyle.bold16
+                                    .copyWith(color: HexColor(primaryWhite))),
+                            Text(
+                                "${result?.correctListeningAll ?? "0"}/${result?.totalListeningAll ?? "0"}",
+                                style: CustomTextStyle.extraBold16
+                                    .copyWith(color: HexColor(mariner950))),
+                          ],
+                        ),
+                      )
                     ],
                   ),
-                ),
-                const SizedBox(height: 24),
-                Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.only(
-                          top: 60, left: 24, right: 24, bottom: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: HexColor(primaryWhite),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            blurRadius: 1,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                  const SizedBox(height: 18),
+                  Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.only(
+                            top: 60, left: 20, right: 24, bottom: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: HexColor(primaryWhite),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              blurRadius: 1,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            _buildContainerTest(
+                              partText: "Part A",
+                              progressValue:
+                                  (result?.accuracyStructurePartA ?? 0)
+                                          .toDouble() /
+                                      100,
+                              progressText:
+                                  "${result?.accuracyStructurePartA ?? "0"}%",
+                              totalQuestions:
+                                  "${result?.correctStructurePartA ?? "0"}/${result?.totalStructurePartA ?? "0"}",
+                              correctness: "Correct",
+                              progressColor: HexColor(colorError),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildContainerTest(
+                              partText: "Part B",
+                              progressValue:
+                                  (result?.accuracyStructurePartB ?? 0)
+                                          .toDouble() /
+                                      100,
+                              progressText:
+                                  "${result?.accuracyStructurePartB ?? "0"}%",
+                              totalQuestions:
+                                  "${result?.correctStructurePartB ?? "0"}/${result?.totalStructurePartB ?? "0"}",
+                              correctness: "Correct",
+                              progressColor: HexColor(colorWarning),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Column(
-                        children: [
-                          _buildContainerTest(
-                            partText: "Part A",
-                            progressValue: (result?.accuracyListeningPartA ?? 0)
-                                    .toDouble() /
-                                100,
-                            progressText:
-                                "${result?.accuracyListeningPartA ?? "0"}%",
-                            totalQuestions:
-                                "${result?.listeningPartACorrect ?? "0"}/${result?.totalListeningPartA ?? "0"}",
-                            correctness: "Correct",
-                            progressColor: Colors.green,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildContainerTest(
-                            partText: "Part B",
-                            progressValue: (result?.accuracyListeningPartB ?? 0)
-                                    .toDouble() /
-                                100,
-                            progressText:
-                                "${result?.accuracyListeningPartB ?? "0"}%",
-                            totalQuestions:
-                                "${result?.correctListeningPartB ?? "0"}/${result?.totalListeningPartB ?? "0"}",
-                            correctness: "Correct",
-                            progressColor: HexColor(colorWarning),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildContainerTest(
-                            partText: "Part C",
-                            progressValue: (result?.accuracyListeningPartC ?? 0)
-                                    .toDouble() /
-                                100,
-                            progressText:
-                                "${result?.accuracyListeningPartC ?? "0"}%",
-                            totalQuestions:
-                                "${result?.correctListeningPartC ?? "0"}/${result?.totalListeningPartC ?? "0"}",
-                            correctness: "Correct",
-                            progressColor: HexColor(colorError),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10)),
-                        color: HexColor(mariner500),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            blurRadius: 1,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      width: MediaQuery.of(context).size.width,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Listening Comprehension : ",
-                              style: CustomTextStyle.bold16
-                                  .copyWith(color: HexColor(primaryWhite))),
-                          Text(
-                              "${result?.correctListeningAll ?? "0"}/${result?.totalListeningAll ?? "0"}",
-                              style: CustomTextStyle.extraBold16
-                                  .copyWith(color: HexColor(mariner950))),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.only(
-                          top: 60, left: 20, right: 24, bottom: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: HexColor(primaryWhite),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            blurRadius: 1,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          _buildContainerTest(
-                            partText: "Part A",
-                            progressValue: (result?.accuracyStructurePartA ?? 0)
-                                    .toDouble() /
-                                100,
-                            progressText:
-                                "${result?.accuracyStructurePartA ?? "0"}%",
-                            totalQuestions:
-                                "${result?.correctStructurePartA ?? "0"}/${result?.totalStructurePartA ?? "0"}",
-                            correctness: "Correct",
-                            progressColor: HexColor(colorError),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildContainerTest(
-                            partText: "Part B",
-                            progressValue: (result?.accuracyStructurePartB ?? 0)
-                                    .toDouble() /
-                                100,
-                            progressText:
-                                "${result?.accuracyStructurePartB ?? "0"}%",
-                            totalQuestions:
-                                "${result?.correctStructurePartB ?? "0"}/${result?.totalStructurePartB ?? "0"}",
-                            correctness: "Correct",
-                            progressColor: HexColor(colorWarning),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10)),
-                        color: HexColor(mariner500),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            blurRadius: 1,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      width: MediaQuery.of(context).size.width,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Structure : ",
-                              style: CustomTextStyle.bold16
-                                  .copyWith(color: HexColor(primaryWhite))),
-                          Text(
-                              "${result?.correctStructureAll ?? "0"}/${result?.totalStructureAll ?? "0"}",
-                              style: CustomTextStyle.extraBold16
-                                  .copyWith(color: HexColor(mariner950))),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.only(
-                          top: 60, left: 20, right: 24, bottom: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: HexColor(primaryWhite),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            blurRadius: 1,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          _buildContainerTest(
-                            partText: "Part A",
-                            progressValue:
-                                (result?.accuracyReading ?? 0).toDouble() / 100,
-                            progressText: "${result?.accuracyReading ?? "0"}%",
-                            totalQuestions:
-                                "${result?.correctReading ?? "0"}/${result?.totalReading ?? "0"}",
-                            correctness: "Correct",
-                            progressColor: Colors.green,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10)),
-                        color: HexColor(mariner500),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            blurRadius: 1,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      width: MediaQuery.of(context).size.width,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Reading Comprehension : ",
-                              style: CustomTextStyle.bold16
-                                  .copyWith(color: HexColor(primaryWhite))),
-                          Text(
-                              "${result?.correctReading ?? "0"}/${result?.totalReading ?? "0"}",
-                              style: CustomTextStyle.extraBold16
-                                  .copyWith(color: HexColor(mariner950))),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 24),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 24),
-                    decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: HexColor(mariner700))),
-                    child: Text('btn_back_course'.tr(),
-                        textAlign: TextAlign.center,
-                        style: CustomTextStyle.bold18
-                            .copyWith(color: HexColor(mariner700))),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(10),
+                              topRight: Radius.circular(10)),
+                          color: HexColor(mariner500),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              blurRadius: 1,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Structure : ",
+                                style: CustomTextStyle.bold16
+                                    .copyWith(color: HexColor(primaryWhite))),
+                            Text(
+                                "${result?.correctStructureAll ?? "0"}/${result?.totalStructureAll ?? "0"}",
+                                style: CustomTextStyle.extraBold16
+                                    .copyWith(color: HexColor(mariner950))),
+                          ],
+                        ),
+                      )
+                    ],
                   ),
-                )
-              ],
+                  const SizedBox(height: 18),
+                  Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.only(
+                            top: 60, left: 20, right: 24, bottom: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: HexColor(primaryWhite),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              blurRadius: 1,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            _buildContainerTest(
+                              partText: "Part A",
+                              progressValue:
+                                  (result?.accuracyReading ?? 0).toDouble() /
+                                      100,
+                              progressText:
+                                  "${result?.accuracyReading ?? "0"}%",
+                              totalQuestions:
+                                  "${result?.correctReading ?? "0"}/${result?.totalReading ?? "0"}",
+                              correctness: "Correct",
+                              progressColor: Colors.green,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(10),
+                              topRight: Radius.circular(10)),
+                          color: HexColor(mariner500),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              blurRadius: 1,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Reading Comprehension : ",
+                                style: CustomTextStyle.bold16
+                                    .copyWith(color: HexColor(primaryWhite))),
+                            Text(
+                                "${result?.correctReading ?? "0"}/${result?.totalReading ?? "0"}",
+                                style: CustomTextStyle.extraBold16
+                                    .copyWith(color: HexColor(mariner950))),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  GestureDetector(
+                    onTap:
+                        _navigateToDashboard, // Ganti dengan fungsi navigasi ke dashboard
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 24),
+                      decoration: BoxDecoration(
+                          color:
+                              HexColor(mariner700), // Ubah warna menjadi solid
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Text('Back to Dashboard', // Ubah text
+                          textAlign: TextAlign.center,
+                          style: CustomTextStyle.bold18.copyWith(
+                              color:
+                                  HexColor(primaryWhite))), // Ubah warna text
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),

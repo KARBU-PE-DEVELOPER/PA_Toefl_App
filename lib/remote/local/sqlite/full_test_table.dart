@@ -1,6 +1,8 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:sqflite/sqlite_api.dart';
+import 'package:toefl/models/test/answer.dart';
 import 'package:toefl/remote/local_database_service.dart';
 import 'package:toefl/utils/utils.dart';
 
@@ -44,20 +46,27 @@ class FullTestTable {
   void insertQuestion(Question question, int number) async {
     final database = await LocalDatabaseService().database;
     final rawQuery = '''
-      INSERT INTO $tableName (id, id_question, question, reference_question, option, bookmarked, number, category)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''';
+    INSERT INTO $tableName (id, id_question, question, reference_question, answer, option, bookmarked, number, category)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ''';
+
+    debugPrint(
+        "📝 Inserting to DB - Number: $number, Question ID: ${question.id}");
+
     await database.rawInsert(rawQuery, [
       question.nestedQuestionId,
       question.id,
       question.question,
       question.bigQuestion,
+      question.answer, // Answer dari model Question
       Utils.listToStringWithAt(
           question.choices.map((e) => e.toStringJson()).toList()),
-      0,
-      number,
+      question.bookmarked, // Bookmark dari model
+      number, // PENTING: Set number dengan benar
       question.typeQuestion,
     ]);
+
+    debugPrint("✅ Inserted question $number with ID ${question.id}");
   }
 
   Future<Question> getQuestionByNumber(int number) async {

@@ -714,10 +714,21 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
       debugPrint("🔄 Submit loading detected, stopping cheating detection");
       _stopCheatingDetection();
     }
-    final countdownDuration = widget.diffInSec >= 7200
-        ? const Duration(seconds: 2)
-        : const Duration(hours: 2) - Duration(seconds: widget.diffInSec);
 
+    Duration countdownDuration;
+    if (state.testStatus.startTime.isNotEmpty) {
+      final startTime = DateTime.parse(state.testStatus.startTime);
+      final elapsed = DateTime.now().difference(startTime);
+      final totalTestTime = const Duration(hours: 2);
+      countdownDuration = totalTestTime - elapsed;
+
+      // Pastikan tidak negatif
+      if (countdownDuration.isNegative) {
+        countdownDuration = const Duration(seconds: 0);
+      }
+    } else {
+      countdownDuration = const Duration(hours: 2);
+    }
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
