@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -18,7 +19,6 @@ import 'package:toefl/state_management/game/speak_game_provider_state.dart';
 
 class SpeakingGame extends ConsumerStatefulWidget {
   const SpeakingGame({super.key});
-
   @override
   ConsumerState<SpeakingGame> createState() => _SpeakingGameState();
 }
@@ -26,6 +26,7 @@ class SpeakingGame extends ConsumerStatefulWidget {
 class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   final SpeechToText _speechToText = SpeechToText();
   final FlutterTts _flutterTts = FlutterTts();
+
   List<double> _scores = [];
   bool _speechEnabled = false;
   String _userAnswer = '';
@@ -35,6 +36,7 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
   bool _disable = true;
   double accuracy = 0;
   bool _isLoadingFirst = true;
+  Timer? _silenceTimer;
   bool _isLoading = false;
   bool _isMicButtonDisabled = false;
 
@@ -64,13 +66,28 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
     setState(() {});
   }
 
+  void _onSoundLevelChange(double level) {
+    _silenceTimer?.cancel();
+    _silenceTimer = Timer(const Duration(seconds: 2), () {
+      if (_speechToText.isListening) {
+        _stopListening(); // otomatis berhenti kalau user diam 2 detik
+      }
+    });
+  }
+
   void _startListening() async {
     if (_isMicButtonDisabled) return;
     setState(() {
       _isMicButtonDisabled = true;
     });
 
-    await _speechToText.listen(onResult: _onSpeechResult);
+    await _speechToText.listen(
+      onResult: _onSpeechResult,
+      listenFor: const Duration(seconds: 50), // optional: batas waktu maksimal
+      pauseFor: const Duration(seconds: 3),
+      onSoundLevelChange: _onSoundLevelChange,
+    );
+
     setState(() {
       _disable = true;
     });
@@ -141,10 +158,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
     setState(() {
       accuracy = similarity;
-      _isCorrect = similarity > 0.7; // Threshold tetap 70%
+      _isCorrect = similarity > 0.7;
       _isCheck = true;
 
-      // Skor skala 100
       if (_scores.length == _currentSentenceIndex) {
         _scores.add(similarity * 100);
       }
@@ -198,7 +214,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
       _checkAnswer();
       setState(() {
         _isLoading = false;
+        _isMicButtonDisabled = false;
       });
+      
       await _speakSentenceByWord(_answerKey);
     }
   }
@@ -259,18 +277,15 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
       final realWord = answerWords[i];
 
       final cleanedAnswerWord =
-          realWord.replaceAll(RegExp(r'[.,]'), '').toLowerCase();
-      final cleanedUserWord = (i < userWords.length)
-          ? userWords[i].replaceAll(RegExp(r'[.,]'), '').toLowerCase()
-          : '';
+          realWord.replaceAll(RegExp(r'[.,?!]'), '').toLowerCase();
 
-      final isMatched = cleanedAnswerWord == cleanedUserWord;
-
-      if (isMatched) {
-        setState(() {
-          _isMicButtonDisabled = true; // Disable mic button if matched
-        });
+      String cleanedUserWord = '';
+      if (i < userWords.length) {
+        cleanedUserWord =
+            userWords[i].replaceAll(RegExp(r'[.,?!]'), '').toLowerCase();
       }
+
+      final isMatched = cleanedAnswerWord.similarityTo(cleanedUserWord) > 0.7;
 
       return TextSpan(
         text: '$realWord ',
@@ -336,6 +351,49 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                               ),
                             ),
                     ),
+                    // User Answer Card
+                    if (_userAnswer.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: HexColor(mariner700)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'your_answer'.tr(),
+                              style: GoogleFonts.balooBhaijaan2(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: HexColor(mariner700),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _userAnswer,
+                              style: GoogleFonts.balooBhaijaan2(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 18),
 
                     // Mic Button

@@ -19,20 +19,20 @@ class FeatureTest extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                //  Padding(
-                //   padding: EdgeInsets.only(right: 24),
-                //   child: InkWell(
-                //     borderRadius: BorderRadius.circular(10),
-                //     onTap: () =>
-                //         Navigator.of(context).pushNamed(RouteKey.wordsearchGame),
-                //     child: FeaturedCard(
-                //       isBgLight: false,
-                //       icon: "assets/images/word_scramble.svg",
-                //       title: "wordsearch_game".tr(),
-                //       subtitle: "hangman_game_subtitle".tr(),
-                //     ),
-                //   ),
-                // ),
+                Padding(
+                  padding: EdgeInsets.only(right: 24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(RouteKey.wordsearchGame),
+                    child: FeaturedCard(
+                      isBgLight: false,
+                      icon: "assets/images/word_scramble.svg",
+                      title: "wordsearch_game".tr(),
+                      subtitle: "hangman_game_subtitle".tr(),
+                    ),
+                  ),
+                ),
                 Padding(
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(
@@ -47,34 +47,34 @@ class FeatureTest extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Padding(
-                //   padding: EdgeInsets.only(right: 24),
-                //   child: InkWell(
-                //     borderRadius: BorderRadius.circular(10),
-                //     onTap: () =>
-                //         Navigator.of(context).pushNamed(RouteKey.hangmanGame),
-                //     child: FeaturedCard(
-                //       isBgLight: false,
-                //       icon: "assets/images/word_scramble.svg",
-                //       title: "hangman_game".tr(),
-                //       subtitle: "hangman_game_subtitle".tr(),
-                //     ),
-                //   ),
-                // ),
-                // Padding(
-                //   padding: EdgeInsets.only(right: 24),
-                //   child: InkWell(
-                //     borderRadius: BorderRadius.circular(10),
-                //     onTap: () =>
-                //         Navigator.of(context).pushNamed(RouteKey.scrambleGame),
-                //     child: FeaturedCard(
-                //       isBgLight: true,
-                //       icon: "assets/images/word_scramble.svg",
-                //       title: "scramble_game".tr(),
-                //       subtitle: "hangman_game_subtitle".tr(),
-                //     ),
-                //   ),
-                // ),
+                Padding(
+                  padding: EdgeInsets.only(right: 24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.hangmanGame),
+                    child: FeaturedCard(
+                      isBgLight: false,
+                      icon: "assets/images/word_scramble.svg",
+                      title: "hangman_game".tr(),
+                      subtitle: "hangman_game_subtitle".tr(),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: 24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.scrambleGame),
+                    child: FeaturedCard(
+                      isBgLight: true,
+                      icon: "assets/images/word_scramble.svg",
+                      title: "scramble_game".tr(),
+                      subtitle: "hangman_game_subtitle".tr(),
+                    ),
+                  ),
+                ),
                 Padding(
                   padding: EdgeInsets.only(right: 24),
                   child: InkWell(

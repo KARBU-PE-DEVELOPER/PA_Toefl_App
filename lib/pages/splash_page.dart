@@ -26,6 +26,7 @@ class _SplashPageState extends State<SplashPage> {
 
     if (isOnAppInit) {
       Navigator.of(context).pushReplacementNamed(RouteKey.onBoarding);
+      return; 
     } else {
       final AuthSharedPreference authSharedPreference = AuthSharedPreference();
       final isVerified = await authSharedPreference.getVerifiedAccount();
