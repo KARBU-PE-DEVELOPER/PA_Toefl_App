@@ -5,43 +5,111 @@ part 'history.g.dart';
 
 @JsonSerializable()
 class HistoryItem {
-  @JsonKey(defaultValue: '')
-  final dynamic id;
-  @JsonKey(defaultValue: false)
-  final bool success;
-  @JsonKey(defaultValue: '')
-  final String message;
+  @JsonKey(name: 'packet_id')
+  final int packetId;
+
   @JsonKey(name: 'packet_type', defaultValue: '')
-  final String type; // "Test" or "Simulation"
-  @JsonKey(
-      name: 'score_listening', defaultValue: 0.0, fromJson: _stringToDouble)
-  final double listeningScore;
-  @JsonKey(
-      name: 'score_structure', defaultValue: 0.0, fromJson: _stringToDouble)
-  final double structureScore;
-  @JsonKey(name: 'score_reading', defaultValue: 0.0, fromJson: _stringToDouble)
-  final double readingScore;
-  @JsonKey(name: 'score_toefl', defaultValue: 0.0, fromJson: _stringToDouble)
-  final double totalScore;
-  @JsonKey(name: 'created_at', defaultValue: '')
-  final String? createdAt;
-  @JsonKey(name: 'answered_question', defaultValue: 0)
-  final int answeredQuestion;
+  final String type;
+
+  @JsonKey(name: 'time_start', defaultValue: '')
+  final String timeStart;
+
+  @JsonKey(name: 'score')
+  final ScoreData score;
 
   HistoryItem({
-    required this.id,
-    this.success = false,
-    this.message = '',
+    required this.packetId,
     required this.type,
-    required this.listeningScore,
-    required this.structureScore,
-    required this.readingScore,
-    required this.totalScore,
-    this.createdAt,
-    this.answeredQuestion = 0,
+    required this.timeStart,
+    required this.score,
   });
 
-  // Helper function to convert String to double - HARUS STATIC
+  factory HistoryItem.fromJson(Map<String, dynamic> json) =>
+      _$HistoryItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$HistoryItemToJson(this);
+
+  String toStringJson() => jsonEncode(toJson());
+
+  // Helper methods untuk display
+  String get formattedDateTime {
+    if (timeStart.isEmpty) return '';
+
+    try {
+      // Format dari API: "2025-06-13 12:06:22"
+      final parts = timeStart.split(' ');
+      if (parts.length == 2) {
+        final dateParts = parts[0].split('-');
+        final timeParts = parts[1].split(':');
+
+        if (dateParts.length == 3 && timeParts.length >= 2) {
+          return '${dateParts[0]}-${dateParts[1].padLeft(2, '0')}-${dateParts[2].padLeft(2, '0')} ${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}';
+        }
+      }
+      return timeStart;
+    } catch (e) {
+      return timeStart;
+    }
+  }
+
+  // Getter untuk scores
+  String get displayListening => score.displayListening;
+  String get displayStructure => score.displayStructure;
+  String get displayReading => score.displayReading;
+  String get displayTotal => score.displayTotal;
+  String get levelProficiency => score.levelProficiency;
+
+  // Method untuk check apakah ujian sudah selesai (ada score)
+  bool get isCompleted => score.totalScore > 0;
+
+  // Untuk compatibility dengan kode lama
+  bool get isValid => true; // Semua data dari history API dianggap valid
+  bool get hasStarted =>
+      true; // Semua data dari history API dianggap sudah dimulai
+}
+
+@JsonSerializable()
+class ScoreData {
+  @JsonKey(name: 'id')
+  final int id;
+
+  @JsonKey(name: 'packet_claim_id')
+  final int packetClaimId;
+
+  @JsonKey(name: 'score_toefl', fromJson: _stringToDouble)
+  final double totalScore;
+
+  @JsonKey(name: 'score_structure', fromJson: _stringToDouble)
+  final double structureScore;
+
+  @JsonKey(name: 'score_listening', fromJson: _stringToDouble)
+  final double listeningScore;
+
+  @JsonKey(name: 'score_reading', fromJson: _stringToDouble)
+  final double readingScore;
+
+  @JsonKey(name: 'level_profiency', defaultValue: '')
+  final String levelProficiency;
+
+  @JsonKey(name: 'created_at', defaultValue: '')
+  final String createdAt;
+
+  @JsonKey(name: 'updated_at', defaultValue: '')
+  final String updatedAt;
+
+  ScoreData({
+    required this.id,
+    required this.packetClaimId,
+    required this.totalScore,
+    required this.structureScore,
+    required this.listeningScore,
+    required this.readingScore,
+    required this.levelProficiency,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  // Helper function to convert String to double
   static double _stringToDouble(dynamic value) {
     if (value == null) return 0.0;
     if (value is double) return value;
@@ -56,82 +124,38 @@ class HistoryItem {
     return 0.0;
   }
 
-  factory HistoryItem.fromJson(Map<String, dynamic> json) =>
-      _$HistoryItemFromJson(json);
+  factory ScoreData.fromJson(Map<String, dynamic> json) =>
+      _$ScoreDataFromJson(json);
 
-  factory HistoryItem.fromJsonString(String jsonString) =>
-      _$HistoryItemFromJson(jsonDecode(jsonString));
+  Map<String, dynamic> toJson() => _$ScoreDataToJson(this);
 
-  // Factory for API response dengan payload
-  factory HistoryItem.fromApiResponse(Map<String, dynamic> json, String type,
-      {String? createdAt}) {
-    final payload = json['payload'] as Map<String, dynamic>?;
+  // Display methods
+  String get displayListening => listeningScore.toStringAsFixed(0);
+  String get displayStructure => structureScore.toStringAsFixed(0);
+  String get displayReading => readingScore.toStringAsFixed(0);
+  String get displayTotal => totalScore.toStringAsFixed(0);
+}
 
-    if (payload == null) {
-      return HistoryItem(
-        id: '',
-        success: json['success'] ?? false,
-        message: json['message'] ?? 'No data',
-        type: type,
-        listeningScore: 0.0,
-        structureScore: 0.0,
-        readingScore: 0.0,
-        totalScore: 0.0,
-        createdAt: createdAt ?? '2025-06-01T13:16:06.000Z',
-        answeredQuestion: 0,
-      );
-    }
+// Response wrapper untuk API
+@JsonSerializable()
+class HistoryResponse {
+  @JsonKey(name: 'success')
+  final bool success;
 
-    return HistoryItem(
-      id: payload['id'] ?? '',
-      success: json['success'] ?? false,
-      message: json['message'] ?? '',
-      type: type,
-      listeningScore: _stringToDouble(payload['score_listening']),
-      structureScore: _stringToDouble(payload['score_structure']),
-      readingScore: _stringToDouble(payload['score_reading']),
-      totalScore: _stringToDouble(payload['score_toefl']),
-      createdAt: createdAt ?? '2025-06-01T13:16:06.000Z',
-      answeredQuestion: payload['answered_question'] ?? 0,
-    );
-  }
+  @JsonKey(name: 'message')
+  final String message;
 
-  Map<String, dynamic> toJson() => _$HistoryItemToJson(this);
+  @JsonKey(name: 'payload')
+  final List<HistoryItem> payload;
 
-  String toStringJson() => jsonEncode(toJson());
+  HistoryResponse({
+    required this.success,
+    required this.message,
+    required this.payload,
+  });
 
-  // Helper methods untuk display
-  String get formattedDateTime {
-    if (createdAt == null || createdAt!.isEmpty) return '2025-06-01 13:16';
+  factory HistoryResponse.fromJson(Map<String, dynamic> json) =>
+      _$HistoryResponseFromJson(json);
 
-    try {
-      final dateTime = DateTime.parse(createdAt!);
-      final dateStr =
-          '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
-      final timeStr =
-          '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-      return '$dateStr $timeStr';
-    } catch (e) {
-      return '2025-06-01 13:16';
-    }
-  }
-
-  String get displayListening =>
-      listeningScore > 0 ? listeningScore.toStringAsFixed(0) : '0';
-  String get displayStructure =>
-      structureScore > 0 ? structureScore.toStringAsFixed(0) : '0';
-  String get displayReading =>
-      readingScore > 0 ? readingScore.toStringAsFixed(0) : '0';
-  String get displayTotal =>
-      totalScore > 0 ? totalScore.toStringAsFixed(0) : '0';
-
-  // Method untuk check apakah item valid
-  // Ubah kondisi: tampilkan jika success=true DAN ada answered_question > 0
-  bool get isValid => success && answeredQuestion > 0;
-
-  // Method untuk check apakah ujian sudah dimulai
-  bool get hasStarted => success && answeredQuestion > 0;
-
-  // Method untuk check apakah ujian sudah selesai
-  bool get isCompleted => success && totalScore > 0;
+  Map<String, dynamic> toJson() => _$HistoryResponseToJson(this);
 }
