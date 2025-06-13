@@ -7,14 +7,18 @@ part 'question-grammarCommentator_detail.g.dart';
 class QuestionGrammarCommentator {
   @JsonKey(defaultValue: '', name: 'question')
   final String? question;
+  @JsonKey(defaultValue: '', name: 'type')
+  final String? type;
   QuestionGrammarCommentator({
     required this.question,
+    required this.type,
   });
 
   /// Factory untuk menangani konversi dari JSON ke objek GramQuestionGrammarCommentator
   factory QuestionGrammarCommentator.fromJson(Map<String, dynamic> json) {
     return QuestionGrammarCommentator(
       question: json['question'] ?? '',
+      type: json['type'] ?? '',
     );
   }
 

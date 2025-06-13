@@ -51,7 +51,10 @@ class GrammarCommentatorProviderStates extends _$GrammarCommentatorProviderState
     state = const AsyncLoading(); // Set state loading
     try {
       final response = await GrammarCommentatorAPI().getQuestion();
-      return QuestionGrammarCommentator(question: response?.question);
+      return QuestionGrammarCommentator(
+        question: response?.question,
+        type: response?.type
+        );
     } catch (e, stackTrace) {
       state = AsyncError(e, stackTrace);
       return null;

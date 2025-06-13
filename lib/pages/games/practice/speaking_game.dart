@@ -83,8 +83,8 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
     await _speechToText.listen(
       onResult: _onSpeechResult,
-      listenFor: const Duration(seconds: 50), // optional: batas waktu maksimal
-      pauseFor: const Duration(seconds: 3),
+      listenFor: const Duration(seconds: 60), // optional: batas waktu maksimal
+      pauseFor: const Duration(seconds: 5),
       onSoundLevelChange: _onSoundLevelChange,
     );
 
@@ -95,7 +95,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
 
   void _stopListening() async {
     await _speechToText.stop();
-    setState(() {});
+    setState(() {
+      
+    });
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
@@ -214,9 +216,9 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
       _checkAnswer();
       setState(() {
         _isLoading = false;
-        _isMicButtonDisabled = false;
+        _isMicButtonDisabled = true;
       });
-      
+
       await _speakSentenceByWord(_answerKey);
     }
   }
@@ -285,14 +287,23 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
             userWords[i].replaceAll(RegExp(r'[.,?!]'), '').toLowerCase();
       }
 
-      final isMatched = cleanedAnswerWord.similarityTo(cleanedUserWord) > 0.7;
+      Color wordColor;
+
+      if (!_isCheck) {
+        wordColor = HexColor(neutral50); // belum dicek → abu-abu
+      } else {
+        final isMatched = cleanedAnswerWord.similarityTo(cleanedUserWord) > 0.7;
+        wordColor = isMatched
+            ? HexColor(colorSuccess) // cocok → hijau
+            : Colors.redAccent; // tidak cocok → merah
+      }
 
       return TextSpan(
         text: '$realWord ',
         style: GoogleFonts.balooBhaijaan2(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: isMatched ? HexColor(colorSuccess) : HexColor(neutral50),
+          color: wordColor,
         ),
       );
     });
@@ -352,47 +363,47 @@ class _SpeakingGameState extends ConsumerState<SpeakingGame> {
                             ),
                     ),
                     // User Answer Card
-                    if (_userAnswer.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: HexColor(mariner700)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'your_answer'.tr(),
-                              style: GoogleFonts.balooBhaijaan2(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: HexColor(mariner700),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _userAnswer,
-                              style: GoogleFonts.balooBhaijaan2(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    // if (_userAnswer.isNotEmpty) ...[
+                    //   const SizedBox(height: 16),
+                    //   Container(
+                    //     width: double.infinity,
+                    //     padding: const EdgeInsets.all(16),
+                    //     decoration: BoxDecoration(
+                    //       color: Colors.white,
+                    //       borderRadius: BorderRadius.circular(12),
+                    //       border: Border.all(color: HexColor(mariner700)),
+                    //       boxShadow: [
+                    //         BoxShadow(
+                    //           color: Colors.black12,
+                    //           blurRadius: 4,
+                    //           offset: Offset(0, 2),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //     child: Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         Text(
+                    //           'your_answer'.tr(),
+                    //           style: GoogleFonts.balooBhaijaan2(
+                    //             fontSize: 16,
+                    //             fontWeight: FontWeight.w600,
+                    //             color: HexColor(mariner700),
+                    //           ),
+                    //         ),
+                    //         const SizedBox(height: 8),
+                    //         Text(
+                    //           _userAnswer,
+                    //           style: GoogleFonts.balooBhaijaan2(
+                    //             fontSize: 18,
+                    //             fontWeight: FontWeight.w700,
+                    //             color: Colors.black87,
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ],
 
                     const SizedBox(height: 18),
 

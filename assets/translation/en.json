@@ -141,5 +141,13 @@
   "try_simulation_test": "Try a similar TOEFL test here",
   "change_language": "Do you want to change the language?",
   "leaderboard": "Leaderboard",
-  "leaderboard_subtitle": "Take a game to participate"
+  "leaderboard_subtitle": "Take a game to participate",
+  "how_to_play": "How to Play",
+  "writing_opinion": "Write an essay stating your opinion clearly. Support it with reasons and examples.",
+  "writing_discussion": "Discuss both views and give your own opinion. Structure your essay with balanced arguments.",
+  "writing_advantage_disadvantage": "Write about the advantages and disadvantages of the given topic. Conclude with your opinion.",
+  "writing_problem_solution": "Describe the problem and suggest possible solutions. Explain each point clearly.",
+  "writing_double_question": "Answer both questions in the prompt. Ensure you address each one in a separate paragraph.",
+  "writing_default": "Read the prompt and write a well-structured essay in response.",
+  "your_scores": "Your Scores"
 }
