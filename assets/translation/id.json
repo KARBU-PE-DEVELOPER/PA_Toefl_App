@@ -140,5 +140,13 @@
   "try_simulation_test": "Coba tes TOEFL serupa di sini",
   "change_language": "Apakah Anda ingin mengubah bahasa?",
   "leaderboard": "Papan Peringkat",
-  "leaderboard_subtitle": "Ikuti permainan untuk berpartisipasi"
+  "leaderboard_subtitle": "Ikuti permainan untuk berpartisipasi",
+  "how_to_play": "Cara Bermain",
+  "writing_opinion": "Tulis esai yang menyatakan pendapat Anda dengan jelas. Dukung dengan alasan dan contoh.",
+  "writing_discussion": "Bahas kedua pandangan tersebut dan berikan pendapat Anda sendiri. Susun esai Anda dengan argumen yang berimbang.",
+  "writing_advantage_disadvantage": "Tuliskan kelebihan dan kekurangan topik yang diberikan. Simpulkan dengan pendapat Anda.",
+  "writing_problem_solution": "Jelaskan masalahnya dan sarankan solusi yang memungkinkan. Jelaskan setiap poin dengan jelas.",
+  "writing_double_question": "Jawab kedua pertanyaan dalam prompt. Pastikan Anda menjawab masing-masing pertanyaan dalam paragraf terpisah.",
+  "writing_default": "Bacalah perintah berikut dan tulislah esai yang terstruktur dengan baik sebagai tanggapan.",
+  "your_scores": "Skor Anda"
 }
