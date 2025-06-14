@@ -3,6 +3,7 @@ import 'package:toefl/models/games/user_rank.dart';
 import 'package:toefl/models/grammar-commentator/grammarCommentator_detail.dart';
 import 'package:toefl/models/quiz.dart';
 import 'package:toefl/models/quiz_type.dart';
+import 'package:toefl/pages/courses/list_course_page.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/quiz/finish_quiz_page.dart';
 import 'package:toefl/pages/games/quiz/init_quiz.dart';
@@ -219,4 +220,5 @@ final routes = <String, Widget Function(BuildContext)>{
       searchFriend: data?["searchFriend"] ?? false,
     );
   },
+  RouteKey.coursePage: (context) => const ListCoursePage(),
 };

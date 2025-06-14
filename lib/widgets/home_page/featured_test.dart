@@ -118,7 +118,21 @@ class FeatureTest extends StatelessWidget {
                       subtitle: "comment_practice_subtitle".tr(),
                     ),
                   ),
-                )
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.coursePage),
+                    child: FeaturedCard(
+                      isBgLight: false,
+                      icon: "assets/images/Group39370.svg",
+                      title: "learning".tr(),
+                      subtitle: "comment_practice_subtitle".tr(),
+                    ),
+                  ),
+                ),
               ],
             ),
           ));

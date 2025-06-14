@@ -29,7 +29,7 @@ class UserTarget {
 
 @JsonSerializable()
 class TestTarget {
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: 0)
   final int id;
   @JsonKey(name: 'name_level_target', defaultValue: '')
   final String name;
