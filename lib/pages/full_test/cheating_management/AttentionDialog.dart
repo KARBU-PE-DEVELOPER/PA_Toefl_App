@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:toefl/pages/full_test/cheating_management/cheating_detection_manager.dart';
 
 class AttentionDialog extends StatelessWidget {
   final VoidCallback onConfirm;
@@ -135,7 +136,7 @@ class AttentionDialog extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    // Warning Box
+                    // UPDATED: Warning Box with dynamic values from CheatingDetectionManager
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -168,10 +169,12 @@ class AttentionDialog extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 8),
+                          // UPDATED: Using constants from CheatingDetectionManager
                           Text(
                             '• Leaving the application will automatically submit your exam\n'
-                            '• Excessive head turning (5+ times) triggers auto-submission\n'
-                            '• Face not detected for 5 minutes results in auto-submission\n'
+                            '• Excessive head turning (${CheatingDetectionManager.MAX_LOOK_AWAY_COUNT}+ times) triggers auto-submission\n'
+                            '• Each head turn lasting ${CheatingDetectionManager.LOOK_AWAY_DURATION_THRESHOLD}+ seconds counts as violation\n'
+                            '• Face not detected for ${CheatingDetectionManager.MAX_FACE_NOT_DETECTED_SECONDS} seconds results in auto-submission\n'
                             '• All activities are monitored for exam integrity',
                             style: TextStyle(
                               fontSize: 12,
@@ -203,12 +206,12 @@ class AttentionDialog extends StatelessWidget {
                   ),
                   elevation: 2,
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.check_circle, size: 20),
-                    const SizedBox(width: 8),
-                    const Text(
+                    Icon(Icons.check_circle, size: 20),
+                    SizedBox(width: 8),
+                    Text(
                       'I Understand - Start Exam',
                       style: TextStyle(
                         fontSize: 16,
