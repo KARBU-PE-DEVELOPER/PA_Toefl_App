@@ -149,5 +149,6 @@
   "writing_problem_solution": "Describe the problem and suggest possible solutions. Explain each point clearly.",
   "writing_double_question": "Answer both questions in the prompt. Ensure you address each one in a separate paragraph.",
   "writing_default": "Read the prompt and write a well-structured essay in response.",
-  "your_scores": "Your Scores"
+  "your_scores": "Your Scores",
+  "courses": "Courses"
 }

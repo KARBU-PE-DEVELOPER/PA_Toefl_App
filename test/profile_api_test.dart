@@ -26,7 +26,6 @@ void main() {
         try {
           final result =
               await userApi.getUserProfile("663e23261541f85640071622");
-          debugPrint("hasil : ${result.emailUser}");
         } catch (e) {
           debugPrint(e.toString());
         }

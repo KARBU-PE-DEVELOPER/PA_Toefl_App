@@ -77,6 +77,7 @@ final routes = <String, Widget Function(BuildContext)>{
   },
   RouteKey.root: (context) => const SplashPage(),
   RouteKey.main: (context) => const MainPage(),
+  RouteKey.coursePage: (context) => const ListCoursePage(),
   RouteKey.fullTest: (context) {
     final Map<String, dynamic>? data =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;

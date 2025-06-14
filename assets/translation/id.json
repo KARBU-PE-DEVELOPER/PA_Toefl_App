@@ -148,5 +148,6 @@
   "writing_problem_solution": "Jelaskan masalahnya dan sarankan solusi yang memungkinkan. Jelaskan setiap poin dengan jelas.",
   "writing_double_question": "Jawab kedua pertanyaan dalam prompt. Pastikan Anda menjawab masing-masing pertanyaan dalam paragraf terpisah.",
   "writing_default": "Bacalah perintah berikut dan tulislah esai yang terstruktur dengan baik sebagai tanggapan.",
-  "your_scores": "Skor Anda"
+  "your_scores": "Skor Anda",
+  "courses": "Kursus"
 }
