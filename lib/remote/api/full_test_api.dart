@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:toefl/models/test/answer.dart';
+import 'package:toefl/models/test/on_going.dart';
 import 'package:toefl/models/test/packet_detail.dart';
 import 'package:toefl/models/test/result.dart';
 import 'package:toefl/remote/dio_toefl.dart';
@@ -86,10 +87,10 @@ class FullTestApi {
     }
   }
 
-  Future<bool> resubmitAnswer(
+  Future<bool> saveAsnwerNextPage(
       List<Map<String, dynamic>> request, String packetId) async {
     try {
-      final Response rawResponse = await DioToefl.instance.patch(
+      final Response rawResponse = await DioToefl.instance.post(
         '${Env.simulationUrl}/submit-answer/$packetId',
         data: {"answers": request},
       );
@@ -108,8 +109,8 @@ class FullTestApi {
 
   Future<List<Answer>> getAnswers(String packetId) async {
     try {
-      final Response rawResponse = await DioToefl.instance
-          .get('${Env.simulationUrl}/answer/users/$packetId');
+      final Response rawResponse =
+          await DioToefl.instance.get('${Env.apiUrl}/answer/users/$packetId');
 
       final response = BaseResponse.fromJson(json.decode(rawResponse.data));
       return (response.payload as List<dynamic>)
@@ -132,7 +133,6 @@ class FullTestApi {
       debugPrint('error get test result: $e');
       return Result(
         id: '',
-        percentage: 0,
         toeflScore: 0,
         correctQuestionAll: 0,
         totalQuestionAll: 0,
@@ -160,26 +160,66 @@ class FullTestApi {
         accuracyReading: 0,
         targetUser: 0,
         answeredQuestion: 0,
+        scoreListening: 0,
+        scoreReading: 0,
+        scoreStructure: 0,
       );
     }
   }
 
-  Future<PacketDetail> getPacketClaimStatus(String id) async {
+  Future<OngoingTestData?> getOngoingTestData(String packetId) async {
     try {
-      final Response rawResponse =
-          await DioToefl.instance.post('${Env.simulationUrl}/get-pakets/$id');
+      debugPrint("🔍 Getting ongoing test data for packet: $packetId");
 
-      // Misalnya, rawResponse.data merupakan JSON string,
-      // kita decode-nya dan mengonversi ke BaseResponse
-      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
+      // Validasi packetId tidak kosong
+      if (packetId.isEmpty) {
+        debugPrint("❌ Packet ID is empty!");
+        return null;
+      }
 
-      // Ambil data dari key "packet_claim" yang ada pada payload
-      final packetClaimJson = response.payload["packet_claim"];
+      final response = await DioToefl.instance.get(
+        '${Env.simulationUrl}/get-pakets/$packetId',
+        options: Options(
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
 
-      return PacketDetail.fromJson(packetClaimJson);
-    } catch (e, trace) {
-      debugPrint("ERROR getPacketDetail : $e $trace");
-      return PacketDetail(id: "", name: "", questions: []);
+      debugPrint("📡 API Response status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data is String
+            ? json.decode(response.data)
+            : response.data;
+
+        debugPrint("📦 Response structure: ${data.keys}");
+
+        if (data['success'] == true && data['payload'] != null) {
+          final payload = data['payload'] as Map<String, dynamic>;
+
+          debugPrint("📋 Payload keys: ${payload.keys}");
+
+          // Check if there are user_answer and packet_claim data
+          if (payload.containsKey('user_answer') &&
+              payload.containsKey('packet_claim')) {
+            debugPrint("✅ Found user_answer and packet_claim data");
+            return OngoingTestData.fromJson(payload);
+          } else {
+            debugPrint(
+                "ℹ️ No user_answer or packet_claim found - this is a new test");
+            return null;
+          }
+        }
+      } else if (response.statusCode == 404) {
+        debugPrint("⚠️ Packet not found or not accessible");
+        return null;
+      }
+
+      debugPrint(
+          "⚠️ Failed to get ongoing test data - Status: ${response.statusCode}");
+      return null;
+    } catch (e) {
+      debugPrint("❌ Error getting ongoing test data: $e");
+      return null;
     }
   }
 }

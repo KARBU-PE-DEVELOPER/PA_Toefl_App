@@ -8,7 +8,10 @@ import '../../utils/hex_color.dart';
 import '../../widgets/blue_container.dart';
 
 class ToeflAudioPlayer extends StatefulWidget {
-  const ToeflAudioPlayer({super.key, required this.url});
+  const ToeflAudioPlayer({
+    super.key,
+    required this.url,
+  });
 
   final String url;
 
@@ -17,105 +20,126 @@ class ToeflAudioPlayer extends StatefulWidget {
 }
 
 class _ToeflAudioPlayerState extends State<ToeflAudioPlayer> {
-  final player = AudioPlayer();
+  final AudioPlayer _player = AudioPlayer();
+
+  // Persistence across rebuilds: URLs that have completed
+  static final Set<String> _completedUrls = {};
+
+  bool _hasPlayed = false;
+  bool _isCompleted = false;
 
   Duration position = Duration.zero;
   Duration duration = Duration.zero;
 
-  void handlePlayPause() {
-    if (player.playing) {
-      player.pause();
-    } else {
-      player.play();
+  @override
+  void initState() {
+    super.initState();
+
+    // If this URL has completed before, mark flags
+    if (_completedUrls.contains(widget.url)) {
+      _hasPlayed = true;
+      _isCompleted = true;
     }
-  }
 
-  void handleSeek(double val) {
-    player.seek(Duration(seconds: val.toInt()));
-  }
-
-  void initPlayer() async {
-    debugPrint("url: ${widget.url}");
-    await player.setUrl(widget.url);
-
-    player.positionStream.listen((event) {
-      setState(() {
-        position = event;
-      });
+    // Listen to position updates
+    _player.positionStream.listen((pos) {
+      setState(() => position = pos);
     });
 
-    player.durationStream.listen((event) {
-      setState(() {
-        duration = event!;
-      });
+    // Listen to duration updates
+    _player.durationStream.listen((dur) {
+      if (dur != null) setState(() => duration = dur);
     });
 
-    player.playerStateStream.listen((event) {
-      if (event.processingState == ProcessingState.completed) {
-        player.pause();
+    // Listen to completion
+    _player.playerStateStream.listen((state) {
+      if (state.processingState == ProcessingState.completed) {
+        setState(() {
+          _isCompleted = true;
+          _completedUrls.add(widget.url);
+        });
       }
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    initPlayer();
+  Future<void> handlePlay() async {
+    // Ignore if already played or completed
+    if (_hasPlayed || _isCompleted) return;
+
+    // Immediately mark as played so icon updates
+    setState(() {
+      _hasPlayed = true;
+    });
+
+    try {
+      await _player.setUrl(widget.url);
+      await _player.play();
+    } catch (e) {
+      debugPrint("Error playing audio: \$e");
+    }
   }
 
   @override
   void dispose() {
+    _player.dispose();
     super.dispose();
-    player.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Tentukan ukuran berdasarkan lebar layar yang tersedia
-        final screenWidth = constraints.maxWidth;
-        final iconSize = screenWidth * 0.08; // Sesuaikan ukuran ikon
-        final fontSize = screenWidth * 0.04; // Ukuran font
+    final screenWidth = MediaQuery.of(context).size.width;
+    final iconSize = screenWidth * 0.08;
+    final fontSize = screenWidth * 0.04;
 
-        return BlueContainer(
-          innerShadow: true,
-          color: mariner200,
-          padding: 8.0,
-          width: screenWidth * 1,
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: handlePlayPause,
-                child: Icon(
-                  player.playing ? Icons.pause : Icons.play_arrow_rounded,
-                  color: HexColor(mariner900),
-                  size: iconSize, // Sesuaikan ukuran ikon
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                Utils.formatDuration(position),
-                style: CustomTextStyle.normal12.copyWith(fontSize: fontSize),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                // Menggunakan Expanded agar Slider mengambil ruang yang tersedia
-                child: Slider(
-                  value: position.inSeconds.toDouble(),
-                  min: 0.0,
-                  max: duration.inSeconds.toDouble() > 0
-                      ? duration.inSeconds.toDouble()
-                      : 1.0,
-                  onChanged: (val) => handleSeek(val),
-                  activeColor: HexColor(mariner900),
-                  inactiveColor: Colors.white,
-                ),
-              ),
-            ],
+    IconData icon;
+    if (_isCompleted) {
+      icon = Icons.check_rounded;
+    } else if (_hasPlayed) {
+      icon = Icons.pause_rounded;
+    } else {
+      icon = Icons.play_arrow_rounded;
+    }
+
+    return BlueContainer(
+      innerShadow: true,
+      color: mariner200,
+      padding: 8.0,
+      width: screenWidth,
+      child: Row(
+        children: [
+          GestureDetector(
+            // Disable tap after first play or completion
+            onTap: (_hasPlayed || _isCompleted) ? null : handlePlay,
+            child: Icon(
+              icon,
+              color: HexColor(mariner900),
+              size: iconSize,
+            ),
           ),
-        );
-      },
+          const SizedBox(width: 10),
+          Text(
+            Utils.formatDuration(position),
+            style: CustomTextStyle.normal12.copyWith(fontSize: fontSize),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Slider(
+              value: position.inSeconds
+                  .toDouble()
+                  .clamp(0.0, duration.inSeconds > 0
+                      ? duration.inSeconds.toDouble()
+                      : 1.0),
+              min: 0.0,
+              max: duration.inSeconds > 0
+                  ? duration.inSeconds.toDouble()
+                  : 1.0,
+              onChanged: (_) {},
+              activeColor: HexColor(mariner900),
+              inactiveColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

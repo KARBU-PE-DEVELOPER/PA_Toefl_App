@@ -4,7 +4,9 @@ import 'package:toefl/models/grammar-commentator/grammarCommentator_detail.dart'
 import 'package:toefl/models/quiz.dart';
 import 'package:toefl/models/quiz_type.dart';
 import 'package:toefl/pages/courses/list_course_page.dart';
+import 'package:toefl/pages/games/practice/listening_game.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
+import 'package:toefl/pages/games/practice/word_of_the_day_page.dart';
 import 'package:toefl/pages/games/quiz/finish_quiz_page.dart';
 import 'package:toefl/pages/games/quiz/init_quiz.dart';
 import 'package:toefl/pages/auth/forgot_password_page.dart';
@@ -12,11 +14,6 @@ import 'package:toefl/pages/games/quiz/quiz_page.dart';
 import 'package:toefl/pages/bookmark/bookmark_detail_page.dart';
 import 'package:toefl/pages/bookmark/bookmarked_page.dart';
 import 'package:toefl/pages/full_test/set_target_page.dart';
-
-// import 'package:toefl/pages/mini_test/mini_opening_page.dart';
-// import 'package:toefl/pages/mini_test/mini_simulation_page.dart';
-// import 'package:toefl/pages/mini_test/mini_test_page.dart';
-
 import 'package:toefl/pages/user/edit_profile_page.dart';
 import 'package:toefl/pages/full_test/opening_loading_page.dart';
 import 'package:toefl/pages/auth/new_password_page.dart';
@@ -25,7 +22,8 @@ import 'package:toefl/pages/user/profile_page.dart';
 import 'package:toefl/pages/games/practice/speaking_game.dart';
 import 'package:toefl/pages/games/practice/cloze_game.dart';
 import 'package:toefl/pages/games/practice/hangman_game.dart';
-import 'package:toefl/pages/games/practice/pairing_game.dart';
+import 'package:toefl/pages/games/practice/wordsearch_game.dart';
+import 'package:toefl/pages/games/practice/scramble_game.dart';
 import 'package:toefl/pages/games/practice/translateQuiz_page.dart';
 import 'package:toefl/pages/writingPractice/writingPractice_page.dart';
 import 'package:toefl/pages/full_test/full_test_page.dart';
@@ -88,7 +86,9 @@ final routes = <String, Widget Function(BuildContext)>{
     return FullTestPage(
       diffInSec: data?["diffInSeconds"] ?? 0,
       isRetake: data?["isRetake"] ?? false,
-      packetType: data?['packetType'] ?? '',
+      packetType: data?["packetType"] ?? "simulation",
+      packetId: data?["packetId"] ?? "", // TAMBAH PARAMETER INI
+      packetName: data?["packetName"] ?? "",
     );
   },
   RouteKey.regist: (context) => const RegistPage(),
@@ -116,10 +116,14 @@ final routes = <String, Widget Function(BuildContext)>{
   RouteKey.login: (context) => const LoginPage(),
   // RouteKey.setGoal: (context) => const SetGoal(),
   RouteKey.onBoarding: (context) => const OnBoarding(),
+  RouteKey.wordOfTheDay: (context) => const WordOfTheDayPage(),
   RouteKey.speakingGame: (context) => const SpeakingGame(),
+  RouteKey.listeningGame: (context) => const ListeningGamePage(),
   RouteKey.clozeGame: (context) => const ClozeGamePage(),
   RouteKey.translateQuiz: (context) => const TranslatequizPage(),
   RouteKey.hangmanGame: (context) => const HangmanGame(),
+  RouteKey.wordsearchGame: (context) => const WordSearchGame(),
+  RouteKey.scrambleGame: (context) => const ScrambleGame(),
   RouteKey.pairingGame: (context) => const PairingGame(),
   RouteKey.writingPractice: (context) => const WritingpracticePage(),
   RouteKey.simulationpage: (context) => const SimulationPage(),
@@ -129,6 +133,7 @@ final routes = <String, Widget Function(BuildContext)>{
       packetId: data?["packetId"] ?? "",
       isMiniTest: data?["isMiniTest"] ?? false,
       packetName: data?["packetName"] ?? "",
+      packetType: data?['packetType'] ?? 'simulation', // TAMBAH DEFAULT VALUE
     );
   },
   RouteKey.profile: (context) {
@@ -213,12 +218,11 @@ final routes = <String, Widget Function(BuildContext)>{
       image: data?["image"] ?? '',
     );
   },
-  RouteKey.searchUser: (context) {
-    final data =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    return SearchUserPage(
-      searchFriend: data?["searchFriend"] ?? false,
-    );
-  },
-  RouteKey.coursePage: (context) => const ListCoursePage(),
+  // RouteKey.searchUser: (context) {
+  //   final data =
+  //       ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+  //   return SearchUserPage(
+  //     searchFriend: data?["searchFriend"] ?? false,
+  //   );
+  // },
 };

@@ -59,8 +59,8 @@ class _ProfileRankState extends State<ProfileRank> {
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: widget.isMiddle! ? 160 : 105,
-                height: widget.isMiddle! ? 160 : 105,
+                width: widget.isMiddle! ? 160 : 90,
+                height: widget.isMiddle! ? 160 : 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: medalColor,
@@ -68,7 +68,7 @@ class _ProfileRankState extends State<ProfileRank> {
               ),
               CircleAvatar(
                 backgroundImage: AssetImage('assets/images/avatar_profile.png'),
-                radius: widget.isMiddle! ? 53 : 45,
+                radius: widget.isMiddle! ? 53 : 40,
               ),
               Positioned(
                 bottom: widget.isMiddle! ? -10 : -20,
@@ -96,8 +96,7 @@ class _ProfileRankState extends State<ProfileRank> {
           const SizedBox(height: 4),
           Container(
             alignment: Alignment.center,
-            width: 65,
-            height: 30,
+
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               shape: BoxShape.rectangle,

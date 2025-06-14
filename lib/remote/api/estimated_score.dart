@@ -12,18 +12,51 @@ class EstimatedScoreApi {
     try {
       final Response rawResponse =
           await DioToefl.instance.get('${Env.userUrl}/get-score-toefl');
-      // debugPrint(json.decode(rawResponse.data)['data'].toString());
-      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      // debugPrint(response.toString());
-      return EstimatedScore.fromJson(response.payload);
+
+      debugPrint("Raw Response: ${rawResponse.data}");
+
+      // Parse response data
+      Map<String, dynamic> responseData;
+      if (rawResponse.data is String) {
+        responseData = json.decode(rawResponse.data);
+      } else {
+        responseData = rawResponse.data;
+      }
+
+      debugPrint("Response Data: $responseData");
+
+      final response = BaseResponse.fromJson(responseData);
+      debugPrint("Payload: ${response.payload}");
+
+      // Handle payload sebagai array
+      if (response.payload is List && (response.payload as List).isNotEmpty) {
+        // Ambil item pertama dari array
+        final firstItem = (response.payload as List)[0];
+        debugPrint("First item from payload: $firstItem");
+
+        if (firstItem is Map<String, dynamic>) {
+          return EstimatedScore.fromJson(firstItem);
+        } else {
+          throw Exception("First item in payload is not a Map");
+        }
+      } else if (response.payload is Map<String, dynamic>) {
+        // Fallback jika payload masih berupa object (backward compatibility)
+        return EstimatedScore.fromJson(response.payload);
+      } else {
+        throw Exception(
+            "Payload is neither a List nor a Map, or List is empty");
+      }
     } catch (e, stack) {
-      debugPrint("aa" + e.toString() + stack.toString());
+      debugPrint("Error in getEstimatedScore: $e");
+      debugPrint("Stack trace: $stack");
+
       return EstimatedScore(
-          targetUser: 0,
-          userScore: 0,
-          scoreListening: 0,
-          scoreStructure: 0,
-          scoreReading: 0);
+        targetUser: 0,
+        userScore: "0.00",
+        scoreListening: "0.00",
+        scoreStructure: "0.00",
+        scoreReading: "0.00",
+      );
     }
   }
 
@@ -33,18 +66,44 @@ class EstimatedScoreApi {
         '${Env.simulationUrl}/add-and-patch-target',
         data: request,
       );
-      // debugPrint(json.decode(rawResponse.data)['data'].toString());
-      final response = BaseResponse.fromJson(json.decode(rawResponse.data));
-      // debugPrint(response.toString());
-      return EstimatedScore.fromJson(response.payload);
+
+      debugPrint("Raw Response: ${rawResponse.data}");
+
+      Map<String, dynamic> responseData;
+      if (rawResponse.data is String) {
+        responseData = json.decode(rawResponse.data);
+      } else {
+        responseData = rawResponse.data;
+      }
+
+      final response = BaseResponse.fromJson(responseData);
+      debugPrint("Payload: ${response.payload}");
+
+      // Handle payload sebagai array (sama seperti di atas)
+      if (response.payload is List && (response.payload as List).isNotEmpty) {
+        final firstItem = (response.payload as List)[0];
+        if (firstItem is Map<String, dynamic>) {
+          return EstimatedScore.fromJson(firstItem);
+        } else {
+          throw Exception("First item in payload is not a Map");
+        }
+      } else if (response.payload is Map<String, dynamic>) {
+        return EstimatedScore.fromJson(response.payload);
+      } else {
+        throw Exception(
+            "Payload is neither a List nor a Map, or List is empty");
+      }
     } catch (e, stack) {
-      debugPrint("aa" + e.toString() + stack.toString());
+      debugPrint("Error in addAndUpdateScore: $e");
+      debugPrint("Stack trace: $stack");
+
       return EstimatedScore(
-          targetUser: 0,
-          userScore: 0,
-          scoreListening: 0,
-          scoreStructure: 0,
-          scoreReading: 0);
+        targetUser: 0,
+        userScore: "0.00",
+        scoreListening: "0.00",
+        scoreStructure: "0.00",
+        scoreReading: "0.00",
+      );
     }
   }
 }

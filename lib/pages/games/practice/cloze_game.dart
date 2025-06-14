@@ -5,6 +5,7 @@ import 'package:toefl/remote/api/games/cloze_api.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/blue_container.dart';
+import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
 import 'package:toefl/widgets/games/game_app_bar.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -33,6 +34,9 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
   }
 
   Future<void> loadQuestions() async {
+    setState(() {
+      isLoading = true;
+    });
     final response = await api.fetchClozeQuestions();
     setState(() {
       questions = response;
@@ -50,6 +54,18 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
     });
   }
 
+  void restartGame() {
+    Navigator.pop(context); // Tutup modal sebelum restart
+    loadQuestions();
+    setState(() {
+      currentQuestionIndex = 0;
+      selectedAnswer = null;
+      isAnswered = false;
+      isCorrectAnswer = null;
+      score = 100;
+    });
+  }
+
   void nextQuestion() {
     if (currentQuestionIndex < questions.length - 1) {
       setState(() {
@@ -59,29 +75,18 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
         isCorrectAnswer = null;
       });
     } else {
+      
+
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("game_over").tr(),
-          content: Text("Your final score: ${score.toInt()}"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                loadQuestions();
-                Navigator.of(context).pop();
-                setState(() {
-                  currentQuestionIndex = 0;
-                  selectedAnswer = null;
-                  isAnswered = false;
-                  isCorrectAnswer = null;
-                  score = 100;
-                });
-              },
-              child: const Text("restart").tr(),
-              
-            ),
-            
-          ],
+        builder: (context) => ModalConfirmation(
+          message: 'Your final score: ${score.toInt()}',
+          leftTitle: 'restart'.tr(),
+          rightTitle: 'quit'.tr(),
+          leftFunction: restartGame,
+          rightFunction: () {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          },
         ),
       );
       api.submitClozeResult(score);
@@ -91,8 +96,12 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(HexColor(mariner700)),
+          ),
+        ),
       );
     }
 
@@ -177,11 +186,14 @@ class _ClozeGamePageState extends State<ClozeGamePage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 12),
                   ),
                   onPressed: nextQuestion,
                   child: Text(
-                    currentQuestionIndex == questions.length - 1 ? 'finish'.tr() : 'next'.tr(),
+                    currentQuestionIndex == questions.length - 1
+                        ? 'finish'.tr()
+                        : 'next'.tr(),
                     style: GoogleFonts.nunito(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

@@ -6,7 +6,10 @@ import 'package:toefl/remote/local/shared_pref/onboarding_shared_preferences.dar
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
+import 'package:flutter/services.dart'; // tambahkan import ini
 import 'package:toefl/widgets/blue_button.dart';
+import 'dart:async';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../remote/api/user_api.dart';
 
@@ -27,6 +30,13 @@ class _OtpVerificationState extends State<OtpVerification> {
   var otp = "";
   var isLoading = false;
   var resendTimer = 59;
+  Timer? _resendCountdown;
+
+  @override
+  void initState() {
+    super.initState();
+    _startResendTimer();
+  }
 
   changeTime() {
     Future.delayed(const Duration(seconds: 1), () {
@@ -39,10 +49,119 @@ class _OtpVerificationState extends State<OtpVerification> {
     });
   }
 
+  void _startResendTimer() {
+    _resendCountdown = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (resendTimer == 0) {
+        timer.cancel();
+      } else {
+        setState(() {
+          resendTimer--;
+        });
+      }
+    });
+  }
+
+  List<TextEditingController> _controllers =
+      List.generate(4, (_) => TextEditingController());
+  List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
+
   @override
-  void initState() {
-    changeTime();
-    super.initState();
+  void dispose() {
+    for (var c in _controllers) {
+      c.dispose();
+    }
+    for (var f in _focusNodes) {
+      f.dispose();
+    }
+    _resendCountdown?.cancel();
+    super.dispose();
+  }
+
+  Widget _buildOtpFields() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(4, (index) {
+        return SizedBox(
+          width: 60,
+          child: KeyboardListener(
+            focusNode: FocusNode(), // listener khusus keyboard
+            onKeyEvent: (event) {
+              if (event is KeyDownEvent &&
+                  event.logicalKey == LogicalKeyboardKey.backspace &&
+                  _controllers[index].text.isEmpty) {
+                setState(() {
+                  for (var c in _controllers) {
+                    c.clear();
+                  }
+                  otp = "";
+                });
+                FocusScope.of(context).requestFocus(_focusNodes[0]);
+              }
+            },
+
+            child: TextFormField(
+              controller: _controllers[index],
+              focusNode: _focusNodes[index],
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 1,
+              style: GoogleFonts.balooBhaijaan2(
+                  fontSize: 20, fontWeight: FontWeight.bold),
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              decoration: InputDecoration(
+                counterText: "",
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: HexColor(mariner700)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: HexColor(mariner700), width: 2),
+                ),
+              ),
+
+              onChanged: (value) {
+                if (value.length > 1) {
+                  // Kalau user paste atau ketik 2 angka sekaligus
+                  List<String> chars = value.split('');
+                  _controllers[index].text = chars[0];
+                  if (index + 1 < 4) {
+                    _controllers[index + 1].text = chars[1];
+                    FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
+                  } else {
+                    FocusScope.of(context).unfocus();
+                  }
+                } else if (value.length == 1) {
+                  if (index < 3) {
+                    FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
+                  } else {
+                    FocusScope.of(context).unfocus();
+                  }
+                }
+
+                setState(() {
+                  otp = _controllers.map((c) => c.text).join();
+                });
+              },
+
+              onTap: () {
+                _controllers[index].selection = TextSelection.fromPosition(
+                  TextPosition(offset: _controllers[index].text.length),
+                );
+              },
+              // onEditingComplete: () {
+              //   FocusScope.of(context).unfocus();
+              //   _controllers[index].selection = TextSelection.fromPosition(
+              //     TextPosition(offset: _controllers[index].text.length),
+              //   );
+              // },
+            ),
+          ),
+        );
+      }),
+    );
   }
 
   @override
@@ -72,10 +191,10 @@ class _OtpVerificationState extends State<OtpVerification> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       "OTP Verification",
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.balooBhaijaan2(
+                          fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(
                       height: 10,
@@ -84,7 +203,7 @@ class _OtpVerificationState extends State<OtpVerification> {
                       child: RichText(
                         textAlign: TextAlign.center,
                         text: TextSpan(
-                          style: TextStyle(
+                          style: GoogleFonts.balooBhaijaan2(
                             fontSize: 14,
                             color: HexColor(neutral70),
                           ),
@@ -95,8 +214,8 @@ class _OtpVerificationState extends State<OtpVerification> {
                             ),
                             TextSpan(
                               text: " ${widget.email} ",
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                              style: GoogleFonts.balooBhaijaan2(
+                                  fontWeight: FontWeight.bold),
                             ),
                             const TextSpan(
                               text: " for verification.",
@@ -108,29 +227,58 @@ class _OtpVerificationState extends State<OtpVerification> {
                     const SizedBox(
                       height: 60,
                     ),
-                    // Add OTP widget here
-                    OtpTextField(
-                      numberOfFields: 4,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 30),
-                      margin: const EdgeInsets.symmetric(horizontal: 10),
-                      textStyle: const TextStyle(
-                          fontWeight: FontWeight.w500, fontSize: 20),
-                      fieldWidth: 65.0,
-                      showFieldAsBox: true,
-                      borderRadius: BorderRadius.circular(10),
-                      borderColor: HexColor(mariner700),
-                      focusedBorderColor: HexColor(mariner700),
-                      handleControllers: (controllers) {
-                        controls = controllers;
-                      },
-                      onCodeChanged: (String value) {
-                        otp = '';
-                        setState(() {
-                          for (var element in controls) {
-                            otp += element!.text;
-                          }
-                        });
-                      },
+                    // OtpTextField(
+                    //   cursorColor: HexColor(neutral90),
+                    //   numberOfFields: 4,
+                    //   contentPadding: const EdgeInsets.symmetric(vertical: 30),
+                    //   margin: const EdgeInsets.symmetric(horizontal: 10),
+                    //   textStyle: const TextStyle(
+                    //       fontWeight: FontWeight.w500, fontSize: 20),
+                    //   fieldWidth: 65.0,
+                    //   showFieldAsBox: true,
+                    //   keyboardType: const TextInputType.numberWithOptions(
+                    //       decimal: false, signed: false),
+                    //   borderRadius: BorderRadius.circular(10),
+                    //   borderColor: HexColor(mariner700),
+                    //   focusedBorderColor: HexColor(mariner700),
+                    //   inputFormatters: [
+                    //     FilteringTextInputFormatter.digitsOnly,
+                    //     LengthLimitingTextInputFormatter(1)
+                    //   ],
+                    //   // handleControllers: (controllers) {
+                    //   //   controls = controllers;
+                    //   //   for (var ctrl in controls) {
+                    //   //     ctrl?.addListener(() {
+                    //   //       final text = ctrl?.text ?? '';
+                    //   //       final filtered =
+                    //   //           text.replaceAll(RegExp(r'[^0-9]'), '');
+
+                    //   //       if (filtered.length > 1) {
+                    //   //         ctrl?.text = filtered[0];
+                    //   //         ctrl?.selection =
+                    //   //             TextSelection.collapsed(offset: 1);
+                    //   //       } else if (text != filtered) {
+                    //   //         ctrl?.value = TextEditingValue(
+                    //   //           text: filtered,
+                    //   //           selection: TextSelection.collapsed(
+                    //   //               offset: filtered.length),
+                    //   //         );
+
+                    //   //         ctrl?.selection = TextSelection.collapsed(
+                    //   //             offset: filtered.length);
+                    //   //       }
+                    //   //     });
+                    //   //   }
+                    //   // },
+                    //   onCodeChanged: (String value) {
+                    //     setState(() {
+                    //       otp = controls.map((c) => c?.text ?? '').join();
+                    //     });
+                    //   },
+                    // ),
+                    SizedBox(
+                      height: 60,
+                      child: _buildOtpFields(),
                     ),
                   ],
                 ),
@@ -147,24 +295,25 @@ class _OtpVerificationState extends State<OtpVerification> {
                     isDisabled: otp.length < 4,
                     title: "Verify",
                     onTap: () async {
-                      Profile user = await ProfileApi().getProfile();
-
+                      if (otp.length < 4) return;
                       setState(() {
                         isLoading = true;
                       });
                       final isVerified = widget.isForgotOTP
                           ? await userApi.verifyForgot(otp)
                           : await userApi.verifyOtp(otp);
+
                       setState(() {
                         isLoading = false;
                       });
+
                       if (isVerified.isVerified) {
                         if (widget.isForgotOTP) {
                           Navigator.pushNamed(context, RouteKey.resetPassword,
                               arguments: false);
                         } else {
+                          Profile user = await ProfileApi().getProfile();
                           Navigator.popUntil(context, (route) => route.isFirst);
-                          Navigator.pop(context);
                           Navigator.pushNamed(context, RouteKey.main);
                           if (user.targetScore == 0) {
                             Navigator.pushNamed(context, RouteKey.setGoal);
@@ -178,7 +327,7 @@ class _OtpVerificationState extends State<OtpVerification> {
               children: [
                 Text(
                   "Didn’t receive code? ",
-                  style: TextStyle(
+                  style: GoogleFonts.balooBhaijaan2(
                     color: HexColor(neutral50),
                     fontSize: 14,
                   ),
@@ -198,7 +347,7 @@ class _OtpVerificationState extends State<OtpVerification> {
                   },
                   child: Text(
                     resendTimer > 0 ? "Resend (00:$resendTimer)" : "Resend",
-                    style: const TextStyle(
+                    style: GoogleFonts.balooBhaijaan2(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       decoration: TextDecoration.underline,

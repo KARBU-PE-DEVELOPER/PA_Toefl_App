@@ -18,6 +18,7 @@ import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/utils/locale.dart';
 import 'package:toefl/widgets/profile_page/change_lang_dialog.dart';
 import '../quiz/modal/modal_confirmation.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Setting extends StatefulWidget {
   const Setting({super.key, required this.name, required this.image});
@@ -83,16 +84,16 @@ class _SettingState extends State<Setting> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, RouteKey.editProfile,
-                  arguments: {"name": widget.name, "image": widget.image});
-            },
-            child: _listTileCustom(
-              Icons.edit_note,
-              'edit_profile'.tr(),
-            ),
-          ),
+          // GestureDetector(
+          //   onTap: () {
+          //     Navigator.pushNamed(context, RouteKey.editProfile,
+          //         arguments: {"name": widget.name, "image": widget.image});
+          //   },
+          //   child: _listTileCustom(
+          //     Icons.edit_note,
+          //     'edit_profile'.tr(),
+          //   ),
+          // ),
           _listTileCustom(Icons.notifications, 'notification'.tr(),
               trailing: _switchButton()),
           const Divider(
@@ -204,76 +205,75 @@ class _SettingState extends State<Setting> {
   }
 
   Widget _dropdownButton() {
-    return (Container(
-      height: 22,
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.transparent),
-        borderRadius: const BorderRadius.all(Radius.circular(15)),
-        color: const Color(0xffF6F6F6),
+        color: HexColor(mariner700),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
             spreadRadius: 0,
-            offset: const Offset(0, -2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: DropdownButton(
-        borderRadius: BorderRadius.circular(15),
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        value: dropdownValue,
-        icon: const Icon(
-          Icons.keyboard_arrow_down,
-          size: 20,
-          color: Color(0xff191919),
-        ),
-        items: items.map((String items) {
-          return DropdownMenuItem(
-            value: items,
-            child: Text(
-              items,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 10,
-                  color: Color(0xff191919)),
-            ),
-          );
-        }).toList(),
-        onChanged: (String? newValue) async {
-          if (newValue != dropdownValue) {
-            await showDialog(
-              context: context,
-              builder: (BuildContext dialogContext) {
-                return AlertDialog(
-                    backgroundColor: Colors.transparent,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                    content: ChangeLangDialog(
-                      onNo: () {
-                        Navigator.of(dialogContext).pop(false);
-                      },
-                      onYes: () {
-                        Navigator.of(dialogContext).pop(true);
-                      },
-                    ));
-              },
-            ).then((value) async {
-              if (value == true) {
-                await localizationSharedPreference.saveSelectedLang(
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          dropdownColor: HexColor(mariner700),
+          borderRadius: BorderRadius.circular(10),
+          value: dropdownValue,
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: Colors.white,
+            size: 20,
+          ),
+          items: items.map((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(
+                item,
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newValue) async {
+            if (newValue != dropdownValue) {
+              await showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) {
+                  return AlertDialog(
+                      backgroundColor: Colors.transparent,
+                      contentPadding: const EdgeInsets.all(0),
+                      content: ChangeLangDialog(
+                        onNo: () => Navigator.of(dialogContext).pop(false),
+                        onYes: () => Navigator.of(dialogContext).pop(true),
+                      ));
+                },
+              ).then((value) async {
+                if (value == true) {
+                  await localizationSharedPreference.saveSelectedLang(
                     newValue == 'English'
                         ? LocaleEnum.en.name
-                        : LocaleEnum.id.name);
-                setState(() {
-                  dropdownValue = newValue!;
-                });
-                Restart.restartApp();
-              }
-            });
-          }
-        },
-        underline: Container(),
+                        : LocaleEnum.id.name,
+                  );
+                  setState(() {
+                    dropdownValue = newValue!;
+                  });
+                  Restart.restartApp();
+                }
+              });
+            }
+          },
+        ),
       ),
-    ));
+    );
   }
 
   Widget _switchButton() {

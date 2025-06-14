@@ -7,11 +7,13 @@ import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
 class GameAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final double height;
+  final List<Widget>? actions; // Tambahkan ini
 
   const GameAppBar({
     super.key,
     required this.title,
     this.height = kToolbarHeight,
+    this.actions, // Tambahkan ini
   });
 
   @override
@@ -38,18 +40,16 @@ class GameAppBar extends StatelessWidget implements PreferredSizeWidget {
             },
           );
         },
-        icon: Icon(
-          Icons.close,
-        ),
+        icon: Icon(Icons.close),
       ),
       title: Text(
         title,
         style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.bold),
       ),
+      actions: actions, // Tambahkan ini agar bisa menerima tombol kanan
     );
   }
 
   @override
-  // TODO: implement preferredSize
   Size get preferredSize => Size.fromHeight(height);
 }

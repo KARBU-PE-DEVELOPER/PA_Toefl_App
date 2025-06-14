@@ -29,7 +29,7 @@ class FeaturedCard extends StatelessWidget {
           ),
           color: isBgLight ? HexColor(mariner100) : HexColor(mariner400),
         ),
-        width: MediaQuery.of(context).size.width / 2.43,
+        width: MediaQuery.of(context).size.width / 2,
         height: MediaQuery.of(context).size.height / 7,
         child: Padding(
           padding: EdgeInsetsDirectional.symmetric(horizontal: 10),

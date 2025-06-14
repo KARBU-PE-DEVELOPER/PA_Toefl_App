@@ -26,15 +26,14 @@ class ProfileApi {
     } catch (e, stackTrace) {
       debugPrint(e.toString() + stackTrace.toString());
       return Profile(
-          id: "",
-          level: "",
-          currentScore: 0,
-          targetScore: 0,
-          nameUser: "",
-          emailUser: "",
-          rank: -1,
-          profileImage: "",
-          isFriend: false);
+        id: 0,
+        level: "",
+        currentScore: 0,
+        targetScore: 0,
+        profileImage: "",
+        nameUser: "",
+        // emailUser: "",
+      );
     }
   }
 
@@ -49,15 +48,14 @@ class ProfileApi {
     } catch (e, stackTrace) {
       debugPrint("error getUserProfile : $e $stackTrace");
       return Profile(
-          id: "",
-          level: "",
-          currentScore: 0,
-          targetScore: 0,
-          nameUser: "",
-          emailUser: "",
-          rank: 0,
-          profileImage: "",
-          isFriend: false);
+        id: 0,
+        level: "",
+        currentScore: 0,
+        targetScore: 0,
+        profileImage: "",
+        nameUser: "",
+        // emailUser: "",
+      );
     }
   }
 
@@ -119,7 +117,7 @@ class ProfileApi {
     try {
       String fileName = image?.path.split('/').last ?? "";
       final Response rawResponse = await (dio ?? DioToefl.instance).post(
-        '${Env.userUrl}/edit/profile',
+        '${Env.userUrl}/users/edit-profile',
         data: FormData.fromMap({
           'name': name,
           "file": image != null

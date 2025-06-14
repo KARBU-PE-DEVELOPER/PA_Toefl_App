@@ -33,19 +33,26 @@ class _MultipleChoicesState extends ConsumerState<MultipleChoices> {
         return Padding(
             padding: const EdgeInsets.only(bottom: 15),
             child: AnswerButton(
-                onTap: () {
-                  setState(() {
-                    if (choices.length >= 4) {
-                      if (selectedAnswer != choices[index].choice) {
-                        EasyDebounce.debounce("multiple_choices",
-                            const Duration(milliseconds: 500), () {
-                          ref.read(fullTestProvider.notifier).updateAnswer(
-                              widget.question.number, selectedAnswer);
-                        });
-                      }
-                      selectedAnswer = choices[index].choice;
+                onTap: () async {
+                  if (choices.length >= 4) {
+                    final newAnswer = choices[index].choice;
+
+                    if (selectedAnswer != newAnswer) {
+                      setState(() {
+                        selectedAnswer = newAnswer;
+                      });
+
+                      // Update jawaban di local database (state)
+                      await ref
+                          .read(fullTestProvider.notifier)
+                          .updateAnswer(widget.question.number, newAnswer);
+
+                      // Kirim langsung ke backend
+                      await ref
+                          .read(fullTestProvider.notifier)
+                          .saveAnswerForCurrentQuestion();
                     }
-                  });
+                  }
                 },
                 title:
                     "(${String.fromCharCode(65 + index)})  ${choices.length >= 4 ? choices[index].choice : "Choice $index"}",

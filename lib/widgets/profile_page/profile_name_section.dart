@@ -28,7 +28,7 @@ class ProfileNameSection extends StatelessWidget {
             : CircleAvatar(
                 backgroundColor: HexColor(neutral10),
                 radius: 40,
-                child: Image.asset('assets/images/avatar_profile.png'),
+                child: Image.asset('assets/images/avatar_profile-RB.png'),
               ),
         const SizedBox(
           height: 12,
@@ -41,23 +41,23 @@ class ProfileNameSection extends StatelessWidget {
                 child: Text(
                   profile.nameUser.isNotEmpty
                       ? profile.nameUser
-                      : 'My Name is Qeli',
+                      : 'My Name is Vocadia',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
-              Skeleton.leaf(
-                child: Text(
-                  profile.emailUser.isNotEmpty
-                      ? profile.emailUser
-                      : 'myemail@prodi.student.pens.ac.id',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontSize: 12,
-                      color: Color(0xFFB0B0B0)),
-                ),
-              ),
+              // Skeleton.leaf(
+              //   child: Text(
+              //     profile.emailUser.isNotEmpty
+              //         ? profile.emailUser
+              //         : 'myemail@prodi.student.pens.ac.id',
+              //     overflow: TextOverflow.ellipsis,
+              //     style: const TextStyle(
+              //         fontWeight: FontWeight.normal,
+              //         fontSize: 12,
+              //         color: Color(0xFFB0B0B0)),
+              //   ),
+              // ),
             ],
           ),
         )

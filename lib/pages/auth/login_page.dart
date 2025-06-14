@@ -1,14 +1,18 @@
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:toefl/exceptions/exceptions.dart';
 import 'package:toefl/models/auth_status.dart';
 import 'package:toefl/models/login.dart';
 import 'package:toefl/remote/api/user_api.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
-import 'package:toefl/widgets/blue_button.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:toefl/widgets/form_input.dart';
+import 'package:flutter/widgets.dart';
+import 'package:toefl/widgets/white_button.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -41,41 +45,110 @@ class _LoginPageState extends State<LoginPage> {
     _passwordFocusNode.dispose();
     super.dispose();
   }
+  
+
+  Future<void> handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final AuthStatus val = await userApi.postLogin(
+        Login(
+          email: emailController.text,
+          password: passwordController.text,
+        ),
+      );
+
+      if (val.isSuccess) {
+        if (val.isVerified) {
+          Navigator.popAndPushNamed(context, RouteKey.main);
+        } else {
+          Navigator.pushNamed(context, RouteKey.otpVerification, arguments: {
+            'isForgotOTP': false,
+            'email': emailController.text,
+          });
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Wrong email or password"),
+            backgroundColor: HexColor(colorError),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: HexColor(colorError),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("An unexpected error occurred"),
+          backgroundColor: HexColor(colorError),
+        ),
+      );
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: HexColor(mariner700),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SvgPicture.asset(
-                'assets/images/login.svg',
-                width: MediaQuery.of(context).size.width,
+              Card(
+                color: HexColor(neutral20),
+                shadowColor: Colors.black,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(60),
+                    bottomRight: Radius.circular(60),
+                  ),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.height *
+                      0.4, // 40% tinggi layar
+                  child: Image.asset(
+                    'assets/images/login_page.png',
+                  ),
+                ),
               ),
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30),
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 26),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'welcome_heading',
-                      style: TextStyle(
+                      style: GoogleFonts.balooBhaijaan2(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
-                        color: HexColor(mariner700),
+                        color: HexColor(neutral10),
                       ),
                     ).tr(),
                     Text(
                       'welcome_paragraph',
-                      style: TextStyle(
+                      style: GoogleFonts.balooBhaijaan2(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: HexColor(neutral50),
+                        color: HexColor(neutral10),
                       ),
                     ).tr(),
-                    const SizedBox(height: 15.0),
+                    const SizedBox(height: 15),
                     Form(
                       key: _formKey,
                       child: Column(
@@ -93,6 +166,7 @@ class _LoginPageState extends State<LoginPage> {
                             controller: passwordController,
                             title: "Password",
                             hintText: "Password",
+                            
                             suffixIcon: Icons.visibility_off,
                             focusNode: _passwordFocusNode,
                           ),
@@ -107,8 +181,8 @@ class _LoginPageState extends State<LoginPage> {
                               },
                               child: Text(
                                 'forgot_password',
-                                style: TextStyle(
-                                  color: HexColor(mariner700),
+                                style: GoogleFonts.balooBhaijaan2(
+                                  color: HexColor(neutral10),
                                   fontSize: 14,
                                   decoration: TextDecoration.underline,
                                 ),
@@ -118,73 +192,50 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 30),
-                    isLoading
-                        ? const Center(
-                            child: CircularProgressIndicator(),
-                          )
-                        : BlueButton(
-                            title: 'btn_login'.tr(),
-                            onTap: () async {
-                              setState(() {
-                                isLoading = true;
-                              });
-                              final AuthStatus val;
-                              if (_formKey.currentState!.validate()) {
-                                val = await userApi.postLogin(
-                                  Login(
-                                    email: emailController.text,
-                                    password: passwordController.text,
-                                  ),
-                                );
-                                if (val.isSuccess) {
-                                  if (val.isVerified) {
-                                    Navigator.popAndPushNamed(
-                                        context, RouteKey.main);
-                                  } else {
-                                    Navigator.pushNamed(
-                                        context, RouteKey.otpVerification,
-                                        arguments: {
-                                          'isForgotOTP': false,
-                                          'email': emailController.text
-                                        });
-                                  }
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          const Text("Wrong email or password"),
-                                      backgroundColor: HexColor(colorError),
-                                    ),
-                                  );
-                                }
-                              }
-                              setState(() {
-                                isLoading = false;
-                              });
-                            },
-                          ),
+                    SizedBox(height: 25),
+                    WhiteButton(
+                      title: 'btn_login'.tr(),
+                      size: MediaQuery.of(context).size.width * 0.9,
+                      height: MediaQuery.of(context).size.height * 0.06,
+                      onTap: handleLogin,
+                      child: isLoading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      HexColor(mariner700)),
+                                ),
+                              ),
+                            )
+                          : null,
+                    ),
                     const SizedBox(height: 15.0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           'new_account',
-                          style: TextStyle(
-                            color: HexColor(neutral50),
+                          style: GoogleFonts.balooBhaijaan2(
+                            color: HexColor(neutral10),
                             fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
                         ).tr(),
                         GestureDetector(
                           onTap: () {
                             Navigator.popAndPushNamed(context, RouteKey.regist);
                           },
-                          child: const Text(
+                          child: Text(
                             'register_link',
-                            style: TextStyle(
+                            style: GoogleFonts.balooBhaijaan2(
+                              color: HexColor(neutral20),
                               fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               decoration: TextDecoration.underline,
+                              decorationColor: Colors.white,
+                              decorationThickness: 2.0,
                             ),
                           ).tr(),
                         ),

@@ -5,12 +5,11 @@ import 'package:toefl/remote/env.dart';
 import 'dart:convert';
 import '../../base_response.dart';
 
-import 'package:toefl/remote/local/shared_pref/auth_shared_preferences.dart';
 
 class SpeakGameApi {
   final Dio? dio;
 
-  SpeakGameApi({required this.dio}); // Update constructor
+  SpeakGameApi({this.dio}); // Update constructor
 
   Future<SpeakGame> getWord() async {
     try {

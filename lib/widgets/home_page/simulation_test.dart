@@ -19,7 +19,9 @@ class SimulationTestWidget extends StatelessWidget {
               children: [
                 InkWell(
                   borderRadius: BorderRadius.circular(10),
-                  onTap: () => Navigator.of(context).pushNamed(
+                  onTap:
+                      // null,
+                      () => Navigator.of(context).pushNamed(
                     RouteKey.simulationpage,
                     arguments: {
                       "type": "test", // Mengirim tipe "test"

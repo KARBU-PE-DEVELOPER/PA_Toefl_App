@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:toefl/utils/colors.dart';
+import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/utils/hex_color.dart';
 
 class ModalConfirmation extends StatefulWidget {
@@ -30,10 +31,15 @@ class _ModalConfirmationState extends State<ModalConfirmation> {
   Widget build(BuildContext context) {
     return AlertDialog(
       surfaceTintColor: Colors.white,
-      backgroundColor: Colors.white,
+      backgroundColor: HexColor(mariner100),
+      
       contentPadding: EdgeInsets.symmetric(vertical: 30, horizontal: 15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),
+        side: BorderSide(
+          color: HexColor(mariner700),
+          width: 5,
+        ),
       ),
       content: Container(
         width: MediaQuery.of(context).size.width,
@@ -76,12 +82,10 @@ class _ModalConfirmationState extends State<ModalConfirmation> {
                     ),
                     child: Text(
                       widget.leftTitle,
-                      style: TextStyle(
+                      style: CustomTextStyle.buttonBaloo.copyWith(
                         color: widget.isWarningModal
                             ? HexColor(neutral50)
                             : HexColor(mariner700),
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -104,10 +108,8 @@ class _ModalConfirmationState extends State<ModalConfirmation> {
                     ),
                     child: Text(
                       widget.rightTitle,
-                      style: TextStyle(
+                      style: CustomTextStyle.buttonBaloo.copyWith(
                         color: HexColor(neutral10),
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),

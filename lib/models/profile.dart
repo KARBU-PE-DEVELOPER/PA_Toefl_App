@@ -8,20 +8,18 @@ part 'profile.g.dart';
 class Profile {
   final dynamic id;
   final String level;
-  @JsonKey(name: 'current_score', defaultValue: 0)
-  int currentScore;
-  @JsonKey(name: 'target_score', defaultValue: 0)
-  int targetScore;
+  @JsonKey(name: 'current_score', fromJson: _toDouble, defaultValue: 0.0)
+  double currentScore;
+  @JsonKey(name: 'target_score', fromJson: _toDouble, defaultValue: 0.0)
+  double targetScore;
   @JsonKey(name: 'name_user', defaultValue: '')
   final String nameUser;
-  @JsonKey(name: 'email_user', defaultValue: '')
-  final String emailUser;
-  @JsonKey(defaultValue: 0)
-  int rank;
+  // @JsonKey(defaultValue: 0)
+  // int rank;
   @JsonKey(name: 'profile_image', defaultValue: '')
   final String profileImage;
-  @JsonKey(name: 'is_friend', defaultValue: false)
-  final bool isFriend;
+  // @JsonKey(name: 'is_friend', defaultValue: false)
+  // final bool isFriend;
 
   Profile({
     required this.id,
@@ -29,11 +27,16 @@ class Profile {
     required this.currentScore,
     required this.targetScore,
     required this.nameUser,
-    required this.emailUser,
-    required this.rank,
+    // required this.rank,
     required this.profileImage,
-    required this.isFriend,
+    // required this.isFriend,
   });
+  static double _toDouble(dynamic value) {
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    if (value is double) return value;
+    return 0.0;
+  }
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
@@ -54,10 +57,9 @@ class Profile {
       currentScore: currentScore,
       targetScore: targetScore,
       nameUser: nameUser,
-      emailUser: emailUser,
-      rank: rank,
+      // rank: rank,
       profileImage: profileImage,
-      isFriend: isFriend ?? this.isFriend,
+      // isFriend: isFriend ?? this.isFriend,
     );
   }
 }

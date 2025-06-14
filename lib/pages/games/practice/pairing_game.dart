@@ -11,6 +11,7 @@ import 'package:toefl/utils/hex_color.dart';
 import 'package:toefl/widgets/games/game_app_bar.dart';
 import 'package:toefl/widgets/quiz/modal/modal_confirmation.dart';
 import 'package:toefl/routes/route_key.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class PairingGame extends StatefulWidget {
   const PairingGame({super.key});
@@ -216,7 +217,7 @@ class _PairingGameState extends State<PairingGame> {
       context: context,
       builder: (context) {
         return ModalConfirmation(
-          message: "Final Score: ${score.toInt()}",
+          message: "${'final_score'.tr()} : ${score.toInt()}",
           leftTitle: "Quit",
           rightTitle: "Retry",
           rightFunction: () {
