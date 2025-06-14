@@ -8,6 +8,9 @@ class HistoryItem {
   @JsonKey(name: 'packet_id')
   final int packetId;
 
+  @JsonKey(name: 'packet_name') // ADD: packet_name field
+  final String? packetName;
+
   @JsonKey(name: 'packet_type', defaultValue: '')
   final String type;
 
@@ -19,6 +22,7 @@ class HistoryItem {
 
   HistoryItem({
     required this.packetId,
+    this.packetName, // ADD: optional packet_name
     required this.type,
     required this.timeStart,
     required this.score,
@@ -50,6 +54,14 @@ class HistoryItem {
     } catch (e) {
       return timeStart;
     }
+  }
+
+  // ADD: Getter untuk packet name dengan fallback
+  String get displayPacketName {
+    if (packetName != null && packetName!.isNotEmpty) {
+      return packetName!;
+    }
+    return 'Test Package $packetId'; // Fallback jika packet_name null atau kosong
   }
 
   // Getter untuk scores

@@ -229,7 +229,6 @@ class _HistoryScoreState extends State<HistoryScore>
       arguments: {
         'packetId': data.packetId.toString(),
         'isMiniTest': false,
-        // 'packetName': data.packetName ?? 'Test ${data.packetId}',
         'packetType': data.type,
         'isFromHistory': true, // Flag to indicate this is from history
         'historyData': data, // Pass the full history data
@@ -239,9 +238,12 @@ class _HistoryScoreState extends State<HistoryScore>
 
   @override
   Widget build(BuildContext context) {
+    // FIXED: Filter dan sort data dari terlama ke terbaru (ascending)
     final filteredData = historyData
         .where((item) => item.type.toLowerCase() == selectedType.toLowerCase())
-        .toList();
+        .toList()
+      ..sort((a, b) =>
+          a.timeStart.compareTo(b.timeStart)); // Sort ascending (terlama dulu)
 
     return SizedBox(
       width: double.infinity,
@@ -389,7 +391,7 @@ class _HistoryScoreState extends State<HistoryScore>
     );
   }
 
-  // NEW: Special table for Test type with "View Result" button
+  // FIXED: Special table for Test type with chronological numbering (terlama = 1)
   Widget _buildTestTable(List<HistoryItem> filteredData) {
     if (!isInitialized || _scrollController == null) {
       return const Center(
@@ -445,10 +447,12 @@ class _HistoryScoreState extends State<HistoryScore>
                       ],
                     ),
                   ),
-                  // Data Rows for Test table
+                  // FIXED: Data Rows for Test table with chronological numbering
                   ...List.generate(filteredData.length, (index) {
                     final data = filteredData[index];
                     final dateTime = _parseTimeStart(data.timeStart);
+                    // FIXED: Chronological numbering (terlama = 1, terbaru = last number)
+                    final rowNumber = index + 1;
 
                     return Container(
                       decoration: BoxDecoration(
@@ -461,7 +465,7 @@ class _HistoryScoreState extends State<HistoryScore>
                       ),
                       child: Row(
                         children: [
-                          _buildDataCell("${index + 1}", width: 60),
+                          _buildDataCell("$rowNumber", width: 60),
                           _buildDataCell(data.displayTotal, width: 80),
                           _buildDataCell(_formatDateTime(dateTime),
                               width: 140, isDateTime: true),
@@ -510,7 +514,7 @@ class _HistoryScoreState extends State<HistoryScore>
     );
   }
 
-  // EXISTING: Original table for Simulation type
+  // FIXED: Original table for Simulation type with chronological numbering
   Widget _buildSynchronizedTable(List<HistoryItem> filteredData) {
     if (!isInitialized || _scrollController == null) {
       return const Center(
@@ -565,10 +569,12 @@ class _HistoryScoreState extends State<HistoryScore>
                       ],
                     ),
                   ),
-                  // Data Rows
+                  // FIXED: Data Rows with chronological numbering
                   ...List.generate(filteredData.length, (index) {
                     final data = filteredData[index];
                     final dateTime = _parseTimeStart(data.timeStart);
+                    // FIXED: Chronological numbering (terlama = 1, terbaru = last number)
+                    final rowNumber = index + 1;
 
                     return Container(
                       decoration: BoxDecoration(
@@ -581,7 +587,7 @@ class _HistoryScoreState extends State<HistoryScore>
                       ),
                       child: Row(
                         children: [
-                          _buildDataCell("${index + 1}", width: 60),
+                          _buildDataCell("$rowNumber", width: 60),
                           _buildDataCell(data.displayTotal, width: 80),
                           _buildDataCell(_formatDateTime(dateTime),
                               width: 140, isDateTime: true),

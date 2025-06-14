@@ -1,17 +1,13 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_lock_task/flutter_lock_task.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:toefl/models/test/history.dart';
 import 'package:toefl/models/test/result.dart';
-import 'package:toefl/pages/bookmark/bookmarked_page.dart';
 import 'package:toefl/remote/api/full_test_api.dart';
-import 'package:toefl/routes/route_key.dart';
+import 'package:toefl/remote/api/history_api.dart';
+import 'package:toefl/remote/api/profile_api.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/custom_text_style.dart';
 import 'package:toefl/utils/hex_color.dart';
@@ -40,8 +36,12 @@ class TestResultPage extends StatefulWidget {
 
 class _TestResultPageState extends State<TestResultPage> {
   FullTestApi api = FullTestApi();
+  ProfileApi profileApi = ProfileApi();
+  HistoryApi historyApi = HistoryApi();
   bool isLoading = false;
   Result? result;
+  String? userName;
+  HistoryItem? historyItem;
   static const platform = MethodChannel('com.pens.vocadia/exam_security');
   final GlobalKey _certificateKey = GlobalKey();
 
@@ -60,13 +60,51 @@ class _TestResultPageState extends State<TestResultPage> {
     setState(() {
       isLoading = true;
     });
-    result = await api.getTestResult(widget.packetId);
+
+    await Future.wait([
+      _loadTestResult(),
+      _loadUserProfile(),
+      _loadHistoryData(),
+    ]);
+
     setState(() {
       isLoading = false;
     });
   }
 
-  // FUNCTION UNTUK MENDAPATKAN TITLE BERDASARKAN PACKET TYPE
+  Future<void> _loadTestResult() async {
+    try {
+      result = await api.getTestResult(widget.packetId);
+    } catch (e) {
+      debugPrint("Error loading test result: $e");
+    }
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final profile = await profileApi.getProfile();
+      setState(() {
+        userName = profile.nameUser;
+      });
+      debugPrint("User profile loaded: $userName");
+    } catch (e) {
+      debugPrint("Error loading user profile: $e");
+      setState(() {
+        userName = "VocaBot";
+      });
+    }
+  }
+
+  Future<void> _loadHistoryData() async {
+    try {
+      final packetIdInt = int.parse(widget.packetId);
+      historyItem = await historyApi.getHistoryByPacketId(packetIdInt);
+      debugPrint("History data loaded: ${historyItem?.displayPacketName}");
+    } catch (e) {
+      debugPrint("Error loading history data: $e");
+    }
+  }
+
   String _getPageTitle() {
     if (widget.packetType.toLowerCase() == "test") {
       return "Test Result";
@@ -75,16 +113,22 @@ class _TestResultPageState extends State<TestResultPage> {
     }
   }
 
-  // FUNCTION UNTUK KEMBALI KE DASHBOARD
   void _navigateToDashboard() {
-    // Hapus semua route dan kembali ke dashboard
     Navigator.of(context).pushNamedAndRemoveUntil(
-      '/main', // Ganti dengan route dashboard Anda
+      '/main',
       (Route<dynamic> route) => false,
     );
   }
 
-  // FUNCTION UNTUK MENAMPILKAN SERTIFIKAT
+  String get displayPacketName {
+    if (historyItem != null) {
+      return historyItem!.displayPacketName;
+    }
+    return widget.packetName.isNotEmpty
+        ? widget.packetName
+        : 'Test Package ${widget.packetId}';
+  }
+
   void _showCertificate() {
     if (result == null) return;
 
@@ -102,12 +146,10 @@ class _TestResultPageState extends State<TestResultPage> {
             ),
             child: Stack(
               children: [
-                // Certificate content
                 RepaintBoundary(
                   key: _certificateKey,
                   child: _buildCertificateContent(),
                 ),
-                // Close button
                 Positioned(
                   top: 10,
                   right: 10,
@@ -135,7 +177,6 @@ class _TestResultPageState extends State<TestResultPage> {
     );
   }
 
-  // FUNCTION UNTUK MEMBUAT KONTEN SERTIFIKAT
   Widget _buildCertificateContent() {
     final DateTime now = DateTime.now();
     final String formattedDate = DateFormat('MMMM dd, yyyy').format(now);
@@ -168,7 +209,6 @@ class _TestResultPageState extends State<TestResultPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Header dengan logo/icon
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -182,8 +222,6 @@ class _TestResultPageState extends State<TestResultPage> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Title
             Text(
               'CERTIFICATE OF ACHIEVEMENT',
               style: CustomTextStyle.extrabold24.copyWith(
@@ -192,9 +230,10 @@ class _TestResultPageState extends State<TestResultPage> {
                 letterSpacing: 2,
               ),
               textAlign: TextAlign.center,
+              softWrap: true,
+              maxLines: 2,
             ),
             const SizedBox(height: 8),
-
             Container(
               height: 3,
               width: 200,
@@ -209,19 +248,18 @@ class _TestResultPageState extends State<TestResultPage> {
               ),
             ),
             const SizedBox(height: 30),
-
-            // Content
             Text(
               'This is to certify that',
               style: CustomTextStyle.medium14.copyWith(
                 color: HexColor(neutral70),
                 fontSize: 18,
               ),
+              softWrap: true,
             ),
             const SizedBox(height: 16),
-
-            // Name (using current user login)
+            // FIXED: User name with proper wrapping
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 border: Border(
@@ -232,25 +270,27 @@ class _TestResultPageState extends State<TestResultPage> {
                 ),
               ),
               child: Text(
-                'Dony-Ahmad-Hisyam', // Current user's login
+                userName != null ? userName! : "VocaBot",
                 style: CustomTextStyle.extrabold24.copyWith(
                   color: HexColor(mariner800),
                   fontSize: 32,
                 ),
+                textAlign: TextAlign.center,
+                softWrap: true,
+                maxLines: 3, // Allow up to 3 lines for very long names
+                overflow: TextOverflow.visible,
               ),
             ),
             const SizedBox(height: 30),
-
             Text(
               'has successfully completed the',
               style: CustomTextStyle.medium14.copyWith(
                 color: HexColor(neutral70),
                 fontSize: 18,
               ),
+              softWrap: true,
             ),
             const SizedBox(height: 12),
-
-            // Test type
             Text(
               widget.packetType.toUpperCase() == 'TEST'
                   ? 'TOEFL TEST'
@@ -259,22 +299,35 @@ class _TestResultPageState extends State<TestResultPage> {
                 color: HexColor(mariner700),
                 fontSize: 24,
               ),
+              softWrap: true,
             ),
             const SizedBox(height: 8),
-
-            // Packet name
-            Text(
-              '"${widget.packetName}"',
-              style: CustomTextStyle.bold16.copyWith(
-                color: HexColor(mariner600),
-                fontSize: 18,
-                fontStyle: FontStyle.italic,
+            // FIXED: Packet name with proper wrapping and responsive container
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: HexColor(mariner50),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: HexColor(mariner200),
+                  width: 1,
+                ),
               ),
-              textAlign: TextAlign.center,
+              child: Text(
+                '"${displayPacketName}"',
+                style: CustomTextStyle.bold16.copyWith(
+                  color: HexColor(mariner600),
+                  fontSize: 18,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+                softWrap: true,
+                maxLines: 4, // Allow multiple lines for long packet names
+                overflow: TextOverflow.visible,
+              ),
             ),
             const SizedBox(height: 30),
-
-            // Score section
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -293,25 +346,31 @@ class _TestResultPageState extends State<TestResultPage> {
                       color: HexColor(mariner800),
                       letterSpacing: 1,
                     ),
+                    softWrap: true,
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  // FIXED: Responsive score layout
+                  Wrap(
+                    alignment: WrapAlignment.spaceAround,
                     children: [
                       _buildScoreItem(
                           'TOTAL SCORE', '${result?.toeflScore ?? 0}'),
+                      const SizedBox(width: 20), // Add spacing between items
                       _buildScoreItem(
                           'PERCENTAGE', '${result?.percentage ?? 0}%'),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  // FIXED: Responsive detailed scores layout
+                  Wrap(
+                    alignment: WrapAlignment.spaceAround,
                     children: [
                       _buildScoreItem('LISTENING',
                           '${result?.correctListeningAll ?? 0}/${result?.totalListeningAll ?? 0}'),
+                      const SizedBox(width: 10),
                       _buildScoreItem('STRUCTURE',
                           '${result?.correctStructureAll ?? 0}/${result?.totalStructureAll ?? 0}'),
+                      const SizedBox(width: 10),
                       _buildScoreItem('READING',
                           '${result?.correctReading ?? 0}/${result?.totalReading ?? 0}'),
                     ],
@@ -320,55 +379,64 @@ class _TestResultPageState extends State<TestResultPage> {
               ),
             ),
             const SizedBox(height: 30),
-
-            // Date and signature section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // FIXED: Responsive bottom section
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Column(
-                  children: [
-                    Text(
-                      'Date of Completion',
-                      style: CustomTextStyle.medium14.copyWith(
-                        color: HexColor(neutral60),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Date of Completion',
+                        style: CustomTextStyle.medium14.copyWith(
+                          color: HexColor(neutral60),
+                        ),
+                        softWrap: true,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      formattedDate,
-                      style: CustomTextStyle.bold16.copyWith(
-                        color: HexColor(mariner700),
+                      const SizedBox(height: 8),
+                      Text(
+                        formattedDate,
+                        style: CustomTextStyle.bold16.copyWith(
+                          color: HexColor(mariner700),
+                        ),
+                        softWrap: true,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                Column(
-                  children: [
-                    Container(
-                      height: 2,
-                      width: 120,
-                      color: HexColor(mariner500),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Administrator',
-                      style: CustomTextStyle.medium14.copyWith(
-                        color: HexColor(neutral60),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 2,
+                        width: 120,
+                        color: HexColor(mariner500),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        'Administrator',
+                        style: CustomTextStyle.medium14.copyWith(
+                          color: HexColor(neutral60),
+                        ),
+                        softWrap: true,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 20),
-
-            // Footer
             Text(
               'VOCADIA TOEFL PREPARATION',
               style: CustomTextStyle.bold16.copyWith(
                 color: HexColor(mariner600),
                 letterSpacing: 1,
               ),
+              softWrap: true,
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -376,34 +444,105 @@ class _TestResultPageState extends State<TestResultPage> {
     );
   }
 
-  // Helper widget untuk score items
+// FIXED: Updated score item with better text handling
   Widget _buildScoreItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: CustomTextStyle.medium14.copyWith(
-            color: HexColor(neutral60),
-            fontSize: 10,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: CustomTextStyle.medium14.copyWith(
+              color: HexColor(neutral60),
+              fontSize: 10,
+            ),
+            softWrap: true,
+            textAlign: TextAlign.center,
+            maxLines: 2,
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: CustomTextStyle.extrabold24.copyWith(
-            color: HexColor(mariner800),
-            fontSize: 18,
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: CustomTextStyle.extrabold24.copyWith(
+              color: HexColor(mariner800),
+              fontSize: 18,
+            ),
+            softWrap: true,
+            textAlign: TextAlign.center,
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  // FIXED: Build score container with better overflow handling
+  Widget _buildScoreContainer({
+    required String iconPath,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 1 / 20,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: Row(
+        children: [
+          // Icon with fixed width
+          SizedBox(
+            width: 36,
+            child: IconButton(
+              icon: SvgPicture.asset(iconPath),
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                minWidth: 36,
+                minHeight: 36,
+              ),
+            ),
+          ),
+          // Scrollable content area
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  // Label with minimum space
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 60),
+                    child: Text(
+                      label,
+                      style: CustomTextStyle.medium14.copyWith(
+                        fontSize: 11,
+                      ),
+                      overflow: TextOverflow.visible,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  // Score with adequate space
+                  Text(
+                    value,
+                    style: CustomTextStyle.bold16.copyWith(
+                      fontSize: 13,
+                    ),
+                    overflow: TextOverflow.visible,
+                  ),
+                  const SizedBox(width: 8), // Extra padding for scroll
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Menggunakan PopScope untuk Flutter versi terbaru atau WillPopScope untuk versi lama
     return PopScope(
-      canPop: false, // Mencegah back gesture
+      canPop: false,
       onPopInvoked: (didPop) {
         if (!didPop) {
           _navigateToDashboard();
@@ -461,117 +600,27 @@ class _TestResultPageState extends State<TestResultPage> {
                               ],
                             ),
                             const SizedBox(width: 12),
-                            // FIXED: Improved layout untuk score containers
+                            // FIXED: Improved layout for score containers with horizontal scroll
                             Expanded(
                               child: Column(
                                 children: [
-                                  Container(
-                                    height: MediaQuery.of(context).size.height *
-                                        1 /
-                                        20,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    child: Row(
-                                      children: [
-                                        IconButton(
-                                          icon: SvgPicture.asset(
-                                              'assets/icons/ic_time.svg'),
-                                          onPressed: () {},
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(
-                                            minWidth: 40,
-                                            minHeight: 40,
-                                          ),
-                                        ),
-                                        // FIXED: Flexible text untuk mencegah overflow
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            widget.isMiniTest
-                                                ? 'answered_questions'.tr()
-                                                : "Toefl score",
-                                            style: CustomTextStyle.medium14
-                                                .copyWith(
-                                              fontSize:
-                                                  12, // Smaller font to prevent overflow
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        // const SizedBox(width: 4),
-                                        // FIXED: Flexible score text
-                                        Expanded(
-                                          flex: 1,
-                                          child: Text(
-                                            widget.isMiniTest
-                                                ? "${result?.answeredQuestion ?? 0}/${result?.totalQuestionAll ?? 0}"
-                                                : "${result?.toeflScore ?? 0}/${result?.targetUser ?? 0}",
-                                            style:
-                                                CustomTextStyle.bold16.copyWith(
-                                              fontSize: 14, // Smaller font
-                                            ),
-                                            textAlign: TextAlign.center,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  // First score container
+                                  _buildScoreContainer(
+                                    iconPath: 'assets/icons/ic_time.svg',
+                                    label: widget.isMiniTest
+                                        ? 'answered_questions'.tr()
+                                        : "Toefl score",
+                                    value: widget.isMiniTest
+                                        ? "${result?.answeredQuestion ?? 0}/${result?.totalQuestionAll ?? 0}"
+                                        : "${result?.toeflScore ?? 0}/${result?.targetUser ?? 0}",
                                   ),
                                   const SizedBox(height: 8),
-                                  Container(
-                                    height: MediaQuery.of(context).size.height *
-                                        1 /
-                                        20,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    child: Row(
-                                      children: [
-                                        IconButton(
-                                          icon: SvgPicture.asset(
-                                              'assets/icons/ic_checklist.svg'),
-                                          onPressed: () {},
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(
-                                            minWidth: 40,
-                                            minHeight: 40,
-                                          ),
-                                        ),
-                                        // FIXED: Flexible text untuk mencegah overflow
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            'correct_questions'.tr(),
-                                            style: CustomTextStyle.medium14
-                                                .copyWith(
-                                              fontSize: 12, // Smaller font
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        // FIXED: Flexible score text
-                                        Expanded(
-                                          flex: 1,
-                                          child: Text(
-                                            "${result?.correctQuestionAll ?? "0"}/${result?.totalQuestionAll ?? "0"}",
-                                            style:
-                                                CustomTextStyle.bold16.copyWith(
-                                              fontSize: 14, // Smaller font
-                                            ),
-                                            textAlign: TextAlign.center,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  // Second score container
+                                  _buildScoreContainer(
+                                    iconPath: 'assets/icons/ic_checklist.svg',
+                                    label: 'correct_questions'.tr(),
+                                    value:
+                                        "${result?.correctQuestionAll ?? "0"}/${result?.totalQuestionAll ?? "0"}",
                                   ),
                                 ],
                               ),
@@ -822,8 +871,6 @@ class _TestResultPageState extends State<TestResultPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
-                  // NEW: Certificate button (hanya untuk type test dan jika ada result)
                   if (widget.packetType.toLowerCase() == "test" &&
                       result != null) ...[
                     GestureDetector(
@@ -870,7 +917,6 @@ class _TestResultPageState extends State<TestResultPage> {
                     ),
                     const SizedBox(height: 16),
                   ],
-
                   GestureDetector(
                     onTap: _navigateToDashboard,
                     child: Container(

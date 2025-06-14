@@ -113,6 +113,7 @@ class _ProgressScoreChartState extends State<ProgressScoreChart>
 
   // FIXED: Store dot positions for accurate click detection
   List<Offset> _dotPositions = [];
+  bool _isScrollableChart = false; // Track chart type
 
   @override
   void initState() {
@@ -193,6 +194,7 @@ class _ProgressScoreChartState extends State<ProgressScoreChart>
       setState(() {
         scoreData = convertedData;
         isLoading = false;
+        _isScrollableChart = scoreData.length > 6; // Set chart type
       });
 
       debugPrint("Chart data ready: ${scoreData.length} points");
@@ -282,7 +284,7 @@ class _ProgressScoreChartState extends State<ProgressScoreChart>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Progress Score History Test',
+            'Your Test Performance',
             style: CustomTextStyle.bold16.copyWith(
               fontSize: 18,
               color: HexColor(neutral90),
@@ -691,7 +693,7 @@ class _ProgressScoreChartState extends State<ProgressScoreChart>
       physics: const AlwaysScrollableScrollPhysics(),
       child: GestureDetector(
         onTapDown: (details) {
-          _handleScrollableChartTap(details);
+          _handleChartTap(details, isScrollable: true);
         },
         child: Container(
           width: scoreData.length * 60.0, // Dynamic width
@@ -716,7 +718,7 @@ class _ProgressScoreChartState extends State<ProgressScoreChart>
     return GestureDetector(
       key: _chartKey,
       onTapDown: (details) {
-        _handleStaticChartTap(details);
+        _handleChartTap(details, isScrollable: false);
       },
       child: Container(
         width: double.infinity,
@@ -825,84 +827,26 @@ class _ProgressScoreChartState extends State<ProgressScoreChart>
     }
   }
 
-  // FIXED: Handle scrollable chart tap dengan radius deteksi yang lebih besar
-  void _handleScrollableChartTap(TapDownDetails details) {
+  // FIXED: Unified chart tap handler
+  void _handleChartTap(TapDownDetails details, {required bool isScrollable}) {
     if (scoreData.isEmpty || _dotPositions.isEmpty) return;
 
-    final double tapX = details.localPosition.dx;
-    final double tapY = details.localPosition.dy;
+    // Get tap position relative to the chart area
+    double tapX, tapY;
 
-    debugPrint('=== SCROLLABLE CHART TAP DEBUG ===');
-    debugPrint('Tap position: ($tapX, $tapY)');
-    debugPrint('Available dot positions: ${_dotPositions.length}');
-
-    // Find the closest dot with improved logic
-    int closestDotIndex = -1;
-    double minDistance = double.infinity;
-
-    for (int i = 0; i < _dotPositions.length && i < scoreData.length; i++) {
-      final dotPosition = _dotPositions[i];
-      final distanceSquared =
-          ((dotPosition.dx - tapX) * (dotPosition.dx - tapX) +
-              (dotPosition.dy - tapY) * (dotPosition.dy - tapY));
-      final distance = math.sqrt(distanceSquared);
-
-      debugPrint(
-          'Point $i: position=(${dotPosition.dx.toStringAsFixed(1)}, ${dotPosition.dy.toStringAsFixed(1)}), distance=${distance.toStringAsFixed(1)}, score=${scoreData[i].score}');
-
-      if (distanceSquared < minDistance) {
-        minDistance = distanceSquared;
-        closestDotIndex = i;
-      }
-    }
-
-    final double closestDistance = math.sqrt(minDistance);
-    debugPrint(
-        'Closest dot: index=$closestDotIndex, distance=${closestDistance.toStringAsFixed(1)}');
-
-    // INCREASED: Click detection radius from 50 to 100 pixels for better UX
-    if (closestDotIndex >= 0 && closestDistance <= 100) {
-      final RenderBox? renderBox =
-          _chartKey.currentContext?.findRenderObject() as RenderBox?;
-      if (renderBox != null) {
-        final dotLocalPosition = _dotPositions[closestDotIndex];
-        final dotGlobalPosition = renderBox.localToGlobal(dotLocalPosition);
-
-        debugPrint(
-            '✅ SHOWING TOOLTIP for point $closestDotIndex with score ${scoreData[closestDotIndex].score}');
-        _showTooltip(
-            scoreData[closestDotIndex], dotGlobalPosition, closestDotIndex);
-      }
+    if (isScrollable) {
+      // For scrollable chart, use direct tap position
+      tapX = details.localPosition.dx;
+      tapY = details.localPosition.dy;
     } else {
-      debugPrint(
-          '❌ No dot within range. Closest distance: ${closestDistance.toStringAsFixed(1)} (threshold: 100)');
+      // For static chart, no coordinate transformation needed
+      tapX = details.localPosition.dx;
+      tapY = details.localPosition.dy;
     }
-    debugPrint('=== END SCROLLABLE CHART TAP DEBUG ===\n');
-  }
 
-  // FIXED: Handle static chart tap dengan radius deteksi yang lebih besar
-  void _handleStaticChartTap(TapDownDetails details) {
-    if (scoreData.isEmpty || _dotPositions.isEmpty) return;
-
-    // IMPROVED: Better coordinate calculation
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    final chartArea = renderBox.size;
-
-    // Get raw tap position
-    final double rawTapX = details.localPosition.dx;
-    final double rawTapY = details.localPosition.dy;
-
-    // Calculate offset based on chart structure
-    const double yAxisWidth = 40.0; // Y-axis label width
-    const double padding = 16.0; // Container margin
-
-    final double tapX = rawTapX - yAxisWidth - padding;
-    final double tapY = rawTapY - padding;
-
-    debugPrint('=== STATIC CHART TAP DEBUG ===');
-    debugPrint('Raw tap: ($rawTapX, $rawTapY)');
-    debugPrint('Adjusted tap: ($tapX, $tapY)');
-    debugPrint('Chart area: ${chartArea.width} x ${chartArea.height}');
+    debugPrint(
+        '=== CHART TAP DEBUG (${isScrollable ? 'SCROLLABLE' : 'STATIC'}) ===');
+    debugPrint('Tap position: ($tapX, $tapY)');
     debugPrint('Available dot positions: ${_dotPositions.length}');
 
     // Find the closest dot
@@ -929,23 +873,52 @@ class _ProgressScoreChartState extends State<ProgressScoreChart>
     debugPrint(
         'Closest dot: index=$closestDotIndex, distance=${closestDistance.toStringAsFixed(1)}');
 
-    // INCREASED: Click detection radius from 50 to 100 pixels for better UX
-    if (closestDotIndex >= 0 && closestDistance <= 100) {
-      // Calculate global position for tooltip
-      final dotLocalPosition = Offset(
-          _dotPositions[closestDotIndex].dx + yAxisWidth + padding,
-          _dotPositions[closestDotIndex].dy + padding);
-      final dotGlobalPosition = renderBox.localToGlobal(dotLocalPosition);
+    // Use larger detection radius for better UX
+    const double detectionRadius = 80.0;
 
-      debugPrint(
-          '✅ SHOWING TOOLTIP for point $closestDotIndex with score ${scoreData[closestDotIndex].score}');
-      _showTooltip(
-          scoreData[closestDotIndex], dotGlobalPosition, closestDotIndex);
+    if (closestDotIndex >= 0 && closestDistance <= detectionRadius) {
+      // Calculate global position for tooltip
+      final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+      if (renderBox != null) {
+        Offset dotGlobalPosition;
+
+        if (isScrollable) {
+          // For scrollable chart, account for scroll offset and container margins
+          const double yAxisWidth = 40.0;
+          const double padding = 16.0;
+
+          final scrollOffset = _scrollController.offset;
+          final dotLocalX = _dotPositions[closestDotIndex].dx -
+              scrollOffset +
+              yAxisWidth +
+              padding;
+          final dotLocalY = _dotPositions[closestDotIndex].dy + padding;
+
+          dotGlobalPosition =
+              renderBox.localToGlobal(Offset(dotLocalX, dotLocalY));
+        } else {
+          // For static chart, account for container structure
+          const double yAxisWidth = 40.0;
+          const double padding = 16.0;
+
+          final dotLocalX =
+              _dotPositions[closestDotIndex].dx + yAxisWidth + padding;
+          final dotLocalY = _dotPositions[closestDotIndex].dy + padding;
+
+          dotGlobalPosition =
+              renderBox.localToGlobal(Offset(dotLocalX, dotLocalY));
+        }
+
+        debugPrint(
+            '✅ SHOWING TOOLTIP for point $closestDotIndex with score ${scoreData[closestDotIndex].score}');
+        _showTooltip(
+            scoreData[closestDotIndex], dotGlobalPosition, closestDotIndex);
+      }
     } else {
       debugPrint(
-          '❌ No dot within range. Closest distance: ${closestDistance.toStringAsFixed(1)} (threshold: 100)');
+          '❌ No dot within range. Closest distance: ${closestDistance.toStringAsFixed(1)} (threshold: $detectionRadius)');
     }
-    debugPrint('=== END STATIC CHART TAP DEBUG ===\n');
+    debugPrint('=== END CHART TAP DEBUG ===\n');
   }
 
   void _showTooltip(ScoreData data, Offset dotGlobalPosition, int dataIndex) {
