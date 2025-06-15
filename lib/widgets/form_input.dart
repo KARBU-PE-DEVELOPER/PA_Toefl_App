@@ -50,7 +50,7 @@ class _InputTextState extends State<InputText> {
             if (value == null || value.isEmpty || value.trim().isEmpty) {
               return 'warning_messages'.tr(args: ['${widget.hintText}']);
             // } else if (widget.title == 'Email' && !value.endsWith('.pens.ac.id')) {
-            } else if (widget.title == 'Email' && !value.endsWith('.pens.ac.id')) {
+            } else if (widget.title == 'Email' && !value.endsWith('pens.ac.id')) {
               return 'wrong_email'.tr();
             } else if ((widget.title == 'Password' || widget.title == 'New Password') && value.length < 6) {
               return 'six_char_password'.tr(); 
