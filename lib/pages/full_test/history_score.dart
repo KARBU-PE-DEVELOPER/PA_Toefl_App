@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:toefl/models/test/history.dart';
 import 'package:toefl/remote/api/history_api.dart';
+import 'package:toefl/remote/api/profile_api.dart';
 import 'package:toefl/routes/route_key.dart';
 import 'package:toefl/utils/colors.dart';
 import 'package:toefl/utils/hex_color.dart';
+import 'package:toefl/utils/custom_text_style.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class HistoryScore extends StatefulWidget {
   const HistoryScore({super.key});
@@ -26,9 +29,12 @@ class _HistoryScoreState extends State<HistoryScore>
   late Animation<double> _rightArrowAnimation;
 
   final HistoryApi _historyApi = HistoryApi();
+  final ProfileApi _profileApi = ProfileApi();
   List<HistoryItem> historyData = [];
   bool isLoading = true;
   bool isInitialized = false;
+  String? userName;
+  final GlobalKey _certificateKey = GlobalKey();
 
   @override
   void initState() {
@@ -62,10 +68,32 @@ class _HistoryScoreState extends State<HistoryScore>
     // Initialize ScrollController safely
     _initializeScrollController();
     // Load initial data
-    _loadHistoryData();
+    _loadInitialData();
 
     // Start right arrow animation initially
     _rightArrowController.repeat(reverse: true);
+  }
+
+  Future<void> _loadInitialData() async {
+    await Future.wait([
+      _loadHistoryData(),
+      _loadUserProfile(),
+    ]);
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final profile = await _profileApi.getProfile();
+      setState(() {
+        userName = profile.nameUser;
+      });
+      debugPrint("User profile loaded: $userName");
+    } catch (e) {
+      debugPrint("Error loading user profile: $e");
+      setState(() {
+        userName = "Dony Ahmad Hisyam"; // Fallback to current user
+      });
+    }
   }
 
   void _initializeScrollController() {
@@ -219,20 +247,345 @@ class _HistoryScoreState extends State<HistoryScore>
     return "$year-$month-$day\n$hour:$minute";
   }
 
-  // Navigate to test result page
-  void _navigateToTestResult(HistoryItem data) {
-    debugPrint('Navigating to test result for packet ID: ${data.packetId}');
+  // PERBAIKAN: Show certificate langsung tanpa navigasi
+  void _showCertificate(HistoryItem data) {
+    debugPrint('Showing certificate for packet ID: ${data.packetId}');
 
-    Navigator.pushNamed(
-      context,
-      RouteKey.testresult,
-      arguments: {
-        'packetId': data.packetId.toString(),
-        'isMiniTest': false,
-        'packetType': data.type,
-        'isFromHistory': true, // Flag to indicate this is from history
-        'historyData': data, // Pass the full history data
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.9,
+              maxWidth: MediaQuery.of(context).size.width * 0.95,
+            ),
+            child: Stack(
+              children: [
+                RepaintBoundary(
+                  key: _certificateKey,
+                  child: _buildCertificateContent(data),
+                ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
+    );
+  }
+
+  Widget _buildCertificateContent(HistoryItem historyData) {
+    final DateTime now = DateTime.now();
+    final String formattedDate = DateFormat('MMMM dd, yyyy').format(now);
+    final scoreData = historyData.score;
+
+    return Container(
+      padding: const EdgeInsets.all(30),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            HexColor(mariner50),
+          ],
+        ),
+        border: Border.all(
+          color: HexColor(mariner500),
+          width: 8,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: HexColor(mariner500),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.school,
+                size: 48,
+                color: HexColor(primaryWhite),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'CERTIFICATE OF ACHIEVEMENT',
+              style: CustomTextStyle.extrabold24.copyWith(
+                color: HexColor(mariner800),
+                fontSize: 28,
+                letterSpacing: 2,
+              ),
+              textAlign: TextAlign.center,
+              softWrap: true,
+              maxLines: 2,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: 3,
+              width: 200,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    HexColor(mariner300),
+                    HexColor(mariner700),
+                    HexColor(mariner300),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+            Text(
+              'This is to certify that',
+              style: CustomTextStyle.medium14.copyWith(
+                color: HexColor(neutral70),
+                fontSize: 18,
+              ),
+              softWrap: true,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: HexColor(mariner500),
+                    width: 2,
+                  ),
+                ),
+              ),
+              child: Text(
+                userName ?? "Dony Ahmad Hisyam",
+                style: CustomTextStyle.extrabold24.copyWith(
+                  color: HexColor(mariner800),
+                  fontSize: 32,
+                ),
+                textAlign: TextAlign.center,
+                softWrap: true,
+                maxLines: 3,
+                overflow: TextOverflow.visible,
+              ),
+            ),
+            const SizedBox(height: 30),
+            Text(
+              'has successfully completed the',
+              style: CustomTextStyle.medium14.copyWith(
+                color: HexColor(neutral70),
+                fontSize: 18,
+              ),
+              softWrap: true,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              historyData.type.toUpperCase() == 'TEST'
+                  ? 'TOEFL TEST'
+                  : 'TOEFL SIMULATION',
+              style: CustomTextStyle.extrabold24.copyWith(
+                color: HexColor(mariner700),
+                fontSize: 24,
+              ),
+              softWrap: true,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: HexColor(mariner50),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: HexColor(mariner200),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                '"${historyData.displayPacketName}"',
+                style: CustomTextStyle.bold16.copyWith(
+                  color: HexColor(mariner600),
+                  fontSize: 18,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+                softWrap: true,
+                maxLines: 4,
+                overflow: TextOverflow.visible,
+              ),
+            ),
+            const SizedBox(height: 30),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: HexColor(mariner100),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: HexColor(mariner300),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'ACHIEVEMENT SCORE',
+                    style: CustomTextStyle.bold16.copyWith(
+                      color: HexColor(mariner800),
+                      letterSpacing: 1,
+                    ),
+                    softWrap: true,
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    alignment: WrapAlignment.spaceAround,
+                    children: [
+                      _buildScoreItem(
+                          'TOTAL SCORE', '${scoreData.totalScore.toInt()}'),
+                      const SizedBox(width: 20),
+                      _buildScoreItem('PERCENTAGE',
+                          '${((scoreData.totalScore / 677) * 100).toInt()}%'),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    alignment: WrapAlignment.spaceAround,
+                    children: [
+                      _buildScoreItem('LISTENING',
+                          '${scoreData.listeningScore.toInt()}/50'),
+                      const SizedBox(width: 10),
+                      _buildScoreItem('STRUCTURE',
+                          '${scoreData.structureScore.toInt()}/40'),
+                      const SizedBox(width: 10),
+                      _buildScoreItem(
+                          'READING', '${scoreData.readingScore.toInt()}/50'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Date of Completion',
+                        style: CustomTextStyle.medium14.copyWith(
+                          color: HexColor(neutral60),
+                        ),
+                        softWrap: true,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        formattedDate,
+                        style: CustomTextStyle.bold16.copyWith(
+                          color: HexColor(mariner700),
+                        ),
+                        softWrap: true,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 2,
+                        width: 120,
+                        color: HexColor(mariner500),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Administrator',
+                        style: CustomTextStyle.medium14.copyWith(
+                          color: HexColor(neutral60),
+                        ),
+                        softWrap: true,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'VOCADIA TOEFL PREPARATION',
+              style: CustomTextStyle.bold16.copyWith(
+                color: HexColor(mariner600),
+                letterSpacing: 1,
+              ),
+              softWrap: true,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScoreItem(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: CustomTextStyle.medium14.copyWith(
+              color: HexColor(neutral60),
+              fontSize: 10,
+            ),
+            softWrap: true,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: CustomTextStyle.extrabold24.copyWith(
+              color: HexColor(mariner800),
+              fontSize: 18,
+            ),
+            softWrap: true,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -486,17 +839,17 @@ class _HistoryScoreState extends State<HistoryScore>
     );
   }
 
-  // NEW: Action cell with "View Result" button
+  // PERBAIKAN: Action cell dengan "View Certificate" button
   Widget _buildActionCell(HistoryItem data, {double width = 120}) {
     return Container(
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: ElevatedButton(
-        onPressed: () => _navigateToTestResult(data),
+        onPressed: () => _showCertificate(data), // Langsung show certificate
         style: ElevatedButton.styleFrom(
           backgroundColor: HexColor(mariner500),
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(6),
           ),
@@ -504,9 +857,9 @@ class _HistoryScoreState extends State<HistoryScore>
           minimumSize: const Size(80, 36),
         ),
         child: const Text(
-          'View Result',
+          'Certificate', // Ubah text jadi Certificate
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w500,
           ),
         ),
