@@ -94,6 +94,7 @@
   "scramble_game": "Game Urut Kata",
   "writing_practice": "Latihan Menulis",
   "speaking_game_subtitle": "Tantang kemampuan bicara Anda",
+  "scramble_game_subtitle": "Susun kata-katanya dengan benar",
   "hangman_game_subtitle": "M A T I",
   "listening_game_subtitle": "Bisakah Anda mendengar apa yang saya katakan?",
   "cloze_game_subtitle": "Isi Yang Kosong!",
@@ -148,5 +149,7 @@
   "writing_problem_solution": "Jelaskan masalahnya dan sarankan solusi yang memungkinkan. Jelaskan setiap poin dengan jelas.",
   "writing_double_question": "Jawab kedua pertanyaan dalam prompt. Pastikan Anda menjawab masing-masing pertanyaan dalam paragraf terpisah.",
   "writing_default": "Bacalah perintah berikut dan tulislah esai yang terstruktur dengan baik sebagai tanggapan.",
-  "your_scores": "Skor Anda"
+  "your_scores": "Skor Anda",
+  "wordsearch_game":"Cari Kata",
+  "wordsearch_game_subtitle": "Temukan kata-kata yang tersembunyi di dalam kotak"
 }

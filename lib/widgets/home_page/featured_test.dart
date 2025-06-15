@@ -29,7 +29,7 @@ class FeatureTest extends StatelessWidget {
                       isBgLight: false,
                       icon: "assets/images/word_scramble.svg",
                       title: "wordsearch_game".tr(),
-                      subtitle: "hangman_game_subtitle".tr(),
+                      subtitle: "wordsearch_game_subtitle".tr(),
                     ),
                   ),
                 ),
@@ -55,7 +55,7 @@ class FeatureTest extends StatelessWidget {
                         Navigator.of(context).pushNamed(RouteKey.hangmanGame),
                     child: FeaturedCard(
                       isBgLight: false,
-                      icon: "assets/images/word_scramble.svg",
+                      icon: "assets/images/Hangman.svg",
                       title: "hangman_game".tr(),
                       subtitle: "hangman_game_subtitle".tr(),
                     ),
@@ -69,9 +69,9 @@ class FeatureTest extends StatelessWidget {
                         Navigator.of(context).pushNamed(RouteKey.scrambleGame),
                     child: FeaturedCard(
                       isBgLight: true,
-                      icon: "assets/images/word_scramble.svg",
+                      icon: "assets/images/scramble.svg",
                       title: "scramble_game".tr(),
-                      subtitle: "hangman_game_subtitle".tr(),
+                      subtitle: "scramble_game_subtitle".tr(),
                     ),
                   ),
                 ),
@@ -83,7 +83,7 @@ class FeatureTest extends StatelessWidget {
                         Navigator.of(context).pushNamed(RouteKey.clozeGame),
                     child: FeaturedCard(
                       isBgLight: false,
-                      icon: "assets/images/word_scramble.svg",
+                      icon: "assets/images/cloze.svg",
                       title: "cloze_game".tr(),
                       subtitle: "cloze_game_subtitle".tr(),
                     ),
