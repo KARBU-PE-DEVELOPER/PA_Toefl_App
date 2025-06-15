@@ -28,7 +28,7 @@ class ProfileNameSection extends StatelessWidget {
             : CircleAvatar(
                 backgroundColor: HexColor(neutral10),
                 radius: 40,
-                child: Image.asset('assets/images/avatar_profile.png'),
+                child: Image.asset('assets/images/avatar_profile-RB.png'),
               ),
         const SizedBox(
           height: 12,
@@ -41,7 +41,7 @@ class ProfileNameSection extends StatelessWidget {
                 child: Text(
                   profile.nameUser.isNotEmpty
                       ? profile.nameUser
-                      : 'My Name is Qeli',
+                      : 'My Name is Vocadia',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 16),
                 ),

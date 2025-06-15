@@ -41,8 +41,8 @@ class BottomBarGames extends StatelessWidget implements PreferredSizeWidget {
                     decoration: BoxDecoration(
                         color: HexColor(mariner50),
                         borderRadius: BorderRadius.circular(6)),
-                    child:
-                        SvgPicture.asset('assets/images/game_badge_${currentLevel + 1}.svg'),
+                    child: SvgPicture.asset(
+                        'assets/images/game_badge_${currentLevel + 1}.svg'),
                   )
                 : null,
             title: RichText(

@@ -3,6 +3,7 @@ import 'package:toefl/models/games/user_rank.dart';
 import 'package:toefl/models/grammar-commentator/grammarCommentator_detail.dart';
 import 'package:toefl/models/quiz.dart';
 import 'package:toefl/models/quiz_type.dart';
+import 'package:toefl/pages/courses/list_course_page.dart';
 import 'package:toefl/pages/games/practice/listening_game.dart';
 import 'package:toefl/pages/games/practice/pairing_game.dart';
 import 'package:toefl/pages/games/practice/word_of_the_day_page.dart';
@@ -76,6 +77,7 @@ final routes = <String, Widget Function(BuildContext)>{
   },
   RouteKey.root: (context) => const SplashPage(),
   RouteKey.main: (context) => const MainPage(),
+  RouteKey.coursePage: (context) => const ListCoursePage(),
   RouteKey.fullTest: (context) {
     final Map<String, dynamic>? data =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
@@ -83,11 +85,11 @@ final routes = <String, Widget Function(BuildContext)>{
     debugPrint("Navigating to fullTest with: $data");
 
     return FullTestPage(
-       diffInSec: data?["diffInSeconds"] ?? 0,
-    isRetake: data?["isRetake"] ?? false,
-    packetType: data?["packetType"] ?? "simulation",
-    packetId: data?["packetId"] ?? "", // TAMBAH PARAMETER INI
-    packetName: data?["packetName"] ?? "",
+      diffInSec: data?["diffInSeconds"] ?? 0,
+      isRetake: data?["isRetake"] ?? false,
+      packetType: data?["packetType"] ?? "simulation",
+      packetId: data?["packetId"] ?? "", // TAMBAH PARAMETER INI
+      packetName: data?["packetName"] ?? "",
     );
   },
   RouteKey.regist: (context) => const RegistPage(),
