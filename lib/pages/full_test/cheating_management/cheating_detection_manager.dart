@@ -2,7 +2,7 @@ import 'dart:async';
 
 class CheatingDetectionManager {
   static const int MAX_LOOK_AWAY_COUNT = 5;
-  static const int MAX_FACE_NOT_DETECTED_SECONDS = 300; // 5 minutes
+  static const int MAX_FACE_NOT_DETECTED_SECONDS = 5; // 5 detik
   static const int LOOK_AWAY_DURATION_THRESHOLD = 5; // 5 detik durasi menoleh
 
   int _lookAwayCount = 0;

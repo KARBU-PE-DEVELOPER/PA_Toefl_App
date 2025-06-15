@@ -54,6 +54,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
   int _lockTaskCountdown = 10;
   final ValueNotifier<int> _countdownNotifier = ValueNotifier<int>(10);
 
+  // Flag untuk memastikan cleanup hanya dilakukan sekali
+  bool _isCleanedUp = false;
+
   // Enhanced background detection with multiple strategies
   AppLifecycleState? _lastAppState;
   DateTime? _backgroundStartTime;
@@ -72,8 +75,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     'blinkCountdown': 10,
     'currentStatus': 'Start monitoring...',
     'blinkStatus': 'Normal',
-    'isCurrentlyLookingAway': false, // TAMBAHAN
-    'currentLookAwayDuration': 0, // TAMBAHAN
+    'isCurrentlyLookingAway': false,
+    'currentLookAwayDuration': 0,
   });
 
   OverlayEntry? _floatingOverlay;
@@ -103,8 +106,12 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
 
     debugPrint("🔄 App lifecycle changed from ${_lastAppState} to $state");
 
-    // Skip if test is already finished or dialogs are showing
-    if (isTestFinished || _isFinishDialogShowing || _isBypassDialogShowing) {
+    // Skip if test is already finished or dialogs are showing or already cleaned up
+    if (isTestFinished ||
+        _isFinishDialogShowing ||
+        _isBypassDialogShowing ||
+        _isCleanedUp ||
+        _isSubmitting) {
       _lastAppState = state;
       return;
     }
@@ -113,6 +120,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
       case AppLifecycleState.hidden:
+        // Skip background detection if test is finished
+        if (isTestFinished || _isSubmitting) return;
+
         // App is going to background
         _backgroundEventCount++;
         debugPrint(
@@ -126,8 +136,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
         // Reset event counter after some time if no dialog shown
         _backgroundEventResetTimer?.cancel();
         _backgroundEventResetTimer = Timer(const Duration(seconds: 5), () {
-          _backgroundEventCount = 0;
-          debugPrint("🔄 Reset background event counter");
+          if (!isTestFinished && !_isCleanedUp) {
+            _backgroundEventCount = 0;
+            debugPrint("🔄 Reset background event counter");
+          }
         });
 
         // Check if too many background events (indicates user trying to leave)
@@ -138,7 +150,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
             if (mounted &&
                 !_isFinishDialogShowing &&
                 !_isBypassDialogShowing &&
-                !isTestFinished) {
+                !isTestFinished &&
+                !_isCleanedUp &&
+                !_isSubmitting) {
               _showFinishedDialog(context, ref);
             }
           });
@@ -148,6 +162,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
         break;
 
       case AppLifecycleState.resumed:
+        // Skip if test is finished
+        if (isTestFinished || _isSubmitting || _isCleanedUp) return;
+
         // App returned to foreground
         debugPrint("📱 App resumed to foreground");
 
@@ -189,7 +206,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
               if (mounted &&
                   !_isFinishDialogShowing &&
                   !_isBypassDialogShowing &&
-                  !isTestFinished) {
+                  !isTestFinished &&
+                  !_isCleanedUp &&
+                  !_isSubmitting) {
                 _showFinishedDialog(context, ref);
               }
             });
@@ -198,7 +217,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
           }
 
           // Check lock task status when returning from background
-          if (widget.packetType == "test") {
+          if (widget.packetType == "test" && !isTestFinished && !_isCleanedUp) {
             final isActive = await FlutterLockTask().isInLockTaskMode();
             if (!isActive) {
               _handleLockTaskBypass();
@@ -212,7 +231,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
 
       case AppLifecycleState.detached:
         debugPrint("💀 App is being terminated");
-        _resetBackgroundTracking();
+        _performCompleteCleanup();
         break;
     }
 
@@ -220,21 +239,26 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
   }
 
   void _startBackgroundTimer() {
+    // Don't start timer if test is finished
+    if (isTestFinished || _isSubmitting || _isCleanedUp) return;
+
     _backgroundCheckTimer?.cancel();
     _backgroundCheckTimer =
         Timer(Duration(milliseconds: _backgroundThresholdMs + 200), () {
-      // If still in background after threshold
+      // If still in background after threshold and test not finished
       if (_backgroundStartTime != null &&
           DateTime.now().difference(_backgroundStartTime!).inMilliseconds >
               _backgroundThresholdMs &&
           mounted &&
           !_isFinishDialogShowing &&
           !_isBypassDialogShowing &&
-          !isTestFinished) {
+          !isTestFinished &&
+          !_isCleanedUp &&
+          !_isSubmitting) {
         debugPrint("🚨 Background timer triggered - showing dialog");
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
+          if (mounted && !isTestFinished && !_isCleanedUp) {
             _showFinishedDialog(context, ref);
           }
         });
@@ -248,7 +272,6 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     _backgroundCheckTimer = null;
     _backgroundEventResetTimer?.cancel();
     _backgroundEventResetTimer = null;
-    // Don't reset _backgroundEventCount immediately, let the timer handle it
   }
 
   void _startLockTaskChecker() {
@@ -258,7 +281,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
       if (isTestFinished ||
           !mounted ||
           _isBypassDialogShowing ||
-          _isLockTaskDialogShowing) {
+          _isLockTaskDialogShowing ||
+          _isCleanedUp ||
+          _isSubmitting) {
         return;
       }
       final isActive = await FlutterLockTask().isInLockTaskMode();
@@ -272,7 +297,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     if (_isBypassDialogShowing ||
         !mounted ||
         isTestFinished ||
-        _isLockTaskDialogShowing) return;
+        _isLockTaskDialogShowing ||
+        _isCleanedUp ||
+        _isSubmitting) return;
 
     _lockTaskChecker?.cancel();
 
@@ -291,7 +318,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     // Start countdown timer
     _lockTaskCountdownTimer =
         Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
+      if (mounted && !isTestFinished && !_isCleanedUp) {
         _lockTaskCountdown--;
         _countdownNotifier.value = _lockTaskCountdown;
         debugPrint("⏰ Countdown: $_lockTaskCountdown seconds remaining");
@@ -429,7 +456,9 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                 _isLockTaskDialogShowing = false;
               });
               Navigator.of(dialogContext).pop();
-              _startLockTaskChecker(); // Restart checker
+              if (!isTestFinished && !_isCleanedUp) {
+                _startLockTaskChecker(); // Restart checker only if test not finished
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
@@ -454,7 +483,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
   }
 
   void _startCheatingDetection() {
-    if (!_isCheatingDetectionActive && mounted) {
+    if (!_isCheatingDetectionActive &&
+        mounted &&
+        !isTestFinished &&
+        !_isCleanedUp) {
       setState(() {
         _isCheatingDetectionActive = true;
         _statusNotifier.value = {
@@ -463,12 +495,14 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
         };
         _hiddenCheatingDetection = HiddenCameraFaceDetection(
           onAutoSubmit: (reason) {
-            debugPrint("🚨 AUTO SUBMIT TRIGGERED: $reason");
-            _handleAutoSubmit(reason);
+            if (!isTestFinished && !_isCleanedUp && !_isSubmitting) {
+              debugPrint("🚨 AUTO SUBMIT TRIGGERED: $reason");
+              _handleAutoSubmit(reason);
+            }
           },
           onStatusUpdate: (lookAway, faceTime, faceCountdown, blinkCountdown,
               status, blinkStatus) {
-            if (mounted && !_isSubmitting) {
+            if (mounted && !_isSubmitting && !isTestFinished && !_isCleanedUp) {
               _statusNotifier.value = {
                 'lookAwayCount': lookAway,
                 'faceNotDetectedSeconds': faceTime,
@@ -476,10 +510,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                 'blinkCountdown': blinkCountdown,
                 'currentStatus': status,
                 'blinkStatus': blinkStatus,
-                'isCurrentlyLookingAway':
-                    false, // Default value, akan diupdate oleh manager
-                'currentLookAwayDuration':
-                    0, // Default value, akan diupdate oleh manager
+                'isCurrentlyLookingAway': false,
+                'currentLookAwayDuration': 0,
               };
             }
           },
@@ -490,12 +522,14 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
   }
 
   void _createFloatingOverlay() {
+    if (isTestFinished || _isCleanedUp || _isSubmitting) return;
+
     _removeFloatingOverlay();
     _floatingOverlay = OverlayEntry(
       builder: (context) => ValueListenableBuilder<Map<String, dynamic>>(
         valueListenable: _statusNotifier,
         builder: (context, statusData, child) {
-          if (_isSubmitting) {
+          if (_isSubmitting || isTestFinished || _isCleanedUp) {
             return const SizedBox.shrink();
           }
           return FloatingCheatingStatus(
@@ -508,16 +542,19 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
             currentStatus: statusData['currentStatus'] ?? 'Normal',
             blinkStatus: statusData['blinkStatus'] ?? 'Normal',
             isCurrentlyLookingAway:
-                statusData['isCurrentlyLookingAway'] ?? false, // TAMBAHAN
-            currentLookAwayDuration:
-                statusData['currentLookAwayDuration'] ?? 0, // TAMBAHAN
+                statusData['isCurrentlyLookingAway'] ?? false,
+            currentLookAwayDuration: statusData['currentLookAwayDuration'] ?? 0,
             onUpdate: () {},
           );
         },
       ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _floatingOverlay != null && !_isSubmitting) {
+      if (mounted &&
+          _floatingOverlay != null &&
+          !_isSubmitting &&
+          !isTestFinished &&
+          !_isCleanedUp) {
         Overlay.of(context).insert(_floatingOverlay!);
       }
     });
@@ -543,18 +580,44 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     debugPrint("✅ Cheating detection stopped and overlay removed");
   }
 
+  void _performCompleteCleanup() {
+    if (_isCleanedUp) return;
+
+    debugPrint("🧹 Performing complete cleanup...");
+    _isCleanedUp = true;
+
+    // Stop cheating detection
+    _stopCheatingDetection();
+
+    // Cancel all timers
+    _lockTaskChecker?.cancel();
+    _lockTaskCountdownTimer?.cancel();
+    _resetBackgroundTracking();
+
+    // Remove overlay
+    _removeFloatingOverlay();
+
+    // Set test as finished
+    isTestFinished = true;
+
+    debugPrint("✅ Complete cleanup finished");
+  }
+
   void _handleAutoSubmit(String reason) {
     debugPrint("🔥 HANDLE AUTO SUBMIT CALLED: $reason");
 
-    if (isTestFinished) {
-      debugPrint("⚠️ Test already finished, ignoring auto submit");
+    if (isTestFinished || _isCleanedUp || _isSubmitting) {
+      debugPrint("⚠️ Test already finished/cleaned up, ignoring auto submit");
       return;
     }
 
     debugPrint("✅ Processing auto submit...");
-    isTestFinished = true;
 
-    _stopCheatingDetection();
+    // Immediately mark as finished to prevent multiple calls
+    isTestFinished = true;
+    _isSubmitting = true;
+
+    _performCompleteCleanup();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -636,19 +699,19 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
   Future<void> _performAutoSubmit() async {
     debugPrint("🚀 Performing auto submit...");
     try {
-      setState(() {
-        isTestFinished = true;
-      });
+      // Ensure cleanup is done
+      _performCompleteCleanup();
 
       bool submitResult =
           await ref.read(fullTestProvider.notifier).submitAnswer();
       debugPrint("📤 Submit result: $submitResult");
+
       if (widget.packetType == "test") {
         await FlutterLockTask().stopLockTask();
         debugPrint("stopLockTask in auto-submit successful");
       }
+
       if (submitResult) {
-        _lockTaskChecker?.cancel();
         bool resetResult = await ref.read(fullTestProvider.notifier).resetAll();
         if (resetResult && context.mounted) {
           Navigator.pushReplacementNamed(
@@ -670,23 +733,35 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
 
   @override
   void dispose() {
+    debugPrint("🗑️ Disposing FullTestPage...");
+
+    // Perform complete cleanup
+    _performCompleteCleanup();
+
+    // Remove observer
     WidgetsBinding.instance.removeObserver(this);
-    _removeFloatingOverlay();
+
+    // Dispose notifiers
     _statusNotifier.dispose();
     _countdownNotifier.dispose();
-    _lockTaskChecker?.cancel();
-    _lockTaskCountdownTimer?.cancel();
-    _resetBackgroundTracking();
+
+    // Stop lock task if not already finished
     if (!isTestFinished && widget.packetType == "test") {
       FlutterLockTask().stopLockTask().then((value) {
         debugPrint("stopLockTask on dispose: $value");
       });
     }
+
     super.dispose();
+    debugPrint("✅ FullTestPage disposed");
   }
 
   Future<bool> _handleWillPop() async {
-    if (_isFinishDialogShowing || _isBypassDialogShowing || _isSubmitting) {
+    if (_isFinishDialogShowing ||
+        _isBypassDialogShowing ||
+        _isSubmitting ||
+        isTestFinished ||
+        _isCleanedUp) {
       return false;
     }
 
@@ -700,7 +775,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     if (!_isFinishDialogShowing &&
         !_isBypassDialogShowing &&
         !_isSubmitting &&
-        !isTestFinished) {
+        !isTestFinished &&
+        !_isCleanedUp) {
       _showFinishedDialog(context, ref);
     }
   }
@@ -710,9 +786,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     final screenWidth = MediaQuery.of(context).size.width;
     final state = ref.watch(fullTestProvider);
 
-    if (state.isSubmitLoading && !_isSubmitting) {
+    // Stop cheating detection when submit loading starts
+    if (state.isSubmitLoading && !_isSubmitting && !_isCleanedUp) {
       debugPrint("🔄 Submit loading detected, stopping cheating detection");
-      _stopCheatingDetection();
+      _performCompleteCleanup();
     }
 
     Duration countdownDuration;
@@ -729,6 +806,7 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     } else {
       countdownDuration = const Duration(hours: 2);
     }
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
@@ -741,7 +819,11 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            if (_hiddenCheatingDetection != null && !_isSubmitting)
+            // Only show cheating detection if test is active
+            if (_hiddenCheatingDetection != null &&
+                !_isSubmitting &&
+                !isTestFinished &&
+                !_isCleanedUp)
               Positioned.fill(
                 child: _hiddenCheatingDetection!,
               ),
@@ -774,8 +856,12 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                             const Spacer(),
                             GestureDetector(
                               onTap: () async {
-                                debugPrint("📋 Submit button tapped");
-                                _showFinishedDialog(context, ref);
+                                if (!isTestFinished &&
+                                    !_isCleanedUp &&
+                                    !_isSubmitting) {
+                                  debugPrint("📋 Submit button tapped");
+                                  _showFinishedDialog(context, ref);
+                                }
                               },
                               child: Text(
                                 "Submit",
@@ -854,26 +940,31 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                                 color: Colors.transparent,
                               ),
                               onDone: () async {
-                                _stopCheatingDetection();
-                                bool submitResult = await ref
-                                    .read(fullTestProvider.notifier)
-                                    .submitAnswer();
-                                if (submitResult) {
-                                  await ref
-                                      .read(fullTestProvider.notifier)
-                                      .resetAll();
+                                if (!isTestFinished && !_isCleanedUp) {
+                                  debugPrint(
+                                      "⏰ Timer finished - auto submitting");
+                                  _performCompleteCleanup();
 
-                                  if (context.mounted) {
-                                    Navigator.pushReplacementNamed(
-                                      context,
-                                      RouteKey.testresult,
-                                      arguments: {
-                                        'packetId': widget.packetId,
-                                        'isMiniTest': false,
-                                        'packetName': widget.packetName,
-                                        'packetType': widget.packetType,
-                                      },
-                                    );
+                                  bool submitResult = await ref
+                                      .read(fullTestProvider.notifier)
+                                      .submitAnswer();
+                                  if (submitResult) {
+                                    await ref
+                                        .read(fullTestProvider.notifier)
+                                        .resetAll();
+
+                                    if (context.mounted) {
+                                      Navigator.pushReplacementNamed(
+                                        context,
+                                        RouteKey.testresult,
+                                        arguments: {
+                                          'packetId': widget.packetId,
+                                          'isMiniTest': false,
+                                          'packetName': widget.packetName,
+                                          'packetType': widget.packetType,
+                                        },
+                                      );
+                                    }
                                   }
                                 }
                               },
@@ -943,13 +1034,15 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                             1)
                           IconButton(
                             onPressed: () {
-                              final currentNumber =
-                                  state.selectedQuestions.firstOrNull?.number ??
-                                      1;
-                              if (currentNumber > 1) {
-                                ref
-                                    .read(fullTestProvider.notifier)
-                                    .getQuestionByNumber(currentNumber - 1);
+                              if (!isTestFinished && !_isCleanedUp) {
+                                final currentNumber = state.selectedQuestions
+                                        .firstOrNull?.number ??
+                                    1;
+                                if (currentNumber > 1) {
+                                  ref
+                                      .read(fullTestProvider.notifier)
+                                      .getQuestionByNumber(currentNumber - 1);
+                                }
                               }
                             },
                             icon: const Icon(
@@ -962,28 +1055,32 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                         const Spacer(),
                         IconButton(
                           onPressed: () {
-                            ref
-                                .read(fullTestProvider.notifier)
-                                .getQuestionsFilledStatus()
-                                .then((value) {
-                              if (value != null) {
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (context) {
-                                    return BottomSheetFullTest(
-                                      filledStatus: value,
-                                      onTap: (number) {},
-                                    );
-                                  },
-                                ).then((selectedNumber) {
-                                  if (selectedNumber != null) {
-                                    ref
-                                        .read(fullTestProvider.notifier)
-                                        .getQuestionByNumber(selectedNumber);
-                                  }
-                                });
-                              }
-                            });
+                            if (!isTestFinished && !_isCleanedUp) {
+                              ref
+                                  .read(fullTestProvider.notifier)
+                                  .getQuestionsFilledStatus()
+                                  .then((value) {
+                                if (value != null) {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder: (context) {
+                                      return BottomSheetFullTest(
+                                        filledStatus: value,
+                                        onTap: (number) {},
+                                      );
+                                    },
+                                  ).then((selectedNumber) {
+                                    if (selectedNumber != null &&
+                                        !isTestFinished &&
+                                        !_isCleanedUp) {
+                                      ref
+                                          .read(fullTestProvider.notifier)
+                                          .getQuestionByNumber(selectedNumber);
+                                    }
+                                  });
+                                }
+                              });
+                            }
                           },
                           icon: const Icon(
                             Icons.list,
@@ -995,13 +1092,15 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                             state.totalQuestions)
                           IconButton(
                             onPressed: () {
-                              final currentNumber =
-                                  state.selectedQuestions.lastOrNull?.number ??
-                                      1;
-                              if (currentNumber < state.totalQuestions) {
-                                ref
-                                    .read(fullTestProvider.notifier)
-                                    .getQuestionByNumber(currentNumber + 1);
+                              if (!isTestFinished && !_isCleanedUp) {
+                                final currentNumber = state
+                                        .selectedQuestions.lastOrNull?.number ??
+                                    1;
+                                if (currentNumber < state.totalQuestions) {
+                                  ref
+                                      .read(fullTestProvider.notifier)
+                                      .getQuestionByNumber(currentNumber + 1);
+                                }
                               }
                             },
                             icon: const Icon(
@@ -1025,7 +1124,8 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
     if (_isFinishDialogShowing ||
         _isBypassDialogShowing ||
         _isSubmitting ||
-        isTestFinished) {
+        isTestFinished ||
+        _isCleanedUp) {
       debugPrint("⚠️ Dialog already showing or conditions not met");
       return Future.value();
     }
@@ -1057,7 +1157,10 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                   _isFinishDialogShowing = false;
                 });
                 Navigator.pop(submitContext);
-                _stopCheatingDetection();
+
+                // Perform complete cleanup before submitting
+                _performCompleteCleanup();
+
                 bool submitResult = false;
                 submitResult =
                     await ref.read(fullTestProvider.notifier).submitAnswer();
@@ -1067,8 +1170,6 @@ class _FullTestPageState extends ConsumerState<FullTestPage>
                   });
                 }
                 if (submitResult) {
-                  isTestFinished = true;
-                  _lockTaskChecker?.cancel();
                   bool resetResult =
                       await ref.read(fullTestProvider.notifier).resetAll();
                   if (resetResult && context.mounted) {

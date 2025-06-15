@@ -65,6 +65,14 @@ class TopicInterest extends StatelessWidget {
       "color": "#8070F8",
       "background": "#C4D0FB",
     },
+    {
+      "title": "courses".tr(),
+      "image": "assets/images/Group39370.svg",
+      "decoration":
+          "assets/images/vector_bg_tc6.svg", // bisa pakai dekorasi lain atau hapus kalau tidak ada
+      "color": "#8070F8",
+      "background": "#C4D0FB",
+    },
   ];
 
   Future<List<Quiz>> forYou() async {

@@ -306,16 +306,14 @@ class _SimulationPageState extends ConsumerState<SimulationPage> {
 
                                               if (isCompleted) {
                                                 // Jika sudah completed, tampilkan pesan
-                                                _showAlertDialog(
-                                                    "Pemberitahuan",
-                                                    "Anda sudah menyelesaikan paket ini. Coba besok!");
+                                                _showAlertDialog("Announcement",
+                                                    "You've completed this package. Try it tomorrow!");
                                                 return;
                                               }
 
                                               // Jika belum completed, lanjutkan dengan klaim paket
                                               debugPrint(
                                                   "Claiming paket for packet id: ${packet.id}");
-
                                               try {
                                                 final response = await DioToefl
                                                     .instance

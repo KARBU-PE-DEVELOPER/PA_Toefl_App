@@ -131,6 +131,20 @@ class FeatureTest extends StatelessWidget {
                     ),
                   ),
                 ),
+                Padding(
+                  padding: EdgeInsets.only(right: 24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(RouteKey.coursePage),
+                    child: FeaturedCard(
+                      isBgLight: false,
+                      icon: "assets/images/vector_game_listening.svg",
+                      title: "courses".tr(),
+                      subtitle: "listening_game_subtitle".tr(),
+                    ),
+                  ),
+                ),
               ],
             ),
           ));
