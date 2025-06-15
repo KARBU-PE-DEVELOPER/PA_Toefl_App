@@ -113,7 +113,7 @@ class _WritingpracticePageState extends ConsumerState<WritingpracticePage>
       case 'opinion':
         return 'writing_opinion'.tr();
       case 'discussion':
-        return 'writing_discussion';
+        return 'writing_discussion'.tr();
       case 'advantage_disadvantage':
         return 'writing_advantage_disadvantage'.tr();
       case 'problem_solution':

@@ -95,6 +95,7 @@
   "writing_practice": "Writing Practice",
   "speaking_game_subtitle": "Challenge your speaking",
   "hangman_game_subtitle": "D I E",
+  "scramble_game_subtitle": "Arrange the words correctly",
   "cloze_game_subtitle": "Fill The Blank!",
   "synonim_pair_subtitle": "A game that contains synonyms words",
   "listening_game_subtitle": "Can you hear what i said?",
@@ -150,5 +151,7 @@
   "writing_double_question": "Answer both questions in the prompt. Ensure you address each one in a separate paragraph.",
   "writing_default": "Read the prompt and write a well-structured essay in response.",
   "your_scores": "Your Scores",
+  "wordsearch_game":"Word Search Game",
+  "wordsearch_game_subtitle": "Find the words hidden in the grid"
   "courses": "Courses"
 }
