@@ -38,10 +38,10 @@ class _InputTextState extends State<InputText> {
       children: [
         Text(
           widget.title!,
-          style: GoogleFonts.balooBhaijaan2(fontSize: 16, 
-          fontWeight: FontWeight.w600,
-          color: HexColor(neutral10)
-          ),
+          style: GoogleFonts.balooBhaijaan2(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: HexColor(neutral10)),
         ),
         const SizedBox(height: 6.0),
         TextFormField(
@@ -49,11 +49,14 @@ class _InputTextState extends State<InputText> {
           validator: (value) {
             if (value == null || value.isEmpty || value.trim().isEmpty) {
               return 'warning_messages'.tr(args: ['${widget.hintText}']);
-            // } else if (widget.title == 'Email' && !value.endsWith('.pens.ac.id')) {
-            } else if (widget.title == 'Email' && !value.endsWith('.pens.ac.id')) {
+            } else if (widget.title == 'Email' &&
+                !value.endsWith('.pens.ac.id') &&
+                !value.endsWith('pens.ac.id')) {
               return 'wrong_email'.tr();
-            } else if ((widget.title == 'Password' || widget.title == 'New Password') && value.length < 6) {
-              return 'six_char_password'.tr(); 
+            } else if ((widget.title == 'Password' ||
+                    widget.title == 'New Password') &&
+                value.length < 6) {
+              return 'six_char_password'.tr();
             } else if (widget.title == 'Confirm Password' &&
                 widget.passwordController?.text.isNotEmpty == true &&
                 value != widget.passwordController!.text) {
@@ -61,7 +64,6 @@ class _InputTextState extends State<InputText> {
             }
             return null;
           },
-          
           controller: widget.controller,
           focusNode: widget.focusNode,
           obscureText: widget.title == 'Password' ||
@@ -72,7 +74,6 @@ class _InputTextState extends State<InputText> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
-
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.0),
               borderSide: const BorderSide(
